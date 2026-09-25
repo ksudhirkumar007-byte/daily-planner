@@ -3,25 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daily Flow & Habit Tracker</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Daily Flow & Tracker (Sheets Connected)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
-          }
-        }
-      }
-    }
-  </script>
   <style>
-    /* Smooth transitions and mobile touch improvements */
     body { -webkit-tap-highlight-color: transparent; }
     input[type="checkbox"] { accent-color: #6366f1; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -30,7 +15,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans pb-20 antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Top Header / App Bar -->
+  <!-- Header -->
   <header class="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 sm:px-6">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
       <div>
@@ -39,14 +24,15 @@
         </h1>
         <p id="currentDateDisplay" class="text-xs text-slate-400 font-medium"></p>
       </div>
+      
+      <!-- Sync Status Indicator & Manual Sync Button -->
       <div class="flex items-center gap-2">
-        <button onclick="exportData()" title="Backup Data" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
-          <i data-lucide="download" class="w-4 h-4"></i>
+        <span id="syncStatus" class="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Synced
+        </span>
+        <button onclick="fetchRemoteData()" title="Reload from Sheets" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          <i data-lucide="refresh-cw" id="syncIcon" class="w-4 h-4"></i>
         </button>
-        <label title="Restore Data" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
-          <i data-lucide="upload" class="w-4 h-4"></i>
-          <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
-        </label>
       </div>
     </div>
   </header>
@@ -73,7 +59,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button id="toggleTimerBtn" onclick="toggleTimer()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-md shadow-indigo-600/20">
+          <button id="toggleTimerBtn" onclick="toggleTimer()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-md">
             <i data-lucide="play" id="timerIcon" class="w-4 h-4"></i>
             <span id="timerBtnText">Start</span>
           </button>
@@ -108,7 +94,7 @@
         </div>
 
         <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
-          <span>Streaks increment on daily completion</span>
+          <span>Synced directly to Google Sheets</span>
           <span id="habitsCompletedCounter">0/0</span>
         </div>
       </section>
@@ -125,7 +111,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5 mb-1.5">
               <i data-lucide="sun" class="w-3.5 h-3.5"></i> Morning (06:00 - 12:00)
             </span>
-            <input type="text" id="plan_morning" onblur="savePlanner()" placeholder="Plan workout, routine, or deep focus..."
+            <input type="text" id="plan_morning" onblur="handlePlannerChange()" placeholder="Workouts, morning routine..."
                    class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
           </div>
 
@@ -134,7 +120,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-1.5">
               <i data-lucide="sun-medium" class="w-3.5 h-3.5"></i> Afternoon (12:00 - 17:00)
             </span>
-            <input type="text" id="plan_afternoon" onblur="savePlanner()" placeholder="Work priorities, calls, administration..."
+            <input type="text" id="plan_afternoon" onblur="handlePlannerChange()" placeholder="Work blocks, desk focus..."
                    class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
           </div>
 
@@ -143,7 +129,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 mb-1.5">
               <i data-lucide="moon" class="w-3.5 h-3.5"></i> Evening (17:00 - 22:00)
             </span>
-            <input type="text" id="plan_evening" onblur="savePlanner()" placeholder="Family time, reading, unwinding..."
+            <input type="text" id="plan_evening" onblur="handlePlannerChange()" placeholder="Family, reading, wind down..."
                    class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
           </div>
         </div>
@@ -159,13 +145,13 @@
         </h2>
       </div>
 
-      <!-- Add Task Input Form -->
+      <!-- Add Task Form -->
       <form onsubmit="handleAddTask(event)" class="flex flex-col sm:flex-row gap-2 mb-4">
         <input type="text" id="taskTitleInput" placeholder="Add a new task..." required
                class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
         
         <select id="taskPriorityInput" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
-          <option value="High">High Priority</option>
+          <option value="High">High</option>
           <option value="Med" selected>Medium</option>
           <option value="Low">Low</option>
         </select>
@@ -176,9 +162,7 @@
       </form>
 
       <!-- Task Items List -->
-      <div id="taskList" class="space-y-2">
-        <!-- Dynamic Tasks Injected Here -->
-      </div>
+      <div id="taskList" class="space-y-2"></div>
     </section>
 
     <!-- Section 5: Today's Focus History Log -->
@@ -187,72 +171,125 @@
         <span>Logged Time Sessions</span>
         <button onclick="clearTimeLogs()" class="text-[11px] text-red-400 hover:underline">Clear</button>
       </h2>
-      <div id="timeLogList" class="space-y-1.5 text-xs text-slate-300 font-mono">
-        <!-- Dynamic Logs Injected Here -->
-      </div>
+      <div id="timeLogList" class="space-y-1.5 text-xs text-slate-300 font-mono"></div>
     </section>
 
   </main>
 
   <script>
-    // ---------- State Management (localStorage) ----------
+    // ==========================================
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    // ==========================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbyIUbopelrBb-HQoNjm3Xa9x_5ulYHdcU1N7jIJJ-wqiS0CQ6PU8gt2l9pHoxbowrz3/exec";
+
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-    const defaultState = {
+    // Local state fallback & fast caching
+    let appData = JSON.parse(localStorage.getItem('daily_flow_cache')) || {
       habits: [
-        { id: 1, name: "Strength Workout", streak: 0, lastDone: "" },
-        { id: 2, name: "3L Clean Water", streak: 0, lastDone: "" },
-        { id: 3, name: "7+ Hours Sleep", streak: 0, lastDone: "" }
+        { id: 1, name: "Workout", streak: 0, lastDone: "" },
+        { id: 2, name: "Hydration", streak: 0, lastDone: "" }
       ],
-      planner: {}, // Keyed by YYYY-MM-DD: { morning, afternoon, evening }
+      planner: { date: getTodayKey(), morning: "", afternoon: "", evening: "" },
       tasks: [],
       focusLogs: []
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state')) || defaultState;
-
-    function saveState() {
-      localStorage.setItem('daily_flow_state', JSON.stringify(appData));
+    function setSyncStatus(state) {
+      const el = document.getElementById('syncStatus');
+      const icon = document.getElementById('syncIcon');
+      if (state === 'syncing') {
+        el.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Syncing...`;
+        icon.classList.add('animate-spin');
+      } else if (state === 'error') {
+        el.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Offline / Err`;
+        icon.classList.remove('animate-spin');
+      } else {
+        el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Synced`;
+        icon.classList.remove('animate-spin');
+      }
     }
 
-    // ---------- Date & Header Setup ----------
+    // Push local state to Google Sheets
+    async function syncToRemote() {
+      localStorage.setItem('daily_flow_cache', JSON.stringify(appData));
+      if (!API_URL || API_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) return;
+
+      setSyncStatus('syncing');
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors", // Google Web Apps redirect handling
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "syncAll",
+            data: appData
+          })
+        });
+        setSyncStatus('synced');
+      } catch (e) {
+        console.error("Sync error:", e);
+        setSyncStatus('error');
+      }
+    }
+
+    // Pull latest data from Google Sheets
+    async function fetchRemoteData() {
+      if (!API_URL || API_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) return;
+      setSyncStatus('syncing');
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        
+        if (data.habits) appData.habits = data.habits.map(h => ({ ...h, id: Number(h.id), streak: Number(h.streak) }));
+        if (data.tasks) appData.tasks = data.tasks.map(t => ({ ...t, id: Number(t.id), completed: String(t.completed) === 'true' }));
+        if (data.focusLogs) appData.focusLogs = data.focusLogs;
+        
+        const today = getTodayKey();
+        const todayPlan = data.planner ? data.planner.find(p => String(p.date).split('T')[0] === today) : null;
+        appData.planner = todayPlan ? todayPlan : { date: today, morning: "", afternoon: "", evening: "" };
+
+        localStorage.setItem('daily_flow_cache', JSON.stringify(appData));
+        renderAll();
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setSyncStatus('error');
+      }
+    }
+
+    // ---------- UI Renders ----------
     function renderHeaderDate() {
       const today = new Date();
-      const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
-      document.getElementById('currentDateDisplay').textContent = today.toLocaleDateString(undefined, options);
+      document.getElementById('currentDateDisplay').textContent = today.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
     }
 
-    // ---------- Habits Logic ----------
     function renderHabits() {
-      const habitContainer = document.getElementById('habitList');
-      habitContainer.innerHTML = '';
+      const container = document.getElementById('habitList');
+      container.innerHTML = '';
       const today = getTodayKey();
-      let completedCount = 0;
+      let done = 0;
 
-      appData.habits.forEach(habit => {
-        const isDoneToday = habit.lastDone === today;
-        if (isDoneToday) completedCount++;
-
+      appData.habits.forEach(h => {
+        const isDone = h.lastDone === today;
+        if (isDone) done++;
         const div = document.createElement('div');
-        div.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 transition";
+        div.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80";
         div.innerHTML = `
           <div class="flex items-center gap-3">
-            <input type="checkbox" ${isDoneToday ? 'checked' : ''} onchange="toggleHabit(${habit.id})" class="w-4 h-4 rounded cursor-pointer">
-            <span class="text-xs font-medium ${isDoneToday ? 'line-through text-slate-500' : 'text-slate-200'}">${habit.name}</span>
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleHabit(${h.id})" class="w-4 h-4 rounded cursor-pointer">
+            <span class="text-xs font-medium ${isDone ? 'line-through text-slate-500' : 'text-slate-200'}">${h.name}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full ${habit.streak > 0 ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' : 'text-slate-500'}">
-              🔥 ${habit.streak}d
+            <span class="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full ${h.streak > 0 ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' : 'text-slate-500'}">
+              🔥 ${h.streak}d
             </span>
-            <button onclick="removeHabit(${habit.id})" class="text-slate-600 hover:text-red-400 transition p-1">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
+            <button onclick="removeHabit(${h.id})" class="text-slate-600 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
           </div>
         `;
-        habitContainer.appendChild(div);
+        container.appendChild(div);
       });
-
-      document.getElementById('habitsCompletedCounter').textContent = `${completedCount}/${appData.habits.length}`;
+      document.getElementById('habitsCompletedCounter').textContent = `${done}/${appData.habits.length}`;
       lucide.createIcons();
     }
 
@@ -260,7 +297,6 @@
       const today = getTodayKey();
       const habit = appData.habits.find(h => h.id === id);
       if (!habit) return;
-
       if (habit.lastDone === today) {
         habit.lastDone = "";
         habit.streak = Math.max(0, habit.streak - 1);
@@ -268,136 +304,115 @@
         habit.lastDone = today;
         habit.streak += 1;
       }
-      saveState();
       renderHabits();
+      syncToRemote();
     }
 
     function addNewHabitPrompt() {
-      const name = prompt("Enter new habit name:");
+      const name = prompt("Enter new habit:");
       if (name && name.trim()) {
-        appData.habits.push({
-          id: Date.now(),
-          name: name.trim(),
-          streak: 0,
-          lastDone: ""
-        });
-        saveState();
+        appData.habits.push({ id: Date.now(), name: name.trim(), streak: 0, lastDone: "" });
         renderHabits();
+        syncToRemote();
       }
     }
 
     function removeHabit(id) {
       appData.habits = appData.habits.filter(h => h.id !== id);
-      saveState();
       renderHabits();
+      syncToRemote();
     }
 
-    // ---------- Planner Logic ----------
-    function loadPlanner() {
-      const today = getTodayKey();
-      const plan = appData.planner[today] || { morning: "", afternoon: "", evening: "" };
-      document.getElementById('plan_morning').value = plan.morning || "";
-      document.getElementById('plan_afternoon').value = plan.afternoon || "";
-      document.getElementById('plan_evening').value = plan.evening || "";
+    function renderPlanner() {
+      document.getElementById('plan_morning').value = appData.planner.morning || "";
+      document.getElementById('plan_afternoon').value = appData.planner.afternoon || "";
+      document.getElementById('plan_evening').value = appData.planner.evening || "";
     }
 
-    function savePlanner() {
-      const today = getTodayKey();
-      if (!appData.planner[today]) appData.planner[today] = {};
-      appData.planner[today].morning = document.getElementById('plan_morning').value;
-      appData.planner[today].afternoon = document.getElementById('plan_afternoon').value;
-      appData.planner[today].evening = document.getElementById('plan_evening').value;
-      saveState();
+    function handlePlannerChange() {
+      appData.planner = {
+        date: getTodayKey(),
+        morning: document.getElementById('plan_morning').value,
+        afternoon: document.getElementById('plan_afternoon').value,
+        evening: document.getElementById('plan_evening').value
+      };
+      syncToRemote();
     }
 
-    // ---------- Tasks Logic ----------
+    function renderTasks() {
+      const container = document.getElementById('taskList');
+      container.innerHTML = '';
+      if (!appData.tasks.length) {
+        container.innerHTML = `<div class="text-xs text-slate-600 text-center py-4">No tasks found.</div>`;
+        return;
+      }
+      appData.tasks.forEach(t => {
+        const priorityColors = {
+          High: 'text-rose-400 bg-rose-950/40 border-rose-800/40',
+          Med: 'text-amber-400 bg-amber-950/40 border-amber-800/40',
+          Low: 'text-slate-400 bg-slate-800 border-slate-700'
+        };
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 ${t.completed ? 'opacity-50' : ''}`;
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})" class="w-4 h-4 rounded cursor-pointer">
+            <span class="text-xs font-medium ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${t.title}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${priorityColors[t.priority] || priorityColors.Med}">${t.priority}</span>
+          </div>
+          <button onclick="deleteTask(${t.id})" class="text-slate-600 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        `;
+        container.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
     function handleAddTask(e) {
       e.preventDefault();
       const titleInput = document.getElementById('taskTitleInput');
       const priorityInput = document.getElementById('taskPriorityInput');
-
       appData.tasks.unshift({
         id: Date.now(),
         title: titleInput.value.trim(),
         priority: priorityInput.value,
         completed: false
       });
-
       titleInput.value = '';
-      saveState();
       renderTasks();
+      syncToRemote();
     }
 
     function toggleTask(id) {
-      const task = appData.tasks.find(t => t.id === id);
-      if (task) {
-        task.completed = !task.completed;
-        saveState();
+      const t = appData.tasks.find(x => x.id === id);
+      if (t) {
+        t.completed = !t.completed;
         renderTasks();
+        syncToRemote();
       }
     }
 
     function deleteTask(id) {
-      appData.tasks = appData.tasks.filter(t => t.id !== id);
-      saveState();
+      appData.tasks = appData.tasks.filter(x => x.id !== id);
       renderTasks();
+      syncToRemote();
     }
 
-    function renderTasks() {
-      const taskList = document.getElementById('taskList');
-      taskList.innerHTML = '';
-
-      if (appData.tasks.length === 0) {
-        taskList.innerHTML = `<div class="text-xs text-slate-600 text-center py-4">No tasks yet. Add one above!</div>`;
-        return;
-      }
-
-      appData.tasks.forEach(task => {
-        const priorityColors = {
-          High: 'text-rose-400 bg-rose-950/40 border-rose-800/40',
-          Med: 'text-amber-400 bg-amber-950/40 border-amber-800/40',
-          Low: 'text-slate-400 bg-slate-800 border-slate-700'
-        };
-
-        const div = document.createElement('div');
-        div.className = `flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 transition ${task.completed ? 'opacity-50' : ''}`;
-        div.innerHTML = `
-          <div class="flex items-center gap-3">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 rounded cursor-pointer">
-            <span class="text-xs font-medium ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${priorityColors[task.priority]}">${task.priority}</span>
-          </div>
-          <button onclick="deleteTask(${task.id})" class="text-slate-600 hover:text-rose-400 transition p-1">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        `;
-        taskList.appendChild(div);
-      });
-      lucide.createIcons();
-    }
-
-    // ---------- Stopwatch & Timer Logic ----------
-    let timerInterval = null;
-    let timerSeconds = 0;
-    let isRunning = false;
-
-    function formatTime(totalSecs) {
-      const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
-      const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
-      const secs = String(totalSecs % 60).padStart(2, '0');
-      return `${hrs}:${mins}:${secs}`;
+    // ---------- Focus Stopwatch ----------
+    let timerInterval = null, timerSeconds = 0, isRunning = false;
+    function formatTime(s) {
+      const h = String(Math.floor(s / 3600)).padStart(2, '0');
+      const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+      const sec = String(s % 60).padStart(2, '0');
+      return `${h}:${m}:${sec}`;
     }
 
     function toggleTimer() {
       const btn = document.getElementById('toggleTimerBtn');
       const btnText = document.getElementById('timerBtnText');
-      const timerIcon = document.getElementById('timerIcon');
-
       if (!isRunning) {
         isRunning = true;
         btnText.textContent = "Pause";
         btn.classList.replace('bg-indigo-600', 'bg-amber-600');
-        btn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
         timerInterval = setInterval(() => {
           timerSeconds++;
           document.getElementById('stopwatchDisplay').textContent = formatTime(timerSeconds);
@@ -407,7 +422,6 @@
         clearInterval(timerInterval);
         btnText.textContent = "Resume";
         btn.classList.replace('bg-amber-600', 'bg-indigo-600');
-        btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
       }
     }
 
@@ -417,40 +431,35 @@
       timerSeconds = 0;
       document.getElementById('stopwatchDisplay').textContent = "00:00:00";
       document.getElementById('timerBtnText').textContent = "Start";
-      const btn = document.getElementById('toggleTimerBtn');
-      btn.classList.replace('bg-amber-600', 'bg-indigo-600');
-      btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+      document.getElementById('toggleTimerBtn').classList.replace('bg-amber-600', 'bg-indigo-600');
     }
 
     function logFocusSession() {
-      if (timerSeconds < 10) {
-        alert("Focus for at least 10 seconds before logging.");
-        return;
-      }
+      if (timerSeconds < 5) return alert("Focus at least 5s before logging");
       const label = document.getElementById('timerLabelInput').value.trim() || "Deep Work";
-      const timeStr = formatTime(timerSeconds);
+      const duration = formatTime(timerSeconds);
       const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      appData.focusLogs.unshift({ id: Date.now(), label, duration: timeStr, time: timestamp });
-      saveState();
+      appData.focusLogs.unshift({ id: Date.now(), label, duration, timestamp });
       resetTimer();
       document.getElementById('timerLabelInput').value = "";
       renderFocusLogs();
+      syncToRemote();
     }
 
     function renderFocusLogs() {
       const container = document.getElementById('timeLogList');
       container.innerHTML = '';
-      if (appData.focusLogs.length === 0) {
-        container.innerHTML = `<span class="text-slate-600">No sessions recorded today.</span>`;
+      if (!appData.focusLogs.length) {
+        container.innerHTML = `<span class="text-slate-600">No sessions recorded yet.</span>`;
         return;
       }
-      appData.focusLogs.slice(0, 5).forEach(log => {
+      appData.focusLogs.slice(0, 5).forEach(l => {
         const div = document.createElement('div');
         div.className = "flex items-center justify-between bg-slate-950 p-2 rounded-lg border border-slate-800/60";
         div.innerHTML = `
-          <span>${log.label}</span>
-          <span class="text-indigo-400 font-bold">${log.duration} <span class="text-slate-500 font-normal">(${log.time})</span></span>
+          <span>${l.label}</span>
+          <span class="text-indigo-400 font-bold">${l.duration} <span class="text-slate-500 font-normal">(${l.timestamp || ''})</span></span>
         `;
         container.appendChild(div);
       });
@@ -458,47 +467,23 @@
 
     function clearTimeLogs() {
       appData.focusLogs = [];
-      saveState();
       renderFocusLogs();
+      syncToRemote();
     }
 
-    // ---------- Backup & Restore (JSON) ----------
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData(event) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          appData = JSON.parse(e.target.result);
-          saveState();
-          init();
-          alert("Data restored successfully!");
-        } catch (err) {
-          alert("Invalid JSON backup file.");
-        }
-      };
-      if (event.target.files[0]) reader.readAsText(event.target.files[0]);
-    }
-
-    // ---------- Initialize App ----------
-    function init() {
+    function renderAll() {
       renderHeaderDate();
       renderHabits();
-      loadPlanner();
+      renderPlanner();
       renderTasks();
       renderFocusLogs();
       lucide.createIcons();
     }
 
-    window.onload = init;
+    window.onload = () => {
+      renderAll();
+      fetchRemoteData(); // initial fetch from Google Sheet
+    };
   </script>
 </body>
 </html>
