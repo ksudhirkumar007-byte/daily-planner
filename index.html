@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daily Flow & Multi-Type Habit Tracker</title>
+  <title>Daily Flow & Habit Analytics</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for Habit Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -47,7 +49,7 @@
         </div>
       </div>
 
-      <!-- Sync status & actions -->
+      <!-- Actions & Sync Controls -->
       <div class="flex items-center gap-2">
         <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:bg-slate-800 text-xs text-slate-300 transition active:scale-95">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -55,7 +57,16 @@
           <i data-lucide="refresh-cw" id="syncIcon" class="w-3.5 h-3.5 text-slate-400"></i>
         </button>
 
-        <button onclick="openConfigModal()" title="API Config" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60">
+        <button onclick="exportData()" title="Backup to JSON" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+
+        <label title="Restore from JSON" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60 cursor-pointer">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
+        </label>
+
+        <button onclick="openConfigModal()" title="Google Sheets API Config" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
       </div>
@@ -100,23 +111,25 @@
       </div>
     </section>
 
-    <!-- Section 2: Upgraded Multi-Type Habit Tracker -->
+    <!-- Section 2: Multi-Type Habit Tracker with Analytics Buttons -->
     <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
             <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Habits & Daily Metrics
           </h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">Track booleans, numeric hours/counts, and workout details</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Click the <span class="text-indigo-400 font-medium">analytics icon (<i data-lucide="bar-chart-2" class="w-3 h-3 inline"></i>)</span> on any habit for detailed charts</p>
         </div>
-        <button onclick="openHabitModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 text-xs font-semibold text-white flex items-center gap-1.5 transition active:scale-95 shadow-sm shadow-indigo-600/30">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i> New Habit
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="openHabitModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white flex items-center gap-1.5 transition active:scale-95 shadow-sm shadow-indigo-600/30">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> New Habit
+          </button>
+        </div>
       </div>
 
       <!-- Habit Cards Container -->
       <div id="habitList" class="space-y-3">
-        <!-- Rendered dynamically -->
+        <!-- Injected dynamically -->
       </div>
 
       <!-- Habit Stats Footer -->
@@ -125,7 +138,7 @@
           <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
           Completed Today: <strong id="habitsCompletedCounter" class="text-slate-200">0/0</strong>
         </span>
-        <span class="text-[11px] text-slate-500">Auto-saves to cloud & local storage</span>
+        <span class="text-[11px] text-slate-500">Auto-saves to Google Sheets & local cache</span>
       </div>
     </section>
 
@@ -147,7 +160,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5 mb-1.5">
               <i data-lucide="sun" class="w-3.5 h-3.5"></i> Morning (06:00 - 12:00)
             </span>
-            <input type="text" id="plan_morning" onblur="handlePlannerChange()" placeholder="Workouts, deep focus routines..."
+            <input type="text" id="plan_morning" onblur="handlePlannerChange()" placeholder="Workouts, morning routine, deep focus..."
                    class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
           </div>
 
@@ -156,7 +169,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-1.5">
               <i data-lucide="sun-medium" class="w-3.5 h-3.5"></i> Afternoon (12:00 - 17:00)
             </span>
-            <input type="text" id="plan_afternoon" onblur="handlePlannerChange()" placeholder="Office blocks, meetings, project sprints..."
+            <input type="text" id="plan_afternoon" onblur="handlePlannerChange()" placeholder="Office blocks, calls, desk execution..."
                    class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
           </div>
 
@@ -165,7 +178,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 mb-1.5">
               <i data-lucide="moon" class="w-3.5 h-3.5"></i> Evening (17:00 - 22:00)
             </span>
-            <input type="text" id="plan_evening" onblur="handlePlannerChange()" placeholder="Reading, family time, decompression..."
+            <input type="text" id="plan_evening" onblur="handlePlannerChange()" placeholder="Reading, family, wind down..."
                    class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
           </div>
         </div>
@@ -183,7 +196,7 @@
 
           <!-- Add Task Input Form -->
           <form onsubmit="handleAddTask(event)" class="flex flex-col sm:flex-row gap-2 mb-3">
-            <input type="text" id="taskTitleInput" placeholder="Add urgent task..." required
+            <input type="text" id="taskTitleInput" placeholder="Add priority task..." required
                    class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
             
             <select id="taskPriorityInput" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
@@ -216,6 +229,107 @@
     </section>
 
   </main>
+
+  <!-- MODAL: Habit Analytics & Insights -->
+  <div id="analyticsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/40">
+        <div class="flex items-center gap-3">
+          <div id="analyticsIconBox" class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="analyticsHabitTitle" class="text-base font-bold text-white leading-tight">Habit Analytics</h3>
+            <p id="analyticsHabitSubtitle" class="text-xs text-slate-400 font-mono mt-0.5">Performance Overview</p>
+          </div>
+        </div>
+        <button onclick="closeAnalyticsModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 overflow-y-auto space-y-6">
+
+        <!-- Top KPI Metrics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Current Streak</span>
+            <div id="kpiCurrentStreak" class="text-xl font-bold font-mono text-amber-400">0d</div>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Best Streak</span>
+            <div id="kpiBestStreak" class="text-xl font-bold font-mono text-amber-400">0d</div>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Last 7 Days</span>
+            <div id="kpi7DayRate" class="text-xl font-bold font-mono text-indigo-400">0%</div>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Last 30 Days</span>
+            <div id="kpi30DayRate" class="text-xl font-bold font-mono text-emerald-400">0%</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Numeric Aggregates (Shown only for numeric habits) -->
+        <div id="numericStatsRow" class="hidden grid grid-cols-3 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <div>
+            <span class="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">7-Day Total</span>
+            <span id="num7DayTotal" class="text-sm font-bold font-mono text-cyan-400">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">30-Day Total</span>
+            <span id="num30DayTotal" class="text-sm font-bold font-mono text-cyan-400">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">Daily Average</span>
+            <span id="numDailyAvg" class="text-sm font-bold font-mono text-cyan-400">-</span>
+          </div>
+        </div>
+
+        <!-- 30-Day Activity Contribution Grid -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-xs font-semibold text-slate-300">30-Day Activity Grid</span>
+            <span class="text-[10px] text-slate-500 font-mono">Older → Today</span>
+          </div>
+          <div id="heatmapGrid" class="grid grid-cols-10 sm:grid-cols-15 gap-1.5">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <span id="chartSectionTitle" class="text-xs font-semibold text-slate-300">14-Day Progress Trend</span>
+            <span id="chartSectionBadge" class="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded font-mono text-indigo-300">Trend</span>
+          </div>
+          <div class="relative h-56 w-full">
+            <canvas id="habitChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chronological Descriptive Logs (Shown primarily for text/notes habits) -->
+        <div id="descriptiveLogSection" class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <span class="text-xs font-semibold text-slate-300 block mb-2">Logged Entries & Notes</span>
+          <div id="descriptiveEntriesList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <!-- Dynamic entries injected here -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
+        <button onclick="closeAnalyticsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition">
+          Close Analytics
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- MODAL: Create / Edit Habit -->
   <div id="habitModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -304,7 +418,7 @@
       </div>
 
       <div class="space-y-4">
-        <p class="text-xs text-slate-400">
+        <p class="text-xs text-slate-400 leading-relaxed">
           Paste your Google Apps Script Web App URL (`.../exec`). Data syncs directly with no 3rd-party database.
         </p>
 
@@ -324,23 +438,22 @@
     </div>
   </div>
 
+  <!-- APPLICATION SCRIPTS -->
   <script>
-    // ---------- State Storage & Schema ----------
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-    // Local state structure
+    // Default Seed Data
     const defaultState = {
       habits: [
         { id: 1, name: "Strength Workout", type: "text", unit: "", target: "" },
         { id: 2, name: "Office / Deep Work", type: "number", unit: "hrs", target: "8" },
-        { id: 3, name: "3L Clean Water", type: "number", unit: "liters", target: "3" },
-        { id: 4, name: "No Sugar / Fast Food", type: "boolean", unit: "", target: "" }
+        { id: 3, name: "Clean Water", type: "number", unit: "liters", target: "3" },
+        { id: 4, name: "No Junk Food", type: "boolean", unit: "", target: "" }
       ],
-      // habitLogs maps: "habitId_YYYY-MM-DD" -> { value: "...", completed: boolean }
       habitLogs: {
-        [`1_${getTodayKey()}`]: { value: "Chest & Triceps: Bench 75kg 4x8, Dips 3x12", completed: true },
-        [`2_${getTodayKey()}`]: { value: "6.5", completed: false },
-        [`3_${getTodayKey()}`]: { value: "2", completed: false },
+        [`1_${getTodayKey()}`]: { value: "Chest & Triceps: Bench 80kg 4x8, Dips 3x12", completed: true },
+        [`2_${getTodayKey()}`]: { value: "7.5", completed: false },
+        [`3_${getTodayKey()}`]: { value: "3", completed: true },
         [`4_${getTodayKey()}`]: { value: "true", completed: true }
       },
       planner: { date: getTodayKey(), morning: "", afternoon: "", evening: "" },
@@ -349,16 +462,16 @@
       apiUrl: ""
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v2')) || defaultState;
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
 
-    // Migrate any older state format if found
+    // Migrate storage key if updating from previous version
     if (!appData.habitLogs) appData.habitLogs = {};
     if (!appData.apiUrl) {
       appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
     }
 
     function saveState() {
-      localStorage.setItem('daily_flow_state_v2', JSON.stringify(appData));
+      localStorage.setItem('daily_flow_state_v3', JSON.stringify(appData));
     }
 
     function setSyncStatus(state) {
@@ -381,7 +494,7 @@
       }
     }
 
-    // Push updates to Google Apps Script
+    // Push state to Google Sheets Web App
     async function syncToRemote() {
       saveState();
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
@@ -392,7 +505,6 @@
       setSyncStatus('syncing');
 
       try {
-        // Convert habitLogs object into array for Google Sheets rows
         const logsArray = Object.keys(appData.habitLogs).map(key => {
           const parts = key.split('_');
           const habitId = parts[0];
@@ -407,7 +519,7 @@
           };
         });
 
-        // Use text/plain and redirect: "follow" to guarantee zero CORS preflight blocks
+        // Use text/plain and redirect: follow to avoid CORS issues with Apps Script
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -435,7 +547,7 @@
       }
     }
 
-    // Pull data from Google Apps Script
+    // Fetch state from Google Sheets Web App
     async function fetchRemoteData() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
@@ -452,7 +564,6 @@
         if (!res.ok) throw new Error("Fetch failed");
         const json = await res.json();
 
-        // Populate habits if available
         if (json.habits && Array.isArray(json.habits) && json.habits.length > 0) {
           appData.habits = json.habits.map(h => ({
             id: Number(h.id) || h.id,
@@ -463,7 +574,6 @@
           }));
         }
 
-        // Reconstruct habitLogs map
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
           appData.habitLogs = {};
           json.habitLogs.forEach(row => {
@@ -475,7 +585,6 @@
           });
         }
 
-        // Populate Tasks
         if (json.tasks && Array.isArray(json.tasks)) {
           appData.tasks = json.tasks.map(t => ({
             id: Number(t.id) || t.id,
@@ -485,12 +594,10 @@
           }));
         }
 
-        // Populate Focus logs
         if (json.focusLogs && Array.isArray(json.focusLogs)) {
           appData.focusLogs = json.focusLogs;
         }
 
-        // Populate Planner for today
         const today = getTodayKey();
         if (json.planner && Array.isArray(json.planner)) {
           const match = json.planner.find(p => String(p.date).split('T')[0] === today);
@@ -513,12 +620,10 @@
       }
     }
 
-    // ---------- Habit Rendering & Interactions ----------
     function computeStreak(habitId) {
       let streak = 0;
       let checkDate = new Date();
 
-      // Check current today or yesterday sequence
       while (true) {
         const dateStr = checkDate.toISOString().split('T')[0];
         const log = appData.habitLogs[`${habitId}_${dateStr}`];
@@ -526,7 +631,7 @@
           streak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else {
-          // If today isn't done yet, check if yesterday was done to preserve streak
+          // Check yesterday to prevent breaking active streak if today is not logged yet
           if (streak === 0 && dateStr === getTodayKey()) {
             checkDate.setDate(checkDate.getDate() - 1);
             const yestDateStr = checkDate.toISOString().split('T')[0];
@@ -541,6 +646,31 @@
         }
       }
       return streak;
+    }
+
+    function computeBestStreak(habitId) {
+      let maxStreak = 0;
+      let currentSeq = 0;
+      
+      // Collect all recorded log dates
+      const dates = [];
+      const now = new Date();
+      for (let i = 180; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+      }
+
+      dates.forEach(d => {
+        const log = appData.habitLogs[`${habitId}_${d}`];
+        if (log && log.completed) {
+          currentSeq++;
+          if (currentSeq > maxStreak) maxStreak = currentSeq;
+        } else {
+          currentSeq = 0;
+        }
+      });
+      return maxStreak;
     }
 
     function renderHabits() {
@@ -566,7 +696,6 @@
 
         let controlHtml = "";
 
-        // Render controls based on type
         if (habit.type === 'boolean') {
           const isDone = log.completed;
           controlHtml = `
@@ -611,14 +740,13 @@
         } else if (habit.type === 'text') {
           controlHtml = `
             <div class="w-full mt-2 sm:mt-0 sm:max-w-xs">
-              <textarea rows="2" placeholder="e.g. Chest 75kg 4x8, 5k run in 26m, notes..." 
+              <textarea rows="2" placeholder="e.g. Bench 75kg 4x8, notes..." 
                         onblur="handleTextHabitBlur(${habit.id}, this.value)"
                         class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed">${log.value || ''}</textarea>
             </div>
           `;
         }
 
-        // Header and layout inside card
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -643,10 +771,14 @@
             <div class="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3">
               ${controlHtml}
               <div class="flex items-center gap-1 border-l border-slate-800 pl-2">
-                <button onclick="editHabit(${habit.id})" class="text-slate-500 hover:text-indigo-400 p-1 rounded transition" title="Edit">
+                <!-- Analytics Button -->
+                <button onclick="openAnalyticsModal(${habit.id})" class="text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 p-1.5 rounded-lg transition" title="View Habit Analytics">
+                  <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                </button>
+                <button onclick="editHabit(${habit.id})" class="text-slate-500 hover:text-indigo-400 p-1.5 rounded-lg transition" title="Edit">
                   <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                 </button>
-                <button onclick="deleteHabit(${habit.id})" class="text-slate-500 hover:text-rose-400 p-1 rounded transition" title="Delete">
+                <button onclick="deleteHabit(${habit.id})" class="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition" title="Delete">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
@@ -722,6 +854,248 @@
       syncToRemote();
     }
 
+    let activeChartInstance = null;
+
+    function openAnalyticsModal(habitId) {
+      const habit = appData.habits.find(h => h.id === habitId);
+      if (!habit) return;
+
+      document.getElementById('analyticsHabitTitle').textContent = habit.name;
+      document.getElementById('analyticsHabitSubtitle').textContent = `Type: ${habit.type.toUpperCase()}${habit.unit ? ' (' + habit.unit + ')' : ''}`;
+
+      // 1. Calculate KPI Metrics (Streaks & Completion Rates)
+      const currentStreak = computeStreak(habit.id);
+      const bestStreak = computeBestStreak(habit.id);
+      document.getElementById('kpiCurrentStreak').textContent = `${currentStreak}d`;
+      document.getElementById('kpiBestStreak').textContent = `${bestStreak}d`;
+
+      // Rates for 7 and 30 days
+      const last7Days = [];
+      const last30Days = [];
+      const now = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        last7Days.push(d.toISOString().split('T')[0]);
+      }
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        last30Days.push(d.toISOString().split('T')[0]);
+      }
+
+      const completed7 = last7Days.filter(d => appData.habitLogs[`${habit.id}_${d}`]?.completed).length;
+      const completed30 = last30Days.filter(d => appData.habitLogs[`${habit.id}_${d}`]?.completed).length;
+
+      document.getElementById('kpi7DayRate').textContent = `${Math.round((completed7 / 7) * 100)}%`;
+      document.getElementById('kpi30DayRate').textContent = `${Math.round((completed30 / 30) * 100)}%`;
+
+      // 2. Numeric aggregations if numeric habit
+      const numRow = document.getElementById('numericStatsRow');
+      if (habit.type === 'number') {
+        numRow.classList.remove('hidden');
+        let sum7 = 0, sum30 = 0, count30 = 0;
+
+        last7Days.forEach(d => {
+          const v = parseFloat(appData.habitLogs[`${habit.id}_${d}`]?.value) || 0;
+          sum7 += v;
+        });
+        last30Days.forEach(d => {
+          const v = parseFloat(appData.habitLogs[`${habit.id}_${d}`]?.value) || 0;
+          sum30 += v;
+          if (v > 0) count30++;
+        });
+
+        const dailyAvg = count30 > 0 ? (sum30 / 30).toFixed(1) : 0;
+        document.getElementById('num7DayTotal').textContent = `${sum7.toFixed(1)} ${habit.unit}`;
+        document.getElementById('num30DayTotal').textContent = `${sum30.toFixed(1)} ${habit.unit}`;
+        document.getElementById('numDailyAvg').textContent = `${dailyAvg} ${habit.unit}/day`;
+      } else {
+        numRow.classList.add('hidden');
+      }
+
+      // 3. Render 30-Day Contribution Heatmap Grid
+      const heatmapEl = document.getElementById('heatmapGrid');
+      heatmapEl.innerHTML = '';
+      last30Days.forEach(d => {
+        const log = appData.habitLogs[`${habit.id}_${d}`];
+        const isCompleted = log && log.completed;
+        const square = document.createElement('div');
+        square.className = `w-full aspect-square rounded-md transition border ${
+          isCompleted 
+            ? 'bg-emerald-500/80 border-emerald-400 shadow-sm' 
+            : 'bg-slate-900 border-slate-800'
+        }`;
+        square.title = `${d}: ${isCompleted ? 'Completed' : 'Missed'}${log && log.value ? ' (' + log.value + ')' : ''}`;
+        heatmapEl.appendChild(square);
+      });
+
+      // 4. Render Chronological Descriptive Logs Section
+      const descSection = document.getElementById('descriptiveLogSection');
+      const descList = document.getElementById('descriptiveEntriesList');
+      descList.innerHTML = '';
+
+      // Collect entries with recorded logs
+      const entries = [];
+      Object.keys(appData.habitLogs).forEach(key => {
+        if (key.startsWith(`${habit.id}_`)) {
+          const date = key.replace(`${habit.id}_`, '');
+          const data = appData.habitLogs[key];
+          if (data && (data.value || data.completed)) {
+            entries.push({ date, value: data.value, completed: data.completed });
+          }
+        }
+      });
+
+      entries.sort((a, b) => b.date.localeCompare(a.date));
+
+      if (entries.length === 0) {
+        descList.innerHTML = `<span class="text-xs text-slate-500">No recorded entries yet.</span>`;
+      } else {
+        entries.slice(0, 10).forEach(entry => {
+          const row = document.createElement('div');
+          row.className = "flex items-start justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-xs";
+          row.innerHTML = `
+            <div class="flex-1 pr-3">
+              <span class="text-[11px] font-mono text-indigo-400 block">${entry.date}</span>
+              <p class="text-slate-200 mt-0.5 leading-relaxed font-sans">${entry.value || (entry.completed ? 'Completed' : 'Missed')}</p>
+            </div>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full ${entry.completed ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40' : 'bg-slate-800 text-slate-400'}">
+              ${entry.completed ? 'Done' : 'Logged'}
+            </span>
+          `;
+          descList.appendChild(row);
+        });
+      }
+
+      // 5. Render Chart.js Visualizations
+      renderChartForHabit(habit);
+
+      document.getElementById('analyticsModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAnalyticsModal() {
+      document.getElementById('analyticsModal').classList.add('hidden');
+      if (activeChartInstance) {
+        activeChartInstance.destroy();
+        activeChartInstance = null;
+      }
+    }
+
+    function renderChartForHabit(habit) {
+      const ctx = document.getElementById('habitChart').getContext('2d');
+      if (activeChartInstance) {
+        activeChartInstance.destroy();
+      }
+
+      const days14 = [];
+      const labels = [];
+      const now = new Date();
+
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().split('T')[0];
+        days14.push(iso);
+        labels.push(d.toLocaleDateString(undefined, { weekday: 'narrow', month: 'numeric', day: 'numeric' }));
+      }
+
+      if (habit.type === 'number') {
+        document.getElementById('chartSectionTitle').textContent = `14-Day Quantitative Trend (${habit.unit || 'units'})`;
+        document.getElementById('chartSectionBadge').textContent = "Bar / Value";
+
+        const dataPoints = days14.map(dateKey => {
+          const log = appData.habitLogs[`${habit.id}_${dateKey}`];
+          return parseFloat(log?.value) || 0;
+        });
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: `${habit.name} (${habit.unit || 'units'})`,
+              data: dataPoints,
+              backgroundColor: 'rgba(99, 102, 241, 0.6)',
+              borderColor: '#6366f1',
+              borderWidth: 1.5,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#94a3b8', font: { size: 10 } }
+              },
+              y: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#94a3b8', font: { size: 10 } },
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      } else {
+        // Boolean or Text: Line chart showing daily completion status
+        document.getElementById('chartSectionTitle').textContent = "14-Day Completion Consistency";
+        document.getElementById('chartSectionBadge').textContent = "Status (0 / 1)";
+
+        const dataPoints = days14.map(dateKey => {
+          const log = appData.habitLogs[`${habit.id}_${dateKey}`];
+          return log && log.completed ? 1 : 0;
+        });
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Completed',
+              data: dataPoints,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              tension: 0.35,
+              fill: true,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#94a3b8', font: { size: 10 } }
+              },
+              y: {
+                min: 0,
+                max: 1.2,
+                ticks: {
+                  stepSize: 1,
+                  callback: val => val === 1 ? 'Done' : val === 0 ? 'Miss' : '',
+                  color: '#94a3b8',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+              }
+            }
+          }
+        });
+      }
+    }
+
     function openHabitModal() {
       document.getElementById('habitModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i> Create Custom Habit`;
       document.getElementById('habitEditId').value = "";
@@ -782,7 +1156,6 @@
       const target = document.getElementById('habitTargetInput').value.trim();
 
       if (editId) {
-        // Edit existing
         const habit = appData.habits.find(h => h.id == editId);
         if (habit) {
           habit.name = name;
@@ -791,7 +1164,6 @@
           habit.target = target;
         }
       } else {
-        // Create new
         appData.habits.push({
           id: Date.now(),
           name,
@@ -806,7 +1178,6 @@
       syncToRemote();
     }
 
-    // ---------- Planner Logic ----------
     function renderPlanner() {
       const today = getTodayKey();
       if (!appData.planner || appData.planner.date !== today) {
@@ -827,7 +1198,6 @@
       syncToRemote();
     }
 
-    // ---------- Task List Logic ----------
     function handleAddTask(e) {
       e.preventDefault();
       const titleInput = document.getElementById('taskTitleInput');
@@ -895,7 +1265,6 @@
       lucide.createIcons();
     }
 
-    // ---------- Stopwatch & Focus Logger ----------
     let timerInterval = null, timerSeconds = 0, isRunning = false;
 
     function formatTime(s) {
@@ -987,7 +1356,7 @@
       syncToRemote();
     }
 
-    // ---------- Settings & Initialization ----------
+    // Config & JSON Backup/Restore
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
       document.getElementById('configModal').classList.remove('hidden');
@@ -1004,6 +1373,32 @@
       saveState();
       closeConfigModal();
       fetchRemoteData();
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          appData = JSON.parse(e.target.result);
+          saveState();
+          renderAll();
+          alert("Data restored successfully!");
+          syncToRemote();
+        } catch (err) {
+          alert("Invalid backup file.");
+        }
+      };
+      if (event.target.files[0]) reader.readAsText(event.target.files[0]);
     }
 
     function renderAll() {
