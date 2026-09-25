@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daily Flow & Habit Analytics</title>
+  <title>Daily Flow & 24-Hour Day Planner</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -23,85 +23,95 @@
     }
   </script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; }
+    body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     input[type="checkbox"] { accent-color: #6366f1; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Calendar Grid Coordinates: 24 hours * 60px per hour = 1440px height */
+    .timeline-canvas {
+      position: relative;
+      height: 1440px;
+      background-size: 100% 60px;
+      background-image: linear-gradient(to bottom, rgba(51, 65, 85, 0.25) 1px, transparent 1px);
+    }
+    .hour-line {
+      height: 60px;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans pb-24 antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-28 antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Top Header / App Bar -->
-  <header class="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 sm:px-6">
-    <div class="max-w-4xl mx-auto flex items-center justify-between">
+  <!-- Top App Bar / Navigation -->
+  <header class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 sm:px-6">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-sm">
-          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
+          <i data-lucide="calendar-range" class="w-5 h-5"></i>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            Daily Flow
+            Daily Flow <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">24H Planner</span>
           </h1>
-          <p id="currentDateDisplay" class="text-xs text-slate-400 font-medium"></p>
+          <p id="currentLiveTimeDisplay" class="text-xs text-slate-400 font-mono"></p>
         </div>
       </div>
 
-      <!-- Actions & Sync Controls -->
+      <!-- Sync Status & App Toolbar -->
       <div class="flex items-center gap-2">
-        <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:bg-slate-800 text-xs text-slate-300 transition active:scale-95">
+        <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncText" class="font-mono text-[11px]">Synced</span>
           <i data-lucide="refresh-cw" id="syncIcon" class="w-3.5 h-3.5 text-slate-400"></i>
         </button>
 
-        <button onclick="exportData()" title="Backup to JSON" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60">
+        <button onclick="exportData()" title="Backup state to JSON" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
           <i data-lucide="download" class="w-4 h-4"></i>
         </button>
 
-        <label title="Restore from JSON" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60 cursor-pointer">
+        <label title="Import state from JSON" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 cursor-pointer">
           <i data-lucide="upload" class="w-4 h-4"></i>
           <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
         </label>
 
-        <button onclick="openConfigModal()" title="Google Sheets API Config" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/60">
+        <button onclick="openConfigModal()" title="Google Sheets API URL" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Application Body -->
-  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+  <main class="max-w-5xl mx-auto px-3 sm:px-6 py-6 space-y-7">
 
-    <!-- Section 1: Focus Stopwatch & Quick Session Tracker -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
-      <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    <!-- Section 1: Live Focus Stopwatch -->
+    <section class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden backdrop-blur-sm">
+      <div class="absolute -right-8 -top-8 w-36 h-36 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-2">
         <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Focus Session
+          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Focus Stopwatch & Active Log
         </h2>
-        <span id="timerTaskTag" class="text-[11px] bg-slate-800 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium border border-slate-700">Ready</span>
+        <span id="timerTaskTag" class="text-[11px] bg-slate-950 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium border border-slate-800">Ready</span>
       </div>
 
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="w-full sm:w-auto">
-          <div id="stopwatchDisplay" class="text-3xl sm:text-5xl font-mono font-bold text-white tracking-wider">
+          <div id="stopwatchDisplay" class="text-3xl sm:text-4xl font-mono font-bold text-white tracking-widest">
             00:00:00
           </div>
-          <input type="text" id="timerLabelInput" placeholder="What focus task is running?" 
-                 class="mt-2 w-full sm:w-72 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          <input type="text" id="timerLabelInput" placeholder="What task are you executing?" 
+                 class="mt-2 w-full sm:w-80 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button id="toggleTimerBtn" onclick="toggleTimer()" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-md shadow-indigo-600/20">
+          <button id="toggleTimerBtn" onclick="toggleTimer()" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-md shadow-indigo-600/30">
             <i data-lucide="play" id="timerIcon" class="w-4 h-4"></i>
             <span id="timerBtnText">Start</span>
           </button>
-          <button onclick="logFocusSession()" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-300 transition active:scale-95 border border-slate-700/60">
+          <button onclick="logFocusSession()" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-200 transition active:scale-95 border border-slate-700/60">
             <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Log
           </button>
           <button onclick="resetTimer()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition border border-slate-700/60">
@@ -111,7 +121,105 @@
       </div>
     </section>
 
-    <!-- Section 2: Multi-Type Habit Tracker with Analytics Buttons -->
+    <!-- Section 2: 24-Hour Calendar Day Planner -->
+    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <!-- Calendar View Control Bar -->
+      <div class="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Date Navigator -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 shadow-inner">
+            <button onclick="shiftPlannerDate(-1)" title="Previous Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button onclick="goToPlannerToday()" class="px-3 py-1 rounded-lg text-xs font-semibold text-slate-200 hover:bg-slate-800 transition">
+              Today
+            </button>
+            <button onclick="shiftPlannerDate(1)" title="Next Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Date Picker Native Input -->
+          <div class="relative">
+            <input type="date" id="plannerDatePicker" onchange="onPlannerDateSelected(this.value)" 
+                   class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Quick Block Presets & Add Block Action -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400 pr-2 border-r border-slate-800">
+            <span class="text-slate-500 font-mono text-[10px]">PRESETS:</span>
+            <button onclick="quickAddPreset('Deep Work', '09:00', '11:30', 'Deep Work', 'indigo')" class="px-2 py-1 rounded-lg bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 hover:bg-indigo-900/60 transition">
+              Deep Work
+            </button>
+            <button onclick="quickAddPreset('Gym Workout', '07:00', '08:30', 'Fitness', 'emerald')" class="px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/50 text-emerald-300 hover:bg-emerald-900/60 transition">
+              Workout
+            </button>
+            <button onclick="quickAddPreset('Evening Wind-down', '21:00', '22:30', 'Personal', 'amber')" class="px-2 py-1 rounded-lg bg-amber-950/60 border border-amber-800/50 text-amber-300 hover:bg-amber-900/60 transition">
+              Evening
+            </button>
+          </div>
+
+          <button onclick="openTimeBlockModal()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-600/30">
+            <i data-lucide="plus" class="w-4 h-4"></i> New Time Block
+          </button>
+        </div>
+      </div>
+
+      <!-- Schedule Subheader (Stats & Current Indicator Notice) -->
+      <div class="px-4 py-2.5 bg-slate-900/40 border-b border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+        <span class="flex items-center gap-2">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span id="plannerDateHeading" class="font-medium text-slate-200">Today</span>
+          <span id="plannerTotalScheduledBadge" class="text-[11px] font-mono text-slate-500">(0h planned)</span>
+        </span>
+        <button onclick="scrollToCurrentTimeOrStart()" class="text-[11px] text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1">
+          <i data-lucide="locate-fixed" class="w-3 h-3"></i> Jump to current hour
+        </button>
+      </div>
+
+      <!-- 24-Hour Scrollable Schedule Canvas -->
+      <div id="plannerScrollContainer" class="h-[620px] overflow-y-auto relative bg-slate-950/70 select-none">
+        
+        <div class="flex min-w-[340px] relative">
+          <!-- Left Hour Axis (00:00 to 23:00) -->
+          <div class="w-16 sm:w-20 flex-shrink-0 border-r border-slate-800/80 bg-slate-950/90 text-right pr-2 select-none z-10">
+            <div id="hourLabelsColumn">
+              <!-- Dynamically injected hour timestamps (24 hours) -->
+            </div>
+          </div>
+
+          <!-- Main Timeline Surface (1440px high = 1px per min) -->
+          <div id="timelineSurface" class="timeline-canvas flex-1 relative" onclick="handleTimelineCanvasClick(event)">
+            <!-- Hourly grid divider lines -->
+            <div id="hourGridLines"></div>
+
+            <!-- Red / Cyan Current Time Indicator Line (only if viewing current day) -->
+            <div id="currentTimeIndicator" class="hidden absolute left-0 right-0 z-20 pointer-events-none flex items-center">
+              <div class="w-2.5 h-2.5 -ml-1.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/80"></div>
+              <div class="flex-1 border-t-2 border-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div>
+              <span id="currentTimeBadge" class="bg-rose-600 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shadow ml-1"></span>
+            </div>
+
+            <!-- Dynamic Scheduled Time-Block Cards -->
+            <div id="scheduledBlocksContainer" class="absolute inset-0 pointer-events-none">
+              <!-- Cards rendered with pointer-events-auto -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Schedule Footer Help Hint -->
+      <div class="p-3 border-t border-slate-800/80 bg-slate-950/70 flex items-center justify-between text-[11px] text-slate-500">
+        <span>💡 Click anywhere on the schedule to block that hour, or tap an existing card to edit.</span>
+        <button onclick="clearDayPlanner()" class="text-rose-400 hover:text-rose-300 hover:underline">Clear Day's Blocks</button>
+      </div>
+    </section>
+
+    <!-- Section 3: Habits & Daily Metrics -->
     <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
@@ -127,10 +235,8 @@
         </div>
       </div>
 
-      <!-- Habit Cards Container -->
-      <div id="habitList" class="space-y-3">
-        <!-- Injected dynamically -->
-      </div>
+      <!-- Dynamic Habit Cards Container -->
+      <div id="habitList" class="space-y-3"></div>
 
       <!-- Habit Stats Footer -->
       <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
@@ -142,59 +248,20 @@
       </div>
     </section>
 
-    <!-- Two Column Layout: Timeblock Planner & Daily Priority Tasks -->
+    <!-- Two-Column Layout: Priority Tasks & Focus History -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      <!-- Section 3: Daily Time-Blocking Planner -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <i data-lucide="calendar-clock" class="w-4 h-4 text-cyan-400"></i> Daily Timeblocks
-          </h2>
-          <span class="text-[11px] text-slate-500 font-mono">Today's Focus</span>
-        </div>
-        
-        <div class="space-y-3">
-          <!-- Morning -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 focus-within:border-cyan-500/50 transition">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5 mb-1.5">
-              <i data-lucide="sun" class="w-3.5 h-3.5"></i> Morning (06:00 - 12:00)
-            </span>
-            <input type="text" id="plan_morning" onblur="handlePlannerChange()" placeholder="Workouts, morning routine, deep focus..."
-                   class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
-          </div>
-
-          <!-- Afternoon -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 focus-within:border-amber-500/50 transition">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-1.5">
-              <i data-lucide="sun-medium" class="w-3.5 h-3.5"></i> Afternoon (12:00 - 17:00)
-            </span>
-            <input type="text" id="plan_afternoon" onblur="handlePlannerChange()" placeholder="Office blocks, calls, desk execution..."
-                   class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
-          </div>
-
-          <!-- Evening -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 focus-within:border-indigo-500/50 transition">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 mb-1.5">
-              <i data-lucide="moon" class="w-3.5 h-3.5"></i> Evening (17:00 - 22:00)
-            </span>
-            <input type="text" id="plan_evening" onblur="handlePlannerChange()" placeholder="Reading, family, wind down..."
-                   class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 4: Daily Tasks with Priority Badges -->
+      <!-- Priority Tasks -->
       <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
               <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Priority Tasks
             </h2>
-            <span id="taskStats" class="text-xs text-slate-400">0 pending</span>
+            <span id="taskStats" class="text-xs text-slate-400 font-mono">0 pending</span>
           </div>
 
-          <!-- Add Task Input Form -->
+          <!-- Add Task Form -->
           <form onsubmit="handleAddTask(event)" class="flex flex-col sm:flex-row gap-2 mb-3">
             <input type="text" id="taskTitleInput" placeholder="Add priority task..." required
                    class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
@@ -210,32 +277,129 @@
             </button>
           </form>
 
-          <!-- Task Items List -->
+          <!-- Task List -->
           <div id="taskList" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+        </div>
+      </section>
+
+      <!-- Focus Stopwatch History Log -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i> Logged Focus Sessions
+            </h2>
+            <button onclick="clearTimeLogs()" class="text-[11px] text-rose-400 hover:underline">Clear</button>
+          </div>
+          <div id="timeLogList" class="space-y-2 max-h-64 overflow-y-auto pr-1 font-mono text-xs"></div>
         </div>
       </section>
 
     </div>
 
-    <!-- Section 5: Logged Time Sessions -->
-    <section class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4">
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <i data-lucide="history" class="w-3.5 h-3.5 text-indigo-400"></i> Logged Time History
-        </h2>
-        <button onclick="clearTimeLogs()" class="text-[11px] text-rose-400 hover:underline">Clear logs</button>
-      </div>
-      <div id="timeLogList" class="space-y-1.5 text-xs text-slate-300 font-mono"></div>
-    </section>
-
   </main>
 
-  <!-- MODAL: Habit Analytics & Insights -->
-  <div id="analyticsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+  <!-- MODAL 1: Create / Edit 24h Time Block -->
+  <div id="timeBlockModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="timeBlockModalTitle" class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Schedule Time Block
+        </h3>
+        <button onclick="closeTimeBlockModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="timeBlockForm" onsubmit="handleSaveTimeBlock(event)" class="space-y-4">
+        <input type="hidden" id="timeBlockEditId" value="">
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Block Title / Task</label>
+          <input type="text" id="tbTitleInput" required placeholder="e.g. Deep Work on Client App, Gym, Planning"
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <!-- Start & End Time Selectors -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Start Time (24h)</label>
+            <input type="time" id="tbStartTimeInput" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">End Time (24h)</label>
+            <input type="time" id="tbEndTimeInput" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <!-- Category & Palette -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Category & Color</label>
+          <div class="grid grid-cols-3 sm:grid-cols-5 gap-2" id="categoryChipsContainer">
+            <!-- Dynamically populated or static selectable chips -->
+            <label class="cursor-pointer">
+              <input type="radio" name="tbColor" value="indigo" checked class="peer sr-only">
+              <div class="p-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-[11px] font-medium peer-checked:border-indigo-500 peer-checked:bg-indigo-600/20 peer-checked:text-indigo-300 text-slate-400 transition">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block mr-1"></span> Deep Work
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="tbColor" value="emerald" class="peer sr-only">
+              <div class="p-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-[11px] font-medium peer-checked:border-emerald-500 peer-checked:bg-emerald-600/20 peer-checked:text-emerald-300 text-slate-400 transition">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Fitness
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="tbColor" value="amber" class="peer sr-only">
+              <div class="p-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-[11px] font-medium peer-checked:border-amber-500 peer-checked:bg-amber-600/20 peer-checked:text-amber-300 text-slate-400 transition">
+                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Routine
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="tbColor" value="cyan" class="peer sr-only">
+              <div class="p-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-[11px] font-medium peer-checked:border-cyan-500 peer-checked:bg-cyan-600/20 peer-checked:text-cyan-300 text-slate-400 transition">
+                <span class="w-2 h-2 rounded-full bg-cyan-500 inline-block mr-1"></span> Office
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="tbColor" value="purple" class="peer sr-only">
+              <div class="p-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-[11px] font-medium peer-checked:border-purple-500 peer-checked:bg-purple-600/20 peer-checked:text-purple-300 text-slate-400 transition">
+                <span class="w-2 h-2 rounded-full bg-purple-500 inline-block mr-1"></span> Rest
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Optional Notes -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Notes / Checklist (Optional)</label>
+          <textarea id="tbNotesInput" rows="2" placeholder="Specific deliverables, links, gym sets..."
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+          <button type="button" id="deleteTimeBlockBtn" onclick="handleDeleteCurrentTimeBlock()" class="hidden px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:bg-rose-950/40 transition">
+            Delete Block
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" onclick="closeTimeBlockModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md">
+              Save Block
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Habit Analytics & Insights (Chart.js) -->
+  <div id="analyticsModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
       
-      <!-- Modal Header -->
-      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/40">
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/50">
         <div class="flex items-center gap-3">
           <div id="analyticsIconBox" class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
             <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
@@ -250,10 +414,8 @@
         </button>
       </div>
 
-      <!-- Modal Body (Scrollable) -->
-      <div class="p-5 overflow-y-auto space-y-6">
-
-        <!-- Top KPI Metrics -->
+      <div class="p-5 overflow-y-auto space-y-5">
+        <!-- Top KPIs -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
             <span class="text-[11px] font-medium text-slate-400 block mb-1">Current Streak</span>
@@ -273,8 +435,8 @@
           </div>
         </div>
 
-        <!-- Dynamic Numeric Aggregates (Shown only for numeric habits) -->
-        <div id="numericStatsRow" class="hidden grid grid-cols-3 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+        <!-- Numeric Specific Stats -->
+        <div id="numericStatsRow" class="hidden grid grid-cols-3 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
           <div>
             <span class="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">7-Day Total</span>
             <span id="num7DayTotal" class="text-sm font-bold font-mono text-cyan-400">-</span>
@@ -289,18 +451,16 @@
           </div>
         </div>
 
-        <!-- 30-Day Activity Contribution Grid -->
+        <!-- 30-Day Heatmap Grid -->
         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
           <div class="flex items-center justify-between mb-2.5">
             <span class="text-xs font-semibold text-slate-300">30-Day Activity Grid</span>
             <span class="text-[10px] text-slate-500 font-mono">Older → Today</span>
           </div>
-          <div id="heatmapGrid" class="grid grid-cols-10 sm:grid-cols-15 gap-1.5">
-            <!-- Injected dynamically -->
-          </div>
+          <div id="heatmapGrid" class="grid grid-cols-10 sm:grid-cols-15 gap-1.5"></div>
         </div>
 
-        <!-- Chart Section -->
+        <!-- 14-Day Chart.js Trend -->
         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
           <div class="flex items-center justify-between mb-3">
             <span id="chartSectionTitle" class="text-xs font-semibold text-slate-300">14-Day Progress Trend</span>
@@ -311,27 +471,22 @@
           </div>
         </div>
 
-        <!-- Chronological Descriptive Logs (Shown primarily for text/notes habits) -->
+        <!-- Text / Notes Descriptive Log -->
         <div id="descriptiveLogSection" class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
           <span class="text-xs font-semibold text-slate-300 block mb-2">Logged Entries & Notes</span>
-          <div id="descriptiveEntriesList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-            <!-- Dynamic entries injected here -->
-          </div>
+          <div id="descriptiveEntriesList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
-
       </div>
 
-      <!-- Modal Footer -->
       <div class="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
         <button onclick="closeAnalyticsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition">
           Close Analytics
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- MODAL: Create / Edit Habit -->
+  <!-- MODAL 3: Create / Edit Habit -->
   <div id="habitModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
       <div class="flex items-center justify-between mb-4">
@@ -381,16 +536,15 @@
           </div>
         </div>
 
-        <!-- Dynamic fields for Number type -->
         <div id="numberFieldsContainer" class="hidden grid grid-cols-2 gap-3 pt-1">
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Unit of Measurement</label>
-            <input type="text" id="habitUnitInput" placeholder="hrs, liters, pages, km"
+            <label class="block text-xs font-medium text-slate-400 mb-1">Unit</label>
+            <input type="text" id="habitUnitInput" placeholder="hrs, km, liters"
                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Daily Target (Optional)</label>
-            <input type="number" step="any" id="habitTargetInput" placeholder="e.g. 8 or 3"
+            <label class="block text-xs font-medium text-slate-400 mb-1">Target (Optional)</label>
+            <input type="number" step="any" id="habitTargetInput" placeholder="e.g. 8"
                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
           </div>
         </div>
@@ -405,7 +559,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Google Apps Script API Config -->
+  <!-- MODAL 4: Google Apps Script API Config -->
   <div id="configModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
@@ -419,7 +573,7 @@
 
       <div class="space-y-4">
         <p class="text-xs text-slate-400 leading-relaxed">
-          Paste your Google Apps Script Web App URL (`.../exec`). Data syncs directly with no 3rd-party database.
+          Paste your Google Apps Script Web App URL (`.../exec`). Data syncs smoothly without 3rd-party servers.
         </p>
 
         <div>
@@ -438,11 +592,12 @@
     </div>
   </div>
 
-  <!-- APPLICATION SCRIPTS -->
   <script>
+    // ---------- Core State & Date Utilities ----------
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-    // Default Seed Data
+    let selectedPlannerDate = getTodayKey();
+
     const defaultState = {
       habits: [
         { id: 1, name: "Strength Workout", type: "text", unit: "", target: "" },
@@ -451,29 +606,37 @@
         { id: 4, name: "No Junk Food", type: "boolean", unit: "", target: "" }
       ],
       habitLogs: {
-        [`1_${getTodayKey()}`]: { value: "Chest & Triceps: Bench 80kg 4x8, Dips 3x12", completed: true },
+        [`1_${getTodayKey()}`]: { value: "Chest & Triceps: Bench 80kg 4x8", completed: true },
         [`2_${getTodayKey()}`]: { value: "7.5", completed: false },
         [`3_${getTodayKey()}`]: { value: "3", completed: true },
         [`4_${getTodayKey()}`]: { value: "true", completed: true }
       },
-      planner: { date: getTodayKey(), morning: "", afternoon: "", evening: "" },
+      // 24-Hour Calendar Events / Time Blocks
+      // Schema: { id, date: "YYYY-MM-DD", title, startTime: "HH:MM", endTime: "HH:MM", color: "indigo", notes: "" }
+      timeBlocks: [
+        { id: 101, date: getTodayKey(), title: "Morning Mobility & Prep", startTime: "07:00", endTime: "08:00", color: "emerald", notes: "Hydrate, stretch, warm up" },
+        { id: 102, date: getTodayKey(), title: "Deep Work Sprint 1", startTime: "09:00", endTime: "12:00", color: "indigo", notes: "Feature architecture & coding" },
+        { id: 103, date: getTodayKey(), title: "Team Sync & Inbox", startTime: "13:30", endTime: "14:30", color: "cyan", notes: "Sprint review" },
+        { id: 104, date: getTodayKey(), title: "Evening Reading & Wind-down", startTime: "21:30", endTime: "22:30", color: "purple", notes: "No screens" }
+      ],
       tasks: [],
       focusLogs: [],
       apiUrl: ""
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v4')) || defaultState;
 
-    // Migrate storage key if updating from previous version
     if (!appData.habitLogs) appData.habitLogs = {};
+    if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
     if (!appData.apiUrl) {
       appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
     }
 
     function saveState() {
-      localStorage.setItem('daily_flow_state_v3', JSON.stringify(appData));
+      localStorage.setItem('daily_flow_state_v4', JSON.stringify(appData));
     }
 
+    // ---------- Sync Status & Google Apps Script Sync ----------
     function setSyncStatus(state) {
       const dot = document.getElementById('syncDot');
       const txt = document.getElementById('syncText');
@@ -494,7 +657,6 @@
       }
     }
 
-    // Push state to Google Sheets Web App
     async function syncToRemote() {
       saveState();
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
@@ -519,7 +681,6 @@
           };
         });
 
-        // Use text/plain and redirect: follow to avoid CORS issues with Apps Script
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -529,7 +690,8 @@
             data: {
               habits: appData.habits,
               habitLogs: logsArray,
-              planner: appData.planner,
+              planner: appData.timeBlocks, // Synced to Planner tab
+              timeBlocks: appData.timeBlocks,
               tasks: appData.tasks,
               focusLogs: appData.focusLogs
             }
@@ -547,7 +709,6 @@
       }
     }
 
-    // Fetch state from Google Sheets Web App
     async function fetchRemoteData() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
@@ -564,7 +725,7 @@
         if (!res.ok) throw new Error("Fetch failed");
         const json = await res.json();
 
-        if (json.habits && Array.isArray(json.habits) && json.habits.length > 0) {
+        if (json.habits && Array.isArray(json.habits)) {
           appData.habits = json.habits.map(h => ({
             id: Number(h.id) || h.id,
             name: h.name || "Untitled",
@@ -585,6 +746,19 @@
           });
         }
 
+        if (json.planner && Array.isArray(json.planner)) {
+          // Normalize planner events from Google Sheets
+          appData.timeBlocks = json.planner.map(p => ({
+            id: Number(p.id) || Date.now() + Math.random(),
+            date: String(p.date || '').split('T')[0],
+            title: p.title || p.morning || "Block",
+            startTime: p.startTime || "09:00",
+            endTime: p.endTime || "10:00",
+            color: p.color || "indigo",
+            notes: p.notes || ""
+          }));
+        }
+
         if (json.tasks && Array.isArray(json.tasks)) {
           appData.tasks = json.tasks.map(t => ({
             id: Number(t.id) || t.id,
@@ -598,19 +772,6 @@
           appData.focusLogs = json.focusLogs;
         }
 
-        const today = getTodayKey();
-        if (json.planner && Array.isArray(json.planner)) {
-          const match = json.planner.find(p => String(p.date).split('T')[0] === today);
-          if (match) {
-            appData.planner = {
-              date: today,
-              morning: match.morning || "",
-              afternoon: match.afternoon || "",
-              evening: match.evening || ""
-            };
-          }
-        }
-
         saveState();
         renderAll();
         setSyncStatus('synced');
@@ -620,6 +781,308 @@
       }
     }
 
+    // ---------- 24-Hour Calendar Day Planner Logic ----------
+    function timeToMinutes(tStr) {
+      if (!tStr) return 0;
+      const parts = tStr.split(':');
+      const h = parseInt(parts[0], 10) || 0;
+      const m = parseInt(parts[1], 10) || 0;
+      return h * 60 + m;
+    }
+
+    function minutesToTime(totalMins) {
+      const h = Math.min(23, Math.max(0, Math.floor(totalMins / 60)));
+      const m = Math.min(59, Math.max(0, totalMins % 60));
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function initHourGrid() {
+      const labelsCol = document.getElementById('hourLabelsColumn');
+      const gridLines = document.getElementById('hourGridLines');
+      labelsCol.innerHTML = '';
+      gridLines.innerHTML = '';
+
+      for (let h = 0; h < 24; h++) {
+        const timeLabel = `${String(h).padStart(2, '0')}:00`;
+        const displayLabel = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+
+        // Left rail label
+        const lbl = document.createElement('div');
+        lbl.className = "h-[60px] flex flex-col justify-start pt-1";
+        lbl.innerHTML = `<span class="text-[11px] font-mono text-slate-400">${timeLabel}</span><span class="text-[9px] text-slate-600 font-sans leading-none">${displayLabel}</span>`;
+        labelsCol.appendChild(lbl);
+
+        // Canvas guideline
+        const line = document.createElement('div');
+        line.className = "hour-line border-b border-slate-800/40 w-full pointer-events-none";
+        gridLines.appendChild(line);
+      }
+    }
+
+    function render24HourPlanner() {
+      const datePicker = document.getElementById('plannerDatePicker');
+      datePicker.value = selectedPlannerDate;
+
+      // Update Heading & Total Scheduled Time
+      const isToday = selectedPlannerDate === getTodayKey();
+      const dateObj = new Date(selectedPlannerDate + 'T00:00:00');
+      const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById('plannerDateHeading').textContent = isToday ? `Today (${formattedDate})` : formattedDate;
+
+      // Filter blocks for selected date
+      const daysBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
+
+      // Compute total scheduled minutes
+      let totalMins = 0;
+      daysBlocks.forEach(b => {
+        const startM = timeToMinutes(b.startTime);
+        const endM = timeToMinutes(b.endTime);
+        if (endM > startM) totalMins += (endM - startM);
+      });
+      const schedHours = (totalMins / 60).toFixed(1);
+      document.getElementById('plannerTotalScheduledBadge').textContent = `(${schedHours}h planned)`;
+
+      // Render Scheduled Blocks onto 1440px canvas
+      const container = document.getElementById('scheduledBlocksContainer');
+      container.innerHTML = '';
+
+      const colorMap = {
+        indigo: { bg: 'bg-indigo-950/80', border: 'border-indigo-500/70', text: 'text-indigo-200', tag: 'bg-indigo-500/20 text-indigo-300' },
+        emerald: { bg: 'bg-emerald-950/80', border: 'border-emerald-500/70', text: 'text-emerald-200', tag: 'bg-emerald-500/20 text-emerald-300' },
+        amber: { bg: 'bg-amber-950/80', border: 'border-amber-500/70', text: 'text-amber-200', tag: 'bg-amber-500/20 text-amber-300' },
+        cyan: { bg: 'bg-cyan-950/80', border: 'border-cyan-500/70', text: 'text-cyan-200', tag: 'bg-cyan-500/20 text-cyan-300' },
+        purple: { bg: 'bg-purple-950/80', border: 'border-purple-500/70', text: 'text-purple-200', tag: 'bg-purple-500/20 text-purple-300' }
+      };
+
+      daysBlocks.forEach(block => {
+        const startM = timeToMinutes(block.startTime);
+        let endM = timeToMinutes(block.endTime);
+        if (endM <= startM) endM = Math.min(1440, startM + 60);
+
+        const durationM = endM - startM;
+        const topPx = startM; // 1px = 1 min
+        const heightPx = Math.max(28, durationM); // minimum legible height
+
+        const palette = colorMap[block.color] || colorMap.indigo;
+
+        const card = document.createElement('div');
+        card.className = `absolute left-2 right-2 sm:left-4 sm:right-6 rounded-xl border p-2.5 shadow-lg backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden ${palette.bg} ${palette.border}`;
+        card.style.top = `${topPx}px`;
+        card.style.height = `${heightPx}px`;
+
+        card.onclick = (e) => {
+          e.stopPropagation();
+          editTimeBlock(block.id);
+        };
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-bold ${palette.text} truncate">${block.title}</span>
+                <span class="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded ${palette.tag}">
+                  ${block.startTime} - ${block.endTime}
+                </span>
+              </div>
+              ${block.notes && heightPx >= 50 ? `<p class="text-[11px] text-slate-300/80 truncate mt-0.5">${block.notes}</p>` : ''}
+            </div>
+            <button onclick="handleQuickDeleteTimeBlock(${block.id}, event)" title="Delete Block" class="text-slate-400 hover:text-rose-400 p-0.5 rounded transition">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      updateCurrentTimeIndicator();
+      lucide.createIcons();
+    }
+
+    function updateCurrentTimeIndicator() {
+      const indicator = document.getElementById('currentTimeIndicator');
+      const badge = document.getElementById('currentTimeBadge');
+      const isToday = selectedPlannerDate === getTodayKey();
+
+      if (!isToday) {
+        indicator.classList.add('hidden');
+        return;
+      }
+
+      indicator.classList.remove('hidden');
+      const now = new Date();
+      const currentMin = now.getHours() * 60 + now.getMinutes();
+      indicator.style.top = `${currentMin}px`;
+
+      const hrs = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      badge.textContent = `${hrs}:${mins}`;
+    }
+
+    function scrollToCurrentTimeOrStart() {
+      const scrollCont = document.getElementById('plannerScrollContainer');
+      const isToday = selectedPlannerDate === getTodayKey();
+      if (isToday) {
+        const now = new Date();
+        const currentMin = now.getHours() * 60 + now.getMinutes();
+        scrollCont.scrollTo({ top: Math.max(0, currentMin - 120), behavior: 'smooth' });
+      } else {
+        // Scroll to 8 AM (480px)
+        scrollCont.scrollTo({ top: 480, behavior: 'smooth' });
+      }
+    }
+
+    function shiftPlannerDate(deltaDays) {
+      const curr = new Date(selectedPlannerDate + 'T00:00:00');
+      curr.setDate(curr.getDate() + deltaDays);
+      selectedPlannerDate = curr.toISOString().split('T')[0];
+      render24HourPlanner();
+    }
+
+    function goToPlannerToday() {
+      selectedPlannerDate = getTodayKey();
+      render24HourPlanner();
+      scrollToCurrentTimeOrStart();
+    }
+
+    function onPlannerDateSelected(val) {
+      if (val) {
+        selectedPlannerDate = val;
+        render24HourPlanner();
+      }
+    }
+
+    function handleTimelineCanvasClick(event) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const clickY = event.clientY - rect.top;
+      // Convert clickY px into nearest 15-minute or 30-minute block
+      const clickedMinute = Math.min(1380, Math.max(0, Math.floor(clickY)));
+      const snappedMinute = Math.floor(clickedMinute / 30) * 30;
+
+      const startStr = minutesToTime(snappedMinute);
+      const endStr = minutesToTime(snappedMinute + 60);
+
+      openTimeBlockModal(null, startStr, endStr);
+    }
+
+    function openTimeBlockModal(editId = null, defaultStart = "09:00", defaultEnd = "10:00") {
+      const form = document.getElementById('timeBlockForm');
+      const deleteBtn = document.getElementById('deleteTimeBlockBtn');
+
+      if (editId) {
+        const block = appData.timeBlocks.find(b => b.id === editId);
+        if (!block) return;
+        document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="pencil" class="w-5 h-5 text-indigo-400"></i> Edit Time Block`;
+        document.getElementById('timeBlockEditId').value = block.id;
+        document.getElementById('tbTitleInput').value = block.title;
+        document.getElementById('tbStartTimeInput').value = block.startTime;
+        document.getElementById('tbEndTimeInput').value = block.endTime;
+        document.getElementById('tbNotesInput').value = block.notes || "";
+
+        const radio = document.querySelector(`input[name="tbColor"][value="${block.color || 'indigo'}"]`);
+        if (radio) radio.checked = true;
+        deleteBtn.classList.remove('hidden');
+      } else {
+        document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i> Schedule Time Block`;
+        document.getElementById('timeBlockEditId').value = "";
+        document.getElementById('tbTitleInput').value = "";
+        document.getElementById('tbStartTimeInput').value = defaultStart;
+        document.getElementById('tbEndTimeInput').value = defaultEnd;
+        document.getElementById('tbNotesInput').value = "";
+        document.querySelector(`input[name="tbColor"][value="indigo"]`).checked = true;
+        deleteBtn.classList.add('hidden');
+      }
+
+      document.getElementById('timeBlockModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeTimeBlockModal() {
+      document.getElementById('timeBlockModal').classList.add('hidden');
+    }
+
+    function editTimeBlock(id) {
+      openTimeBlockModal(id);
+    }
+
+    function handleSaveTimeBlock(e) {
+      e.preventDefault();
+      const editId = document.getElementById('timeBlockEditId').value;
+      const title = document.getElementById('tbTitleInput').value.trim();
+      const startTime = document.getElementById('tbStartTimeInput').value;
+      const endTime = document.getElementById('tbEndTimeInput').value;
+      const color = document.querySelector('input[name="tbColor"]:checked')?.value || 'indigo';
+      const notes = document.getElementById('tbNotesInput').value.trim();
+
+      if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
+        alert("End time must be after start time.");
+        return;
+      }
+
+      if (editId) {
+        const block = appData.timeBlocks.find(b => b.id == editId);
+        if (block) {
+          block.title = title;
+          block.startTime = startTime;
+          block.endTime = endTime;
+          block.color = color;
+          block.notes = notes;
+        }
+      } else {
+        appData.timeBlocks.push({
+          id: Date.now(),
+          date: selectedPlannerDate,
+          title,
+          startTime,
+          endTime,
+          color,
+          notes
+        });
+      }
+
+      closeTimeBlockModal();
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    function handleDeleteCurrentTimeBlock() {
+      const editId = document.getElementById('timeBlockEditId').value;
+      if (!editId) return;
+      appData.timeBlocks = appData.timeBlocks.filter(b => b.id != editId);
+      closeTimeBlockModal();
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    function handleQuickDeleteTimeBlock(id, event) {
+      event.stopPropagation();
+      appData.timeBlocks = appData.timeBlocks.filter(b => b.id !== id);
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    function quickAddPreset(title, startTime, endTime, category, color) {
+      appData.timeBlocks.push({
+        id: Date.now(),
+        date: selectedPlannerDate,
+        title,
+        startTime,
+        endTime,
+        color,
+        notes: `Scheduled via ${category} preset`
+      });
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    function clearDayPlanner() {
+      if (!confirm(`Clear all time blocks for ${selectedPlannerDate}?`)) return;
+      appData.timeBlocks = appData.timeBlocks.filter(b => b.date !== selectedPlannerDate);
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    // ---------- Habits & Metrics Engine ----------
     function computeStreak(habitId) {
       let streak = 0;
       let checkDate = new Date();
@@ -631,7 +1094,6 @@
           streak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else {
-          // Check yesterday to prevent breaking active streak if today is not logged yet
           if (streak === 0 && dateStr === getTodayKey()) {
             checkDate.setDate(checkDate.getDate() - 1);
             const yestDateStr = checkDate.toISOString().split('T')[0];
@@ -651,10 +1113,9 @@
     function computeBestStreak(habitId) {
       let maxStreak = 0;
       let currentSeq = 0;
-      
-      // Collect all recorded log dates
       const dates = [];
       const now = new Date();
+
       for (let i = 180; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
@@ -771,7 +1232,6 @@
             <div class="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3">
               ${controlHtml}
               <div class="flex items-center gap-1 border-l border-slate-800 pl-2">
-                <!-- Analytics Button -->
                 <button onclick="openAnalyticsModal(${habit.id})" class="text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 p-1.5 rounded-lg transition" title="View Habit Analytics">
                   <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
                 </button>
@@ -854,248 +1314,6 @@
       syncToRemote();
     }
 
-    let activeChartInstance = null;
-
-    function openAnalyticsModal(habitId) {
-      const habit = appData.habits.find(h => h.id === habitId);
-      if (!habit) return;
-
-      document.getElementById('analyticsHabitTitle').textContent = habit.name;
-      document.getElementById('analyticsHabitSubtitle').textContent = `Type: ${habit.type.toUpperCase()}${habit.unit ? ' (' + habit.unit + ')' : ''}`;
-
-      // 1. Calculate KPI Metrics (Streaks & Completion Rates)
-      const currentStreak = computeStreak(habit.id);
-      const bestStreak = computeBestStreak(habit.id);
-      document.getElementById('kpiCurrentStreak').textContent = `${currentStreak}d`;
-      document.getElementById('kpiBestStreak').textContent = `${bestStreak}d`;
-
-      // Rates for 7 and 30 days
-      const last7Days = [];
-      const last30Days = [];
-      const now = new Date();
-
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        last7Days.push(d.toISOString().split('T')[0]);
-      }
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        last30Days.push(d.toISOString().split('T')[0]);
-      }
-
-      const completed7 = last7Days.filter(d => appData.habitLogs[`${habit.id}_${d}`]?.completed).length;
-      const completed30 = last30Days.filter(d => appData.habitLogs[`${habit.id}_${d}`]?.completed).length;
-
-      document.getElementById('kpi7DayRate').textContent = `${Math.round((completed7 / 7) * 100)}%`;
-      document.getElementById('kpi30DayRate').textContent = `${Math.round((completed30 / 30) * 100)}%`;
-
-      // 2. Numeric aggregations if numeric habit
-      const numRow = document.getElementById('numericStatsRow');
-      if (habit.type === 'number') {
-        numRow.classList.remove('hidden');
-        let sum7 = 0, sum30 = 0, count30 = 0;
-
-        last7Days.forEach(d => {
-          const v = parseFloat(appData.habitLogs[`${habit.id}_${d}`]?.value) || 0;
-          sum7 += v;
-        });
-        last30Days.forEach(d => {
-          const v = parseFloat(appData.habitLogs[`${habit.id}_${d}`]?.value) || 0;
-          sum30 += v;
-          if (v > 0) count30++;
-        });
-
-        const dailyAvg = count30 > 0 ? (sum30 / 30).toFixed(1) : 0;
-        document.getElementById('num7DayTotal').textContent = `${sum7.toFixed(1)} ${habit.unit}`;
-        document.getElementById('num30DayTotal').textContent = `${sum30.toFixed(1)} ${habit.unit}`;
-        document.getElementById('numDailyAvg').textContent = `${dailyAvg} ${habit.unit}/day`;
-      } else {
-        numRow.classList.add('hidden');
-      }
-
-      // 3. Render 30-Day Contribution Heatmap Grid
-      const heatmapEl = document.getElementById('heatmapGrid');
-      heatmapEl.innerHTML = '';
-      last30Days.forEach(d => {
-        const log = appData.habitLogs[`${habit.id}_${d}`];
-        const isCompleted = log && log.completed;
-        const square = document.createElement('div');
-        square.className = `w-full aspect-square rounded-md transition border ${
-          isCompleted 
-            ? 'bg-emerald-500/80 border-emerald-400 shadow-sm' 
-            : 'bg-slate-900 border-slate-800'
-        }`;
-        square.title = `${d}: ${isCompleted ? 'Completed' : 'Missed'}${log && log.value ? ' (' + log.value + ')' : ''}`;
-        heatmapEl.appendChild(square);
-      });
-
-      // 4. Render Chronological Descriptive Logs Section
-      const descSection = document.getElementById('descriptiveLogSection');
-      const descList = document.getElementById('descriptiveEntriesList');
-      descList.innerHTML = '';
-
-      // Collect entries with recorded logs
-      const entries = [];
-      Object.keys(appData.habitLogs).forEach(key => {
-        if (key.startsWith(`${habit.id}_`)) {
-          const date = key.replace(`${habit.id}_`, '');
-          const data = appData.habitLogs[key];
-          if (data && (data.value || data.completed)) {
-            entries.push({ date, value: data.value, completed: data.completed });
-          }
-        }
-      });
-
-      entries.sort((a, b) => b.date.localeCompare(a.date));
-
-      if (entries.length === 0) {
-        descList.innerHTML = `<span class="text-xs text-slate-500">No recorded entries yet.</span>`;
-      } else {
-        entries.slice(0, 10).forEach(entry => {
-          const row = document.createElement('div');
-          row.className = "flex items-start justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-xs";
-          row.innerHTML = `
-            <div class="flex-1 pr-3">
-              <span class="text-[11px] font-mono text-indigo-400 block">${entry.date}</span>
-              <p class="text-slate-200 mt-0.5 leading-relaxed font-sans">${entry.value || (entry.completed ? 'Completed' : 'Missed')}</p>
-            </div>
-            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full ${entry.completed ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40' : 'bg-slate-800 text-slate-400'}">
-              ${entry.completed ? 'Done' : 'Logged'}
-            </span>
-          `;
-          descList.appendChild(row);
-        });
-      }
-
-      // 5. Render Chart.js Visualizations
-      renderChartForHabit(habit);
-
-      document.getElementById('analyticsModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeAnalyticsModal() {
-      document.getElementById('analyticsModal').classList.add('hidden');
-      if (activeChartInstance) {
-        activeChartInstance.destroy();
-        activeChartInstance = null;
-      }
-    }
-
-    function renderChartForHabit(habit) {
-      const ctx = document.getElementById('habitChart').getContext('2d');
-      if (activeChartInstance) {
-        activeChartInstance.destroy();
-      }
-
-      const days14 = [];
-      const labels = [];
-      const now = new Date();
-
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        const iso = d.toISOString().split('T')[0];
-        days14.push(iso);
-        labels.push(d.toLocaleDateString(undefined, { weekday: 'narrow', month: 'numeric', day: 'numeric' }));
-      }
-
-      if (habit.type === 'number') {
-        document.getElementById('chartSectionTitle').textContent = `14-Day Quantitative Trend (${habit.unit || 'units'})`;
-        document.getElementById('chartSectionBadge').textContent = "Bar / Value";
-
-        const dataPoints = days14.map(dateKey => {
-          const log = appData.habitLogs[`${habit.id}_${dateKey}`];
-          return parseFloat(log?.value) || 0;
-        });
-
-        activeChartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: `${habit.name} (${habit.unit || 'units'})`,
-              data: dataPoints,
-              backgroundColor: 'rgba(99, 102, 241, 0.6)',
-              borderColor: '#6366f1',
-              borderWidth: 1.5,
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              x: {
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: '#94a3b8', font: { size: 10 } }
-              },
-              y: {
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: '#94a3b8', font: { size: 10 } },
-                beginAtZero: true
-              }
-            }
-          }
-        });
-      } else {
-        // Boolean or Text: Line chart showing daily completion status
-        document.getElementById('chartSectionTitle').textContent = "14-Day Completion Consistency";
-        document.getElementById('chartSectionBadge').textContent = "Status (0 / 1)";
-
-        const dataPoints = days14.map(dateKey => {
-          const log = appData.habitLogs[`${habit.id}_${dateKey}`];
-          return log && log.completed ? 1 : 0;
-        });
-
-        activeChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Completed',
-              data: dataPoints,
-              borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
-              tension: 0.35,
-              fill: true,
-              pointBackgroundColor: '#10b981',
-              pointRadius: 4
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              x: {
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: '#94a3b8', font: { size: 10 } }
-              },
-              y: {
-                min: 0,
-                max: 1.2,
-                ticks: {
-                  stepSize: 1,
-                  callback: val => val === 1 ? 'Done' : val === 0 ? 'Miss' : '',
-                  color: '#94a3b8',
-                  font: { size: 10 }
-                },
-                grid: { color: 'rgba(255, 255, 255, 0.05)' }
-              }
-            }
-          }
-        });
-      }
-    }
-
     function openHabitModal() {
       document.getElementById('habitModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i> Create Custom Habit`;
       document.getElementById('habitEditId').value = "";
@@ -1141,7 +1359,7 @@
     }
 
     function deleteHabit(habitId) {
-      if (!confirm("Are you sure you want to remove this habit?")) return;
+      if (!confirm("Remove this habit?")) return;
       appData.habits = appData.habits.filter(h => h.id !== habitId);
       renderHabits();
       syncToRemote();
@@ -1178,26 +1396,215 @@
       syncToRemote();
     }
 
-    function renderPlanner() {
-      const today = getTodayKey();
-      if (!appData.planner || appData.planner.date !== today) {
-        appData.planner = { date: today, morning: "", afternoon: "", evening: "" };
+    // ---------- Chart.js Analytics Modal Engine ----------
+    let activeChartInstance = null;
+
+    function openAnalyticsModal(habitId) {
+      const habit = appData.habits.find(h => h.id === habitId);
+      if (!habit) return;
+
+      document.getElementById('analyticsHabitTitle').textContent = habit.name;
+      document.getElementById('analyticsHabitSubtitle').textContent = `Type: ${habit.type.toUpperCase()}${habit.unit ? ' (' + habit.unit + ')' : ''}`;
+
+      const currentStreak = computeStreak(habit.id);
+      const bestStreak = computeBestStreak(habit.id);
+      document.getElementById('kpiCurrentStreak').textContent = `${currentStreak}d`;
+      document.getElementById('kpiBestStreak').textContent = `${bestStreak}d`;
+
+      const last7Days = [];
+      const last30Days = [];
+      const now = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        last7Days.push(d.toISOString().split('T')[0]);
       }
-      document.getElementById('plan_morning').value = appData.planner.morning || "";
-      document.getElementById('plan_afternoon').value = appData.planner.afternoon || "";
-      document.getElementById('plan_evening').value = appData.planner.evening || "";
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        last30Days.push(d.toISOString().split('T')[0]);
+      }
+
+      const completed7 = last7Days.filter(d => appData.habitLogs[`${habit.id}_${d}`]?.completed).length;
+      const completed30 = last30Days.filter(d => appData.habitLogs[`${habit.id}_${d}`]?.completed).length;
+
+      document.getElementById('kpi7DayRate').textContent = `${Math.round((completed7 / 7) * 100)}%`;
+      document.getElementById('kpi30DayRate').textContent = `${Math.round((completed30 / 30) * 100)}%`;
+
+      const numRow = document.getElementById('numericStatsRow');
+      if (habit.type === 'number') {
+        numRow.classList.remove('hidden');
+        let sum7 = 0, sum30 = 0, count30 = 0;
+
+        last7Days.forEach(d => {
+          sum7 += parseFloat(appData.habitLogs[`${habit.id}_${d}`]?.value) || 0;
+        });
+        last30Days.forEach(d => {
+          const v = parseFloat(appData.habitLogs[`${habit.id}_${d}`]?.value) || 0;
+          sum30 += v;
+          if (v > 0) count30++;
+        });
+
+        const dailyAvg = count30 > 0 ? (sum30 / 30).toFixed(1) : 0;
+        document.getElementById('num7DayTotal').textContent = `${sum7.toFixed(1)} ${habit.unit}`;
+        document.getElementById('num30DayTotal').textContent = `${sum30.toFixed(1)} ${habit.unit}`;
+        document.getElementById('numDailyAvg').textContent = `${dailyAvg} ${habit.unit}/day`;
+      } else {
+        numRow.classList.add('hidden');
+      }
+
+      // Heatmap
+      const heatmapEl = document.getElementById('heatmapGrid');
+      heatmapEl.innerHTML = '';
+      last30Days.forEach(d => {
+        const log = appData.habitLogs[`${habit.id}_${d}`];
+        const isCompleted = log && log.completed;
+        const sq = document.createElement('div');
+        sq.className = `w-full aspect-square rounded-md transition border ${
+          isCompleted ? 'bg-emerald-500/80 border-emerald-400' : 'bg-slate-900 border-slate-800'
+        }`;
+        sq.title = `${d}: ${isCompleted ? 'Completed' : 'Missed'}`;
+        heatmapEl.appendChild(sq);
+      });
+
+      // Descriptive logs list
+      const descList = document.getElementById('descriptiveEntriesList');
+      descList.innerHTML = '';
+      const entries = [];
+      Object.keys(appData.habitLogs).forEach(key => {
+        if (key.startsWith(`${habit.id}_`)) {
+          const date = key.replace(`${habit.id}_`, '');
+          const data = appData.habitLogs[key];
+          if (data && (data.value || data.completed)) {
+            entries.push({ date, value: data.value, completed: data.completed });
+          }
+        }
+      });
+      entries.sort((a, b) => b.date.localeCompare(a.date));
+
+      if (!entries.length) {
+        descList.innerHTML = `<span class="text-xs text-slate-500">No recorded entries yet.</span>`;
+      } else {
+        entries.slice(0, 10).forEach(entry => {
+          const row = document.createElement('div');
+          row.className = "flex items-start justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-xs";
+          row.innerHTML = `
+            <div class="flex-1 pr-3">
+              <span class="text-[11px] font-mono text-indigo-400 block">${entry.date}</span>
+              <p class="text-slate-200 mt-0.5">${entry.value || (entry.completed ? 'Completed' : 'Missed')}</p>
+            </div>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full ${entry.completed ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40' : 'bg-slate-800 text-slate-400'}">
+              ${entry.completed ? 'Done' : 'Logged'}
+            </span>
+          `;
+          descList.appendChild(row);
+        });
+      }
+
+      // Render Chart
+      renderChartForHabit(habit);
+      document.getElementById('analyticsModal').classList.remove('hidden');
+      lucide.createIcons();
     }
 
-    function handlePlannerChange() {
-      appData.planner = {
-        date: getTodayKey(),
-        morning: document.getElementById('plan_morning').value,
-        afternoon: document.getElementById('plan_afternoon').value,
-        evening: document.getElementById('plan_evening').value
-      };
-      syncToRemote();
+    function closeAnalyticsModal() {
+      document.getElementById('analyticsModal').classList.add('hidden');
+      if (activeChartInstance) {
+        activeChartInstance.destroy();
+        activeChartInstance = null;
+      }
     }
 
+    function renderChartForHabit(habit) {
+      const ctx = document.getElementById('habitChart').getContext('2d');
+      if (activeChartInstance) activeChartInstance.destroy();
+
+      const days14 = [];
+      const labels = [];
+      const now = new Date();
+
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        days14.push(d.toISOString().split('T')[0]);
+        labels.push(d.toLocaleDateString(undefined, { weekday: 'narrow', month: 'numeric', day: 'numeric' }));
+      }
+
+      if (habit.type === 'number') {
+        document.getElementById('chartSectionTitle').textContent = `14-Day Quantitative Trend (${habit.unit || 'units'})`;
+        document.getElementById('chartSectionBadge').textContent = "Bar / Value";
+
+        const dataPoints = days14.map(dk => parseFloat(appData.habitLogs[`${habit.id}_${dk}`]?.value) || 0);
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: `${habit.name} (${habit.unit || ''})`,
+              data: dataPoints,
+              backgroundColor: 'rgba(99, 102, 241, 0.65)',
+              borderColor: '#6366f1',
+              borderWidth: 1.5,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+              y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } }, beginAtZero: true }
+            }
+          }
+        });
+      } else {
+        document.getElementById('chartSectionTitle').textContent = "14-Day Completion Consistency";
+        document.getElementById('chartSectionBadge').textContent = "Status (0 / 1)";
+
+        const dataPoints = days14.map(dk => appData.habitLogs[`${habit.id}_${dk}`]?.completed ? 1 : 0);
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Completed',
+              data: dataPoints,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              tension: 0.35,
+              fill: true,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+              y: {
+                min: 0,
+                max: 1.2,
+                ticks: {
+                  stepSize: 1,
+                  callback: v => v === 1 ? 'Done' : v === 0 ? 'Miss' : '',
+                  color: '#94a3b8',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // ---------- Priority Tasks Logic ----------
     function handleAddTask(e) {
       e.preventDefault();
       const titleInput = document.getElementById('taskTitleInput');
@@ -1265,6 +1672,7 @@
       lucide.createIcons();
     }
 
+    // ---------- Focus Stopwatch Engine ----------
     let timerInterval = null, timerSeconds = 0, isRunning = false;
 
     function formatTime(s) {
@@ -1285,7 +1693,6 @@
         tag.textContent = "Running";
         tag.className = "text-[11px] bg-indigo-950 border border-indigo-700 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium animate-pulse";
         btn.classList.replace('bg-indigo-600', 'bg-amber-600');
-        btn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
 
         timerInterval = setInterval(() => {
           timerSeconds++;
@@ -1298,7 +1705,6 @@
         tag.textContent = "Paused";
         tag.className = "text-[11px] bg-amber-950/60 border border-amber-800 text-amber-300 px-2.5 py-0.5 rounded-full font-medium";
         btn.classList.replace('bg-amber-600', 'bg-indigo-600');
-        btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
       }
     }
 
@@ -1310,10 +1716,8 @@
       document.getElementById('timerBtnText').textContent = "Start";
       const tag = document.getElementById('timerTaskTag');
       tag.textContent = "Ready";
-      tag.className = "text-[11px] bg-slate-800 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium border border-slate-700";
-      const btn = document.getElementById('toggleTimerBtn');
-      btn.classList.replace('bg-amber-600', 'bg-indigo-600');
-      btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+      tag.className = "text-[11px] bg-slate-950 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium border border-slate-800";
+      document.getElementById('toggleTimerBtn').classList.replace('bg-amber-600', 'bg-indigo-600');
     }
 
     function logFocusSession() {
@@ -1321,7 +1725,7 @@
         alert("Focus for at least 5 seconds before recording.");
         return;
       }
-      const label = document.getElementById('timerLabelInput').value.trim() || "Deep Work";
+      const label = document.getElementById('timerLabelInput').value.trim() || "Deep Work Focus";
       const duration = formatTime(timerSeconds);
       const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -1341,9 +1745,9 @@
       }
       appData.focusLogs.slice(0, 6).forEach(l => {
         const item = document.createElement('div');
-        item.className = "flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800/60";
+        item.className = "flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800";
         item.innerHTML = `
-          <span class="truncate max-w-[200px] text-slate-300">${l.label}</span>
+          <span class="truncate max-w-[200px] text-slate-300 font-sans font-medium">${l.label}</span>
           <span class="text-indigo-400 font-bold">${l.duration} <span class="text-slate-500 font-normal">(${l.timestamp || ''})</span></span>
         `;
         container.appendChild(item);
@@ -1356,7 +1760,7 @@
       syncToRemote();
     }
 
-    // Config & JSON Backup/Restore
+    // ---------- Settings & Data Backup/Restore ----------
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
       document.getElementById('configModal').classList.remove('hidden');
@@ -1379,7 +1783,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
+      downloadAnchor.setAttribute("download", `daily_flow_planner_backup_${getTodayKey()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -1392,7 +1796,7 @@
           appData = JSON.parse(e.target.result);
           saveState();
           renderAll();
-          alert("Data restored successfully!");
+          alert("Backup data restored successfully!");
           syncToRemote();
         } catch (err) {
           alert("Invalid backup file.");
@@ -1401,21 +1805,30 @@
       if (event.target.files[0]) reader.readAsText(event.target.files[0]);
     }
 
+    // ---------- Master App Render Loop ----------
     function renderAll() {
       const today = new Date();
-      document.getElementById('currentDateDisplay').textContent = today.toLocaleDateString(undefined, {
-        weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'
+      document.getElementById('currentLiveTimeDisplay').textContent = today.toLocaleDateString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
       });
 
+      render24HourPlanner();
       renderHabits();
-      renderPlanner();
       renderTasks();
       renderFocusLogs();
       lucide.createIcons();
     }
 
     window.onload = () => {
+      initHourGrid();
       renderAll();
+      scrollToCurrentTimeOrStart();
+
+      // Refresh live time indicator every 60s
+      setInterval(() => {
+        updateCurrentTimeIndicator();
+      }, 60000);
+
       if (appData.apiUrl) {
         fetchRemoteData();
       } else {
