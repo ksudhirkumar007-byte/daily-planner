@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daily Flow & 24-Hour Day Planner</title>
+  <title>Daily Flow - 24H Planner with Planned vs Actual Evaluation</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js for Habit Analytics -->
+  <!-- Chart.js for Habit & Adherence Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
@@ -23,7 +23,10 @@
     }
   </script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { 
+      -webkit-tap-highlight-color: transparent; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    }
     input[type="checkbox"] { accent-color: #6366f1; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #090d16; }
@@ -31,30 +34,28 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Calendar Grid Coordinates: 24 hours * 60px per hour = 1440px height */
+    /* Timeline Canvas (24 hours * 60px = 1440px) */
     .timeline-canvas {
       position: relative;
       height: 1440px;
       background-size: 100% 60px;
-      background-image: linear-gradient(to bottom, rgba(51, 65, 85, 0.25) 1px, transparent 1px);
+      background-image: linear-gradient(to bottom, rgba(51, 65, 85, 0.22) 1px, transparent 1px);
     }
-    .hour-line {
-      height: 60px;
-    }
+    .hour-line { height: 60px; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-28 antialiased selection:bg-indigo-500 selection:text-white">
 
   <!-- Top App Bar / Navigation -->
   <header class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 sm:px-6">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
-          <i data-lucide="calendar-range" class="w-5 h-5"></i>
+          <i data-lucide="calendar-check" class="w-5 h-5"></i>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            Daily Flow <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">24H Planner</span>
+            Daily Flow <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">Planned vs Actual</span>
           </h1>
           <p id="currentLiveTimeDisplay" class="text-xs text-slate-400 font-mono"></p>
         </div>
@@ -84,7 +85,7 @@
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-3 sm:px-6 py-6 space-y-7">
+  <main class="max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-7">
 
     <!-- Section 1: Live Focus Stopwatch -->
     <section class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden backdrop-blur-sm">
@@ -92,7 +93,7 @@
 
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Focus Stopwatch & Active Log
+          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Active Focus Stopwatch
         </h2>
         <span id="timerTaskTag" class="text-[11px] bg-slate-950 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium border border-slate-800">Ready</span>
       </div>
@@ -121,7 +122,7 @@
       </div>
     </section>
 
-    <!-- Section 2: 24-Hour Calendar Day Planner -->
+    <!-- Section 2: 24-Hour Calendar Day Planner with Planned vs Actual Evaluation -->
     <section class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       <!-- Calendar View Control Bar -->
       <div class="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -149,7 +150,7 @@
 
         <!-- Quick Block Presets & Add Block Action -->
         <div class="flex items-center gap-2 flex-wrap">
-          <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400 pr-2 border-r border-slate-800">
+          <div class="hidden lg:flex items-center gap-1.5 text-[11px] text-slate-400 pr-2 border-r border-slate-800">
             <span class="text-slate-500 font-mono text-[10px]">PRESETS:</span>
             <button onclick="quickAddPreset('Deep Work', '09:00', '11:30', 'Deep Work', 'indigo')" class="px-2 py-1 rounded-lg bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 hover:bg-indigo-900/60 transition">
               Deep Work
@@ -157,24 +158,61 @@
             <button onclick="quickAddPreset('Gym Workout', '07:00', '08:30', 'Fitness', 'emerald')" class="px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/50 text-emerald-300 hover:bg-emerald-900/60 transition">
               Workout
             </button>
-            <button onclick="quickAddPreset('Evening Wind-down', '21:00', '22:30', 'Personal', 'amber')" class="px-2 py-1 rounded-lg bg-amber-950/60 border border-amber-800/50 text-amber-300 hover:bg-amber-900/60 transition">
+            <button onclick="quickAddPreset('Evening Wind-down', '21:00', '22:30', 'Routine', 'amber')" class="px-2 py-1 rounded-lg bg-amber-950/60 border border-amber-800/50 text-amber-300 hover:bg-amber-900/60 transition">
               Evening
             </button>
           </div>
 
           <button onclick="openTimeBlockModal()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-600/30">
-            <i data-lucide="plus" class="w-4 h-4"></i> New Time Block
+            <i data-lucide="plus" class="w-4 h-4"></i> New Planned Block
           </button>
         </div>
       </div>
 
+      <!-- Planned vs Actual Scorecard Bar -->
+      <div class="px-4 py-3 bg-slate-900/60 border-b border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] text-slate-400 font-medium block">Planned Total</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="scorePlannedHours" class="text-base font-bold font-mono text-indigo-300">0.0h</span>
+            <span class="text-[10px] text-slate-500 font-mono" id="scorePlannedCount">0 blocks</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] text-slate-400 font-medium block">Actual Logged</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="scoreActualHours" class="text-base font-bold font-mono text-emerald-400">0.0h</span>
+            <span class="text-[10px] text-slate-500 font-mono" id="scoreActualCount">0 logged</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] text-slate-400 font-medium block">Adherence Rate</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="scoreAdherenceRate" class="text-base font-bold font-mono text-cyan-300">0%</span>
+            <span class="text-[10px] text-slate-500" id="scoreStatusCount">0 completed</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80 flex flex-col justify-center">
+          <span class="text-[10px] text-slate-400 font-medium block mb-1">Schedule Variance</span>
+          <div id="scoreVarianceBadge" class="text-xs font-mono font-semibold text-slate-300">
+            0.0h on track
+          </div>
+        </div>
+      </div>
+
       <!-- Schedule Subheader (Stats & Current Indicator Notice) -->
-      <div class="px-4 py-2.5 bg-slate-900/40 border-b border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-        <span class="flex items-center gap-2">
-          <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
-          <span id="plannerDateHeading" class="font-medium text-slate-200">Today</span>
-          <span id="plannerTotalScheduledBadge" class="text-[11px] font-mono text-slate-500">(0h planned)</span>
-        </span>
+      <div class="px-4 py-2 bg-slate-950/50 border-b border-slate-800/70 flex items-center justify-between text-xs text-slate-400">
+        <div class="flex items-center gap-3">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-indigo-500/80 inline-block"></span> Planned Track
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-emerald-500/80 inline-block"></span> Actual Track
+          </span>
+        </div>
         <button onclick="scrollToCurrentTimeOrStart()" class="text-[11px] text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1">
           <i data-lucide="locate-fixed" class="w-3 h-3"></i> Jump to current hour
         </button>
@@ -183,7 +221,7 @@
       <!-- 24-Hour Scrollable Schedule Canvas -->
       <div id="plannerScrollContainer" class="h-[620px] overflow-y-auto relative bg-slate-950/70 select-none">
         
-        <div class="flex min-w-[340px] relative">
+        <div class="flex min-w-[500px] relative">
           <!-- Left Hour Axis (00:00 to 23:00) -->
           <div class="w-16 sm:w-20 flex-shrink-0 border-r border-slate-800/80 bg-slate-950/90 text-right pr-2 select-none z-10">
             <div id="hourLabelsColumn">
@@ -203,9 +241,9 @@
               <span id="currentTimeBadge" class="bg-rose-600 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shadow ml-1"></span>
             </div>
 
-            <!-- Dynamic Scheduled Time-Block Cards -->
+            <!-- Dynamic Comparative Time-Block Cards (Planned on Left, Actual on Right) -->
             <div id="scheduledBlocksContainer" class="absolute inset-0 pointer-events-none">
-              <!-- Cards rendered with pointer-events-auto -->
+              <!-- Rendered dynamically -->
             </div>
           </div>
         </div>
@@ -213,8 +251,8 @@
       </div>
 
       <!-- Schedule Footer Help Hint -->
-      <div class="p-3 border-t border-slate-800/80 bg-slate-950/70 flex items-center justify-between text-[11px] text-slate-500">
-        <span>💡 Click anywhere on the schedule to block that hour, or tap an existing card to edit.</span>
+      <div class="p-3 border-t border-slate-800/80 bg-slate-950/70 flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-500 gap-2">
+        <span>💡 Tap a block to <strong>Evaluate Actuals</strong> vs Plan. Click empty area to add a planned block.</span>
         <button onclick="clearDayPlanner()" class="text-rose-400 hover:text-rose-300 hover:underline">Clear Day's Blocks</button>
       </div>
     </section>
@@ -226,7 +264,7 @@
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
             <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Habits & Daily Metrics
           </h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">Click the <span class="text-indigo-400 font-medium">analytics icon (<i data-lucide="bar-chart-2" class="w-3 h-3 inline"></i>)</span> on any habit for detailed charts</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Customizable tracking: Yes/No, Numbers with units, and Descriptive logs.</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="openHabitModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white flex items-center gap-1.5 transition active:scale-95 shadow-sm shadow-indigo-600/30">
@@ -299,12 +337,12 @@
 
   </main>
 
-  <!-- MODAL 1: Create / Edit 24h Time Block -->
-  <div id="timeBlockModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative my-auto">
-      <div class="flex items-center justify-between mb-4">
+  <!-- MODAL 1: Create, Edit & Evaluate Planned vs Actual Time Block -->
+  <div id="timeBlockModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-5 sm:p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
         <h3 id="timeBlockModalTitle" class="text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Schedule Time Block
+          <i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Schedule & Evaluate Time Block
         </h3>
         <button onclick="closeTimeBlockModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -314,31 +352,75 @@
       <form id="timeBlockForm" onsubmit="handleSaveTimeBlock(event)" class="space-y-4">
         <input type="hidden" id="timeBlockEditId" value="">
 
+        <!-- Basic Plan Information -->
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Block Title / Task</label>
-          <input type="text" id="tbTitleInput" required placeholder="e.g. Deep Work on Client App, Gym, Planning"
+          <label class="block text-xs font-medium text-slate-400 mb-1">Block Title / Target Plan</label>
+          <input type="text" id="tbTitleInput" required placeholder="e.g. Deep Work: System Architecture, Client Review, Gym"
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
         </div>
 
-        <!-- Start & End Time Selectors -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Start Time (24h)</label>
-            <input type="time" id="tbStartTimeInput" required
-                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+        <!-- Planned Time Window -->
+        <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+          <span class="text-[11px] font-semibold text-indigo-300 uppercase tracking-wider block">Planned Window</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Planned Start</label>
+              <input type="time" id="tbStartTimeInput" required
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Planned End</label>
+              <input type="time" id="tbEndTimeInput" required
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+            </div>
           </div>
+        </div>
+
+        <!-- Actual Execution Evaluation Section -->
+        <div class="bg-slate-950/80 p-3.5 rounded-xl border border-emerald-900/40 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Actual Execution & Evaluation
+            </span>
+            <button type="button" onclick="copyPlannedToActual()" class="text-[10px] text-slate-400 hover:text-emerald-300 font-mono underline">
+              Copy Planned Times
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Actual Start</label>
+              <input type="time" id="tbActualStartTimeInput"
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Actual End</label>
+              <input type="time" id="tbActualEndTimeInput"
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500">
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-[11px] text-slate-400 mb-1">Execution Status</label>
+              <select id="tbStatusSelect" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                <option value="Planned">Planned</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Partial / Deviated">Partial / Deviated</option>
+                <option value="Missed">Missed</option>
+              </select>
+            </div>
+          </div>
+
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">End Time (24h)</label>
-            <input type="time" id="tbEndTimeInput" required
-                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+            <label class="block text-[11px] text-slate-400 mb-1">Actual Accomplishments & Work Done</label>
+            <textarea id="tbActualNotesInput" rows="2" placeholder="What actually got completed? Any deviations, bottlenecks, or gym metrics?"
+                      class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
           </div>
         </div>
 
         <!-- Category & Palette -->
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1.5">Category & Color</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Category</label>
           <div class="grid grid-cols-3 sm:grid-cols-5 gap-2" id="categoryChipsContainer">
-            <!-- Dynamically populated or static selectable chips -->
             <label class="cursor-pointer">
               <input type="radio" name="tbColor" value="indigo" checked class="peer sr-only">
               <div class="p-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-[11px] font-medium peer-checked:border-indigo-500 peer-checked:bg-indigo-600/20 peer-checked:text-indigo-300 text-slate-400 transition">
@@ -374,9 +456,9 @@
 
         <!-- Optional Notes -->
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Notes / Checklist (Optional)</label>
-          <textarea id="tbNotesInput" rows="2" placeholder="Specific deliverables, links, gym sets..."
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Target Deliverables / Checklist (Optional)</label>
+          <input type="text" id="tbNotesInput" placeholder="Links, target chapters, set count..."
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
         </div>
 
         <!-- Action Buttons -->
@@ -387,7 +469,7 @@
           <div class="flex items-center gap-2 ml-auto">
             <button type="button" onclick="closeTimeBlockModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
             <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md">
-              Save Block
+              Save & Evaluate
             </button>
           </div>
         </div>
@@ -606,25 +688,73 @@
         { id: 4, name: "No Junk Food", type: "boolean", unit: "", target: "" }
       ],
       habitLogs: {
-        [`1_${getTodayKey()}`]: { value: "Chest & Triceps: Bench 80kg 4x8", completed: true },
+        [`1_${getTodayKey()}`]: { value: "Bench Press 80kg 4x8, Shoulder Press", completed: true },
         [`2_${getTodayKey()}`]: { value: "7.5", completed: false },
         [`3_${getTodayKey()}`]: { value: "3", completed: true },
         [`4_${getTodayKey()}`]: { value: "true", completed: true }
       },
-      // 24-Hour Calendar Events / Time Blocks
-      // Schema: { id, date: "YYYY-MM-DD", title, startTime: "HH:MM", endTime: "HH:MM", color: "indigo", notes: "" }
+      // 24-Hour Calendar Events / Time Blocks with Planned vs Actual Schema
+      // { id, date, title, startTime, endTime, color, notes, actualStartTime, actualEndTime, actualNotes, status }
       timeBlocks: [
-        { id: 101, date: getTodayKey(), title: "Morning Mobility & Prep", startTime: "07:00", endTime: "08:00", color: "emerald", notes: "Hydrate, stretch, warm up" },
-        { id: 102, date: getTodayKey(), title: "Deep Work Sprint 1", startTime: "09:00", endTime: "12:00", color: "indigo", notes: "Feature architecture & coding" },
-        { id: 103, date: getTodayKey(), title: "Team Sync & Inbox", startTime: "13:30", endTime: "14:30", color: "cyan", notes: "Sprint review" },
-        { id: 104, date: getTodayKey(), title: "Evening Reading & Wind-down", startTime: "21:30", endTime: "22:30", color: "purple", notes: "No screens" }
+        { 
+          id: 101, 
+          date: getTodayKey(), 
+          title: "Morning Routine & Cardio", 
+          startTime: "07:00", 
+          endTime: "08:15", 
+          color: "emerald", 
+          notes: "Mobility, hydration, light run",
+          actualStartTime: "07:15",
+          actualEndTime: "08:15",
+          actualNotes: "Stretched and ran 4km outdoors",
+          status: "Completed"
+        },
+        { 
+          id: 102, 
+          date: getTodayKey(), 
+          title: "Deep Work Sprint 1", 
+          startTime: "09:00", 
+          endTime: "12:00", 
+          color: "indigo", 
+          notes: "Core features & code review",
+          actualStartTime: "09:30",
+          actualEndTime: "12:00",
+          actualNotes: "Shipped core sync module, delayed 30m by urgent email",
+          status: "Partial / Deviated"
+        },
+        { 
+          id: 103, 
+          date: getTodayKey(), 
+          title: "Client & Team Sync", 
+          startTime: "13:30", 
+          endTime: "14:30", 
+          color: "cyan", 
+          notes: "Roadmap discussion",
+          actualStartTime: "13:30",
+          actualEndTime: "14:25",
+          actualNotes: "Covered all sprint blockers on time",
+          status: "Completed"
+        },
+        { 
+          id: 104, 
+          date: getTodayKey(), 
+          title: "Evening Reading & Shutdown", 
+          startTime: "21:30", 
+          endTime: "22:30", 
+          color: "purple", 
+          notes: "20 pages reading, no phone",
+          actualStartTime: "",
+          actualEndTime: "",
+          actualNotes: "",
+          status: "Planned"
+        }
       ],
       tasks: [],
       focusLogs: [],
       apiUrl: ""
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v4')) || defaultState;
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v5')) || defaultState;
 
     if (!appData.habitLogs) appData.habitLogs = {};
     if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
@@ -633,7 +763,7 @@
     }
 
     function saveState() {
-      localStorage.setItem('daily_flow_state_v4', JSON.stringify(appData));
+      localStorage.setItem('daily_flow_state_v5', JSON.stringify(appData));
     }
 
     // ---------- Sync Status & Google Apps Script Sync ----------
@@ -690,7 +820,7 @@
             data: {
               habits: appData.habits,
               habitLogs: logsArray,
-              planner: appData.timeBlocks, // Synced to Planner tab
+              planner: appData.timeBlocks,
               timeBlocks: appData.timeBlocks,
               tasks: appData.tasks,
               focusLogs: appData.focusLogs
@@ -747,7 +877,6 @@
         }
 
         if (json.planner && Array.isArray(json.planner)) {
-          // Normalize planner events from Google Sheets
           appData.timeBlocks = json.planner.map(p => ({
             id: Number(p.id) || Date.now() + Math.random(),
             date: String(p.date || '').split('T')[0],
@@ -755,7 +884,11 @@
             startTime: p.startTime || "09:00",
             endTime: p.endTime || "10:00",
             color: p.color || "indigo",
-            notes: p.notes || ""
+            notes: p.notes || "",
+            actualStartTime: p.actualStartTime || "",
+            actualEndTime: p.actualEndTime || "",
+            actualNotes: p.actualNotes || "",
+            status: p.status || "Planned"
           }));
         }
 
@@ -823,76 +956,149 @@
       const datePicker = document.getElementById('plannerDatePicker');
       datePicker.value = selectedPlannerDate;
 
-      // Update Heading & Total Scheduled Time
-      const isToday = selectedPlannerDate === getTodayKey();
-      const dateObj = new Date(selectedPlannerDate + 'T00:00:00');
-      const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      document.getElementById('plannerDateHeading').textContent = isToday ? `Today (${formattedDate})` : formattedDate;
-
       // Filter blocks for selected date
       const daysBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
 
-      // Compute total scheduled minutes
-      let totalMins = 0;
-      daysBlocks.forEach(b => {
-        const startM = timeToMinutes(b.startTime);
-        const endM = timeToMinutes(b.endTime);
-        if (endM > startM) totalMins += (endM - startM);
-      });
-      const schedHours = (totalMins / 60).toFixed(1);
-      document.getElementById('plannerTotalScheduledBadge').textContent = `(${schedHours}h planned)`;
+      // Compute Planned vs Actual Summary Metrics
+      let totalPlannedMins = 0;
+      let totalActualMins = 0;
+      let completedOrPartialCount = 0;
 
-      // Render Scheduled Blocks onto 1440px canvas
+      daysBlocks.forEach(b => {
+        const pStart = timeToMinutes(b.startTime);
+        const pEnd = timeToMinutes(b.endTime);
+        if (pEnd > pStart) totalPlannedMins += (pEnd - pStart);
+
+        if (b.actualStartTime && b.actualEndTime) {
+          const aStart = timeToMinutes(b.actualStartTime);
+          const aEnd = timeToMinutes(b.actualEndTime);
+          if (aEnd > aStart) totalActualMins += (aEnd - aStart);
+        }
+
+        if (b.status === "Completed" || b.status === "Partial / Deviated") {
+          completedOrPartialCount++;
+        }
+      });
+
+      const pHours = (totalPlannedMins / 60).toFixed(1);
+      const aHours = (totalActualMins / 60).toFixed(1);
+      const adherence = totalPlannedMins > 0 ? Math.min(100, Math.round((totalActualMins / totalPlannedMins) * 100)) : 0;
+      const diffHours = (totalActualMins / 60) - (totalPlannedMins / 60);
+
+      document.getElementById('scorePlannedHours').textContent = `${pHours}h`;
+      document.getElementById('scorePlannedCount').textContent = `${daysBlocks.length} planned`;
+      document.getElementById('scoreActualHours').textContent = `${aHours}h`;
+      document.getElementById('scoreActualCount').textContent = `${daysBlocks.filter(b => b.actualStartTime).length} logged`;
+      document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
+      document.getElementById('scoreStatusCount').textContent = `${completedOrPartialCount}/${daysBlocks.length} executed`;
+
+      const varianceEl = document.getElementById('scoreVarianceBadge');
+      if (diffHours === 0) {
+        varianceEl.textContent = "0.0h on schedule";
+        varianceEl.className = "text-xs font-mono font-semibold text-slate-300";
+      } else if (diffHours > 0) {
+        varianceEl.textContent = `+${diffHours.toFixed(1)}h over-run`;
+        varianceEl.className = "text-xs font-mono font-semibold text-amber-400";
+      } else {
+        varianceEl.textContent = `${diffHours.toFixed(1)}h variance`;
+        varianceEl.className = "text-xs font-mono font-semibold text-rose-400";
+      }
+
+      // Render comparative cards into timeline surface
       const container = document.getElementById('scheduledBlocksContainer');
       container.innerHTML = '';
 
       const colorMap = {
-        indigo: { bg: 'bg-indigo-950/80', border: 'border-indigo-500/70', text: 'text-indigo-200', tag: 'bg-indigo-500/20 text-indigo-300' },
-        emerald: { bg: 'bg-emerald-950/80', border: 'border-emerald-500/70', text: 'text-emerald-200', tag: 'bg-emerald-500/20 text-emerald-300' },
-        amber: { bg: 'bg-amber-950/80', border: 'border-amber-500/70', text: 'text-amber-200', tag: 'bg-amber-500/20 text-amber-300' },
-        cyan: { bg: 'bg-cyan-950/80', border: 'border-cyan-500/70', text: 'text-cyan-200', tag: 'bg-cyan-500/20 text-cyan-300' },
-        purple: { bg: 'bg-purple-950/80', border: 'border-purple-500/70', text: 'text-purple-200', tag: 'bg-purple-500/20 text-purple-300' }
+        indigo: { border: 'border-indigo-500/80', planBg: 'bg-indigo-950/70', actBg: 'bg-indigo-900/60', text: 'text-indigo-200' },
+        emerald: { border: 'border-emerald-500/80', planBg: 'bg-emerald-950/70', actBg: 'bg-emerald-900/60', text: 'text-emerald-200' },
+        amber: { border: 'border-amber-500/80', planBg: 'bg-amber-950/70', actBg: 'bg-amber-900/60', text: 'text-amber-200' },
+        cyan: { border: 'border-cyan-500/80', planBg: 'bg-cyan-950/70', actBg: 'bg-cyan-900/60', text: 'text-cyan-200' },
+        purple: { border: 'border-purple-500/80', planBg: 'bg-purple-950/70', actBg: 'bg-purple-900/60', text: 'text-purple-200' }
+      };
+
+      const statusBadges = {
+        "Planned": "bg-slate-800 text-slate-400 border-slate-700",
+        "In Progress": "bg-cyan-950 text-cyan-300 border-cyan-700 animate-pulse",
+        "Completed": "bg-emerald-950 text-emerald-300 border-emerald-700",
+        "Partial / Deviated": "bg-amber-950 text-amber-300 border-amber-700",
+        "Missed": "bg-rose-950 text-rose-300 border-rose-700"
       };
 
       daysBlocks.forEach(block => {
-        const startM = timeToMinutes(block.startTime);
-        let endM = timeToMinutes(block.endTime);
-        if (endM <= startM) endM = Math.min(1440, startM + 60);
+        const theme = colorMap[block.color] || colorMap.indigo;
 
-        const durationM = endM - startM;
-        const topPx = startM; // 1px = 1 min
-        const heightPx = Math.max(28, durationM); // minimum legible height
+        // 1. PLANNED BLOCK (Positioned on Left Track: left: 2%, width: 46%)
+        const pStartM = timeToMinutes(block.startTime);
+        let pEndM = timeToMinutes(block.endTime);
+        if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
+        const pDur = pEndM - pStartM;
 
-        const palette = colorMap[block.color] || colorMap.indigo;
+        const planCard = document.createElement('div');
+        planCard.className = `absolute left-[1%] sm:left-[2%] w-[47%] rounded-xl border p-2 sm:p-2.5 shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden ${theme.planBg} ${theme.border}`;
+        planCard.style.top = `${pStartM}px`;
+        planCard.style.height = `${Math.max(34, pDur)}px`;
 
-        const card = document.createElement('div');
-        card.className = `absolute left-2 right-2 sm:left-4 sm:right-6 rounded-xl border p-2.5 shadow-lg backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden ${palette.bg} ${palette.border}`;
-        card.style.top = `${topPx}px`;
-        card.style.height = `${heightPx}px`;
-
-        card.onclick = (e) => {
+        planCard.onclick = (e) => {
           e.stopPropagation();
           editTimeBlock(block.id);
         };
 
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0">
+        planCard.innerHTML = `
+          <div class="flex items-start justify-between gap-1">
+            <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-bold ${palette.text} truncate">${block.title}</span>
-                <span class="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded ${palette.tag}">
-                  ${block.startTime} - ${block.endTime}
-                </span>
+                <span class="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Plan</span>
+                <span class="text-xs font-bold ${theme.text} truncate">${block.title}</span>
               </div>
-              ${block.notes && heightPx >= 50 ? `<p class="text-[11px] text-slate-300/80 truncate mt-0.5">${block.notes}</p>` : ''}
+              <div class="text-[10px] font-mono text-slate-400 mt-0.5">${block.startTime} - ${block.endTime} (${(pDur/60).toFixed(1)}h)</div>
+              ${block.notes && pDur >= 60 ? `<p class="text-[11px] text-slate-300/80 truncate mt-1 italic">${block.notes}</p>` : ''}
             </div>
-            <button onclick="handleQuickDeleteTimeBlock(${block.id}, event)" title="Delete Block" class="text-slate-400 hover:text-rose-400 p-0.5 rounded transition">
+            <button onclick="handleQuickDeleteTimeBlock(${block.id}, event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
         `;
+        container.appendChild(planCard);
 
-        container.appendChild(card);
+        // 2. ACTUAL BLOCK (Positioned on Right Track: left: 51%, width: 47%)
+        const statusClass = statusBadges[block.status] || statusBadges["Planned"];
+        let aStartM = block.actualStartTime ? timeToMinutes(block.actualStartTime) : pStartM;
+        let aEndM = block.actualEndTime ? timeToMinutes(block.actualEndTime) : (block.actualStartTime ? aStartM + 45 : pEndM);
+        if (aEndM <= aStartM) aEndM = aStartM + 30;
+        const aDur = (block.actualStartTime && block.actualEndTime) ? (aEndM - aStartM) : pDur;
+
+        const hasLoggedActual = Boolean(block.actualStartTime && block.actualEndTime);
+
+        const actCard = document.createElement('div');
+        actCard.className = `absolute right-[1%] sm:right-[2%] w-[47%] rounded-xl border p-2 sm:p-2.5 shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden ${hasLoggedActual ? 'bg-emerald-950/70 border-emerald-500/70' : 'bg-slate-900/60 border-dashed border-slate-700/80'}`;
+        actCard.style.top = `${hasLoggedActual ? aStartM : pStartM}px`;
+        actCard.style.height = `${Math.max(34, aDur)}px`;
+
+        actCard.onclick = (e) => {
+          e.stopPropagation();
+          editTimeBlock(block.id);
+        };
+
+        actCard.innerHTML = `
+          <div class="flex items-start justify-between gap-1">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-[10px] uppercase font-mono px-1 py-0.2 rounded border ${statusClass}">
+                  ${block.status || 'Planned'}
+                </span>
+                <span class="text-xs font-semibold ${hasLoggedActual ? 'text-emerald-200' : 'text-slate-400'} truncate">
+                  ${hasLoggedActual ? 'Actual Done' : 'Not Evaluated'}
+                </span>
+              </div>
+              <div class="text-[10px] font-mono ${hasLoggedActual ? 'text-emerald-400' : 'text-slate-500'} mt-0.5">
+                ${hasLoggedActual ? `${block.actualStartTime} - ${block.actualEndTime} (${(aDur/60).toFixed(1)}h)` : 'Tap to evaluate'}
+              </div>
+              ${block.actualNotes && aDur >= 55 ? `<p class="text-[11px] text-emerald-100/90 truncate mt-1">${block.actualNotes}</p>` : ''}
+            </div>
+            <i data-lucide="check-check" class="w-3.5 h-3.5 ${hasLoggedActual ? 'text-emerald-400' : 'text-slate-600'}"></i>
+          </div>
+        `;
+        container.appendChild(actCard);
       });
 
       updateCurrentTimeIndicator();
@@ -927,7 +1133,6 @@
         const currentMin = now.getHours() * 60 + now.getMinutes();
         scrollCont.scrollTo({ top: Math.max(0, currentMin - 120), behavior: 'smooth' });
       } else {
-        // Scroll to 8 AM (480px)
         scrollCont.scrollTo({ top: 480, behavior: 'smooth' });
       }
     }
@@ -955,7 +1160,6 @@
     function handleTimelineCanvasClick(event) {
       const rect = event.currentTarget.getBoundingClientRect();
       const clickY = event.clientY - rect.top;
-      // Convert clickY px into nearest 15-minute or 30-minute block
       const clickedMinute = Math.min(1380, Math.max(0, Math.floor(clickY)));
       const snappedMinute = Math.floor(clickedMinute / 30) * 30;
 
@@ -965,6 +1169,12 @@
       openTimeBlockModal(null, startStr, endStr);
     }
 
+    function copyPlannedToActual() {
+      document.getElementById('tbActualStartTimeInput').value = document.getElementById('tbStartTimeInput').value;
+      document.getElementById('tbActualEndTimeInput').value = document.getElementById('tbEndTimeInput').value;
+      document.getElementById('tbStatusSelect').value = "Completed";
+    }
+
     function openTimeBlockModal(editId = null, defaultStart = "09:00", defaultEnd = "10:00") {
       const form = document.getElementById('timeBlockForm');
       const deleteBtn = document.getElementById('deleteTimeBlockBtn');
@@ -972,12 +1182,16 @@
       if (editId) {
         const block = appData.timeBlocks.find(b => b.id === editId);
         if (!block) return;
-        document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="pencil" class="w-5 h-5 text-indigo-400"></i> Edit Time Block`;
+        document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="pencil" class="w-5 h-5 text-indigo-400"></i> Evaluate Time Block`;
         document.getElementById('timeBlockEditId').value = block.id;
         document.getElementById('tbTitleInput').value = block.title;
         document.getElementById('tbStartTimeInput').value = block.startTime;
         document.getElementById('tbEndTimeInput').value = block.endTime;
         document.getElementById('tbNotesInput').value = block.notes || "";
+        document.getElementById('tbActualStartTimeInput').value = block.actualStartTime || "";
+        document.getElementById('tbActualEndTimeInput').value = block.actualEndTime || "";
+        document.getElementById('tbActualNotesInput').value = block.actualNotes || "";
+        document.getElementById('tbStatusSelect').value = block.status || "Planned";
 
         const radio = document.querySelector(`input[name="tbColor"][value="${block.color || 'indigo'}"]`);
         if (radio) radio.checked = true;
@@ -989,6 +1203,11 @@
         document.getElementById('tbStartTimeInput').value = defaultStart;
         document.getElementById('tbEndTimeInput').value = defaultEnd;
         document.getElementById('tbNotesInput').value = "";
+        document.getElementById('tbActualStartTimeInput').value = "";
+        document.getElementById('tbActualEndTimeInput').value = "";
+        document.getElementById('tbActualNotesInput').value = "";
+        document.getElementById('tbStatusSelect').value = "Planned";
+
         document.querySelector(`input[name="tbColor"][value="indigo"]`).checked = true;
         deleteBtn.classList.add('hidden');
       }
@@ -1013,9 +1232,12 @@
       const endTime = document.getElementById('tbEndTimeInput').value;
       const color = document.querySelector('input[name="tbColor"]:checked')?.value || 'indigo';
       const notes = document.getElementById('tbNotesInput').value.trim();
+      const actualStartTime = document.getElementById('tbActualStartTimeInput').value;
+      const actualEndTime = document.getElementById('tbActualEndTimeInput').value;
+      const actualNotes = document.getElementById('tbActualNotesInput').value.trim();
+      const status = document.getElementById('tbStatusSelect').value;
 
       if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
-        alert("End time must be after start time.");
         return;
       }
 
@@ -1027,6 +1249,10 @@
           block.endTime = endTime;
           block.color = color;
           block.notes = notes;
+          block.actualStartTime = actualStartTime;
+          block.actualEndTime = actualEndTime;
+          block.actualNotes = actualNotes;
+          block.status = status;
         }
       } else {
         appData.timeBlocks.push({
@@ -1036,7 +1262,11 @@
           startTime,
           endTime,
           color,
-          notes
+          notes,
+          actualStartTime,
+          actualEndTime,
+          actualNotes,
+          status
         });
       }
 
@@ -1069,14 +1299,17 @@
         startTime,
         endTime,
         color,
-        notes: `Scheduled via ${category} preset`
+        notes: `Scheduled via ${category} preset`,
+        actualStartTime: "",
+        actualEndTime: "",
+        actualNotes: "",
+        status: "Planned"
       });
       render24HourPlanner();
       syncToRemote();
     }
 
     function clearDayPlanner() {
-      if (!confirm(`Clear all time blocks for ${selectedPlannerDate}?`)) return;
       appData.timeBlocks = appData.timeBlocks.filter(b => b.date !== selectedPlannerDate);
       render24HourPlanner();
       syncToRemote();
@@ -1201,7 +1434,7 @@
         } else if (habit.type === 'text') {
           controlHtml = `
             <div class="w-full mt-2 sm:mt-0 sm:max-w-xs">
-              <textarea rows="2" placeholder="e.g. Bench 75kg 4x8, notes..." 
+              <textarea rows="2" placeholder="e.g. Bench 80kg 4x8, 30m stretch notes..." 
                         onblur="handleTextHabitBlur(${habit.id}, this.value)"
                         class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed">${log.value || ''}</textarea>
             </div>
@@ -1359,7 +1592,6 @@
     }
 
     function deleteHabit(habitId) {
-      if (!confirm("Remove this habit?")) return;
       appData.habits = appData.habits.filter(h => h.id !== habitId);
       renderHabits();
       syncToRemote();
@@ -1382,13 +1614,7 @@
           habit.target = target;
         }
       } else {
-        appData.habits.push({
-          id: Date.now(),
-          name,
-          type,
-          unit,
-          target
-        });
+        appData.habits.push({ id: Date.now(), name, type, unit, target });
       }
 
       closeHabitModal();
@@ -1454,7 +1680,7 @@
         numRow.classList.add('hidden');
       }
 
-      // Heatmap
+      // Heatmap Grid
       const heatmapEl = document.getElementById('heatmapGrid');
       heatmapEl.innerHTML = '';
       last30Days.forEach(d => {
@@ -1468,7 +1694,7 @@
         heatmapEl.appendChild(sq);
       });
 
-      // Descriptive logs list
+      // Descriptive entries
       const descList = document.getElementById('descriptiveEntriesList');
       descList.innerHTML = '';
       const entries = [];
@@ -1721,10 +1947,7 @@
     }
 
     function logFocusSession() {
-      if (timerSeconds < 5) {
-        alert("Focus for at least 5 seconds before recording.");
-        return;
-      }
+      if (timerSeconds < 5) return;
       const label = document.getElementById('timerLabelInput').value.trim() || "Deep Work Focus";
       const duration = formatTime(timerSeconds);
       const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1796,11 +2019,8 @@
           appData = JSON.parse(e.target.result);
           saveState();
           renderAll();
-          alert("Backup data restored successfully!");
           syncToRemote();
-        } catch (err) {
-          alert("Invalid backup file.");
-        }
+        } catch (err) {}
       };
       if (event.target.files[0]) reader.readAsText(event.target.files[0]);
     }
@@ -1824,7 +2044,6 @@
       renderAll();
       scrollToCurrentTimeOrStart();
 
-      // Refresh live time indicator every 60s
       setInterval(() => {
         updateCurrentTimeIndicator();
       }, 60000);
