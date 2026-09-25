@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Daily Flow & Habit Tracker</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Smooth transitions and mobile touch improvements */
+    body { -webkit-tap-highlight-color: transparent; }
+    input[type="checkbox"] { accent-color: #6366f1; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans pb-20 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Header / App Bar -->
+  <header class="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 sm:px-6">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div>
+        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          <i data-lucide="zap" class="w-5 h-5 text-indigo-400"></i> Daily Flow
+        </h1>
+        <p id="currentDateDisplay" class="text-xs text-slate-400 font-medium"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="exportData()" title="Backup Data" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+        <label title="Restore Data" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Section 1: Live Focus Stopwatch & Logger -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Focus Timer
+        </h2>
+        <span id="timerTaskTag" class="text-xs bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-full font-medium">Ready</span>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <div id="stopwatchDisplay" class="text-4xl sm:text-5xl font-mono font-bold text-white tracking-wider">
+            00:00:00
+          </div>
+          <input type="text" id="timerLabelInput" placeholder="What are you focusing on?" 
+                 class="mt-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-64">
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="toggleTimerBtn" onclick="toggleTimer()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-md shadow-indigo-600/20">
+            <i data-lucide="play" id="timerIcon" class="w-4 h-4"></i>
+            <span id="timerBtnText">Start</span>
+          </button>
+          <button onclick="logFocusSession()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-300 transition active:scale-95">
+            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Log
+          </button>
+          <button onclick="resetTimer()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid Layout: Habits & Daily Timeblocks -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Section 2: Daily Habits Tracker -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Habits & Streaks
+            </h2>
+            <button onclick="addNewHabitPrompt()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add
+            </button>
+          </div>
+
+          <div id="habitList" class="space-y-2.5">
+            <!-- Dynamic Habits Injected Here -->
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+          <span>Streaks increment on daily completion</span>
+          <span id="habitsCompletedCounter">0/0</span>
+        </div>
+      </section>
+
+      <!-- Section 3: Daily Time-Blocking Planner -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-4">
+          <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i> Daily Timeblocks
+        </h2>
+        
+        <div class="space-y-3">
+          <!-- Morning -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5 mb-1.5">
+              <i data-lucide="sun" class="w-3.5 h-3.5"></i> Morning (06:00 - 12:00)
+            </span>
+            <input type="text" id="plan_morning" onblur="savePlanner()" placeholder="Plan workout, routine, or deep focus..."
+                   class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+
+          <!-- Afternoon -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-1.5">
+              <i data-lucide="sun-medium" class="w-3.5 h-3.5"></i> Afternoon (12:00 - 17:00)
+            </span>
+            <input type="text" id="plan_afternoon" onblur="savePlanner()" placeholder="Work priorities, calls, administration..."
+                   class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+
+          <!-- Evening / Night -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 mb-1.5">
+              <i data-lucide="moon" class="w-3.5 h-3.5"></i> Evening (17:00 - 22:00)
+            </span>
+            <input type="text" id="plan_evening" onblur="savePlanner()" placeholder="Family time, reading, unwinding..."
+                   class="w-full bg-transparent text-xs text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Section 4: Daily Tasks with Priority -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Priority Tasks
+        </h2>
+      </div>
+
+      <!-- Add Task Input Form -->
+      <form onsubmit="handleAddTask(event)" class="flex flex-col sm:flex-row gap-2 mb-4">
+        <input type="text" id="taskTitleInput" placeholder="Add a new task..." required
+               class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+        
+        <select id="taskPriorityInput" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
+          <option value="High">High Priority</option>
+          <option value="Med" selected>Medium</option>
+          <option value="Low">Low</option>
+        </select>
+
+        <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 flex items-center justify-center gap-1">
+          <i data-lucide="plus" class="w-4 h-4"></i> Add Task
+        </button>
+      </form>
+
+      <!-- Task Items List -->
+      <div id="taskList" class="space-y-2">
+        <!-- Dynamic Tasks Injected Here -->
+      </div>
+    </section>
+
+    <!-- Section 5: Today's Focus History Log -->
+    <section class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between mb-2">
+        <span>Logged Time Sessions</span>
+        <button onclick="clearTimeLogs()" class="text-[11px] text-red-400 hover:underline">Clear</button>
+      </h2>
+      <div id="timeLogList" class="space-y-1.5 text-xs text-slate-300 font-mono">
+        <!-- Dynamic Logs Injected Here -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ---------- State Management (localStorage) ----------
+    const getTodayKey = () => new Date().toISOString().split('T')[0];
+
+    const defaultState = {
+      habits: [
+        { id: 1, name: "Strength Workout", streak: 0, lastDone: "" },
+        { id: 2, name: "3L Clean Water", streak: 0, lastDone: "" },
+        { id: 3, name: "7+ Hours Sleep", streak: 0, lastDone: "" }
+      ],
+      planner: {}, // Keyed by YYYY-MM-DD: { morning, afternoon, evening }
+      tasks: [],
+      focusLogs: []
+    };
+
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state')) || defaultState;
+
+    function saveState() {
+      localStorage.setItem('daily_flow_state', JSON.stringify(appData));
+    }
+
+    // ---------- Date & Header Setup ----------
+    function renderHeaderDate() {
+      const today = new Date();
+      const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
+      document.getElementById('currentDateDisplay').textContent = today.toLocaleDateString(undefined, options);
+    }
+
+    // ---------- Habits Logic ----------
+    function renderHabits() {
+      const habitContainer = document.getElementById('habitList');
+      habitContainer.innerHTML = '';
+      const today = getTodayKey();
+      let completedCount = 0;
+
+      appData.habits.forEach(habit => {
+        const isDoneToday = habit.lastDone === today;
+        if (isDoneToday) completedCount++;
+
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 transition";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${isDoneToday ? 'checked' : ''} onchange="toggleHabit(${habit.id})" class="w-4 h-4 rounded cursor-pointer">
+            <span class="text-xs font-medium ${isDoneToday ? 'line-through text-slate-500' : 'text-slate-200'}">${habit.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full ${habit.streak > 0 ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' : 'text-slate-500'}">
+              🔥 ${habit.streak}d
+            </span>
+            <button onclick="removeHabit(${habit.id})" class="text-slate-600 hover:text-red-400 transition p-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        habitContainer.appendChild(div);
+      });
+
+      document.getElementById('habitsCompletedCounter').textContent = `${completedCount}/${appData.habits.length}`;
+      lucide.createIcons();
+    }
+
+    function toggleHabit(id) {
+      const today = getTodayKey();
+      const habit = appData.habits.find(h => h.id === id);
+      if (!habit) return;
+
+      if (habit.lastDone === today) {
+        habit.lastDone = "";
+        habit.streak = Math.max(0, habit.streak - 1);
+      } else {
+        habit.lastDone = today;
+        habit.streak += 1;
+      }
+      saveState();
+      renderHabits();
+    }
+
+    function addNewHabitPrompt() {
+      const name = prompt("Enter new habit name:");
+      if (name && name.trim()) {
+        appData.habits.push({
+          id: Date.now(),
+          name: name.trim(),
+          streak: 0,
+          lastDone: ""
+        });
+        saveState();
+        renderHabits();
+      }
+    }
+
+    function removeHabit(id) {
+      appData.habits = appData.habits.filter(h => h.id !== id);
+      saveState();
+      renderHabits();
+    }
+
+    // ---------- Planner Logic ----------
+    function loadPlanner() {
+      const today = getTodayKey();
+      const plan = appData.planner[today] || { morning: "", afternoon: "", evening: "" };
+      document.getElementById('plan_morning').value = plan.morning || "";
+      document.getElementById('plan_afternoon').value = plan.afternoon || "";
+      document.getElementById('plan_evening').value = plan.evening || "";
+    }
+
+    function savePlanner() {
+      const today = getTodayKey();
+      if (!appData.planner[today]) appData.planner[today] = {};
+      appData.planner[today].morning = document.getElementById('plan_morning').value;
+      appData.planner[today].afternoon = document.getElementById('plan_afternoon').value;
+      appData.planner[today].evening = document.getElementById('plan_evening').value;
+      saveState();
+    }
+
+    // ---------- Tasks Logic ----------
+    function handleAddTask(e) {
+      e.preventDefault();
+      const titleInput = document.getElementById('taskTitleInput');
+      const priorityInput = document.getElementById('taskPriorityInput');
+
+      appData.tasks.unshift({
+        id: Date.now(),
+        title: titleInput.value.trim(),
+        priority: priorityInput.value,
+        completed: false
+      });
+
+      titleInput.value = '';
+      saveState();
+      renderTasks();
+    }
+
+    function toggleTask(id) {
+      const task = appData.tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        saveState();
+        renderTasks();
+      }
+    }
+
+    function deleteTask(id) {
+      appData.tasks = appData.tasks.filter(t => t.id !== id);
+      saveState();
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';
+
+      if (appData.tasks.length === 0) {
+        taskList.innerHTML = `<div class="text-xs text-slate-600 text-center py-4">No tasks yet. Add one above!</div>`;
+        return;
+      }
+
+      appData.tasks.forEach(task => {
+        const priorityColors = {
+          High: 'text-rose-400 bg-rose-950/40 border-rose-800/40',
+          Med: 'text-amber-400 bg-amber-950/40 border-amber-800/40',
+          Low: 'text-slate-400 bg-slate-800 border-slate-700'
+        };
+
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 transition ${task.completed ? 'opacity-50' : ''}`;
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 rounded cursor-pointer">
+            <span class="text-xs font-medium ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${priorityColors[task.priority]}">${task.priority}</span>
+          </div>
+          <button onclick="deleteTask(${task.id})" class="text-slate-600 hover:text-rose-400 transition p-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        taskList.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
+    // ---------- Stopwatch & Timer Logic ----------
+    let timerInterval = null;
+    let timerSeconds = 0;
+    let isRunning = false;
+
+    function formatTime(totalSecs) {
+      const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+      const secs = String(totalSecs % 60).padStart(2, '0');
+      return `${hrs}:${mins}:${secs}`;
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('toggleTimerBtn');
+      const btnText = document.getElementById('timerBtnText');
+      const timerIcon = document.getElementById('timerIcon');
+
+      if (!isRunning) {
+        isRunning = true;
+        btnText.textContent = "Pause";
+        btn.classList.replace('bg-indigo-600', 'bg-amber-600');
+        btn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          document.getElementById('stopwatchDisplay').textContent = formatTime(timerSeconds);
+        }, 1000);
+      } else {
+        isRunning = false;
+        clearInterval(timerInterval);
+        btnText.textContent = "Resume";
+        btn.classList.replace('bg-amber-600', 'bg-indigo-600');
+        btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+      }
+    }
+
+    function resetTimer() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      timerSeconds = 0;
+      document.getElementById('stopwatchDisplay').textContent = "00:00:00";
+      document.getElementById('timerBtnText').textContent = "Start";
+      const btn = document.getElementById('toggleTimerBtn');
+      btn.classList.replace('bg-amber-600', 'bg-indigo-600');
+      btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+    }
+
+    function logFocusSession() {
+      if (timerSeconds < 10) {
+        alert("Focus for at least 10 seconds before logging.");
+        return;
+      }
+      const label = document.getElementById('timerLabelInput').value.trim() || "Deep Work";
+      const timeStr = formatTime(timerSeconds);
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      appData.focusLogs.unshift({ id: Date.now(), label, duration: timeStr, time: timestamp });
+      saveState();
+      resetTimer();
+      document.getElementById('timerLabelInput').value = "";
+      renderFocusLogs();
+    }
+
+    function renderFocusLogs() {
+      const container = document.getElementById('timeLogList');
+      container.innerHTML = '';
+      if (appData.focusLogs.length === 0) {
+        container.innerHTML = `<span class="text-slate-600">No sessions recorded today.</span>`;
+        return;
+      }
+      appData.focusLogs.slice(0, 5).forEach(log => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between bg-slate-950 p-2 rounded-lg border border-slate-800/60";
+        div.innerHTML = `
+          <span>${log.label}</span>
+          <span class="text-indigo-400 font-bold">${log.duration} <span class="text-slate-500 font-normal">(${log.time})</span></span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function clearTimeLogs() {
+      appData.focusLogs = [];
+      saveState();
+      renderFocusLogs();
+    }
+
+    // ---------- Backup & Restore (JSON) ----------
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          appData = JSON.parse(e.target.result);
+          saveState();
+          init();
+          alert("Data restored successfully!");
+        } catch (err) {
+          alert("Invalid JSON backup file.");
+        }
+      };
+      if (event.target.files[0]) reader.readAsText(event.target.files[0]);
+    }
+
+    // ---------- Initialize App ----------
+    function init() {
+      renderHeaderDate();
+      renderHabits();
+      loadPlanner();
+      renderTasks();
+      renderFocusLogs();
+      lucide.createIcons();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
