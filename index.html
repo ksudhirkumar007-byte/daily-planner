@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daily Flow - 24H Planner with Planned vs Actual Evaluation</title>
+  <title>Daily Flow - 24H Planner, Habits & Daily Reflection</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js for Habit & Adherence Analytics -->
+  <!-- Chart.js for Habit & Mindset Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
@@ -51,11 +51,11 @@
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
-          <i data-lucide="calendar-check" class="w-5 h-5"></i>
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            Daily Flow <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">Planned vs Actual</span>
+            Daily Flow <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">Planner & Reflect</span>
           </h1>
           <p id="currentLiveTimeDisplay" class="text-xs text-slate-400 font-mono"></p>
         </div>
@@ -63,6 +63,11 @@
 
       <!-- Sync Status & App Toolbar -->
       <div class="flex items-center gap-2">
+        <button onclick="openReflectionHistoryModal()" title="View Past Summaries & Analytics" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/50 border border-indigo-700/50 hover:border-indigo-600 text-xs text-indigo-300 transition active:scale-95 shadow-sm">
+          <i data-lucide="line-chart" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span class="hidden sm:inline font-semibold">Mindset & History</span>
+        </button>
+
         <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncText" class="font-mono text-[11px]">Synced</span>
@@ -219,32 +224,27 @@
       </div>
 
       <!-- 24-Hour Scrollable Schedule Canvas -->
-      <div id="plannerScrollContainer" class="h-[620px] overflow-y-auto relative bg-slate-950/70 select-none">
+      <div id="plannerScrollContainer" class="h-[520px] overflow-y-auto relative bg-slate-950/70 select-none">
         
         <div class="flex min-w-[500px] relative">
           <!-- Left Hour Axis (00:00 to 23:00) -->
           <div class="w-16 sm:w-20 flex-shrink-0 border-r border-slate-800/80 bg-slate-950/90 text-right pr-2 select-none z-10">
-            <div id="hourLabelsColumn">
-              <!-- Dynamically injected hour timestamps (24 hours) -->
-            </div>
+            <div id="hourLabelsColumn"></div>
           </div>
 
           <!-- Main Timeline Surface (1440px high = 1px per min) -->
           <div id="timelineSurface" class="timeline-canvas flex-1 relative" onclick="handleTimelineCanvasClick(event)">
-            <!-- Hourly grid divider lines -->
             <div id="hourGridLines"></div>
 
-            <!-- Red / Cyan Current Time Indicator Line (only if viewing current day) -->
+            <!-- Current Time Indicator -->
             <div id="currentTimeIndicator" class="hidden absolute left-0 right-0 z-20 pointer-events-none flex items-center">
               <div class="w-2.5 h-2.5 -ml-1.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/80"></div>
               <div class="flex-1 border-t-2 border-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div>
               <span id="currentTimeBadge" class="bg-rose-600 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shadow ml-1"></span>
             </div>
 
-            <!-- Dynamic Comparative Time-Block Cards (Planned on Left, Actual on Right) -->
-            <div id="scheduledBlocksContainer" class="absolute inset-0 pointer-events-none">
-              <!-- Rendered dynamically -->
-            </div>
+            <!-- Dynamic Cards Container -->
+            <div id="scheduledBlocksContainer" class="absolute inset-0 pointer-events-none"></div>
           </div>
         </div>
 
@@ -335,7 +335,301 @@
 
     </div>
 
+    <!-- Section 5: Summarise My Day (Evening Ritual Form at the End of the Page) -->
+    <section class="bg-gradient-to-b from-slate-900/95 to-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🌙</span>
+            <h2 class="text-base font-bold text-white tracking-wide">Summarise My Day</h2>
+            <span id="summaryActiveDateBadge" class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30"></span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Evening wind-down ritual. Reflect honestly on what went well, setbacks, and feelings.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openReflectionHistoryModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition active:scale-95 border border-slate-700">
+            <i data-lucide="book-open" class="w-3.5 h-3.5 text-indigo-400"></i> Past Reflections & Analytics
+          </button>
+        </div>
+      </div>
+
+      <form id="summaryForm" onsubmit="handleSaveDailySummary(event)" class="space-y-5">
+        
+        <!-- Guided Questions 1 & 2 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+            <label class="block text-xs font-semibold text-emerald-400 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i> 1. Good Thing about Today
+            </label>
+            <textarea id="summaryGoodThing" rows="2" placeholder="What brought joy, a win, or a breakthrough?" 
+                      class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+          </div>
+
+          <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+            <label class="block text-xs font-semibold text-rose-400 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i> 2. Things which I didn't Like
+            </label>
+            <textarea id="summaryDisliked" rows="2" placeholder="Frustrations, energy drainers, or obstacles?" 
+                      class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-rose-500 resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Guided Questions 3, 4, 5 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- 3. Is it Productive? -->
+          <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+            <label class="block text-xs font-semibold text-indigo-300 mb-2 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 3. Is it Productive?
+            </label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <label class="cursor-pointer">
+                <input type="radio" name="summaryProductive" value="Yes" class="peer sr-only">
+                <div class="py-1.5 px-2 text-center rounded-lg border border-slate-800 bg-slate-900 text-xs font-medium text-slate-400 peer-checked:bg-emerald-600/20 peer-checked:border-emerald-500 peer-checked:text-emerald-300 transition">
+                  Yes
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="summaryProductive" value="Partial" checked class="peer sr-only">
+                <div class="py-1.5 px-2 text-center rounded-lg border border-slate-800 bg-slate-900 text-xs font-medium text-slate-400 peer-checked:bg-amber-600/20 peer-checked:border-amber-500 peer-checked:text-amber-300 transition">
+                  Partial
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="summaryProductive" value="No" class="peer sr-only">
+                <div class="py-1.5 px-2 text-center rounded-lg border border-slate-800 bg-slate-900 text-xs font-medium text-slate-400 peer-checked:bg-rose-600/20 peer-checked:border-rose-500 peer-checked:text-rose-300 transition">
+                  No
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- 4. Better than Yesterday? -->
+          <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+            <label class="block text-xs font-semibold text-indigo-300 mb-2 flex items-center gap-1.5">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 4. Better than Yesterday?
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="cursor-pointer">
+                <input type="radio" name="summaryBetter" value="Yes" checked class="peer sr-only">
+                <div class="py-1.5 px-2 text-center rounded-lg border border-slate-800 bg-slate-900 text-xs font-medium text-slate-400 peer-checked:bg-indigo-600/20 peer-checked:border-indigo-500 peer-checked:text-indigo-300 transition">
+                  Yes
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="summaryBetter" value="No" class="peer sr-only">
+                <div class="py-1.5 px-2 text-center rounded-lg border border-slate-800 bg-slate-900 text-xs font-medium text-slate-400 peer-checked:bg-slate-800 peer-checked:border-slate-600 peer-checked:text-slate-200 transition">
+                  No
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- 5. Any Regrets? -->
+          <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+            <label class="block text-xs font-semibold text-indigo-300 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> 5. Any Regrets?
+            </label>
+            <input type="text" id="summaryRegrets" placeholder="Procrastinated, skipped workout..."
+                   class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <!-- Guided Question 6: Emotion of the Day (5 Levels) -->
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+          <label class="block text-xs font-semibold text-indigo-300 mb-2.5 flex items-center gap-1.5">
+            <i data-lucide="smile" class="w-3.5 h-3.5"></i> 6. Emotion of the Day
+          </label>
+          <div class="grid grid-cols-5 gap-2 max-w-lg">
+            
+            <label class="cursor-pointer text-center">
+              <input type="radio" name="summaryEmotion" value="5" class="peer sr-only">
+              <div class="p-2 sm:p-2.5 rounded-xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center gap-1 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 transition">
+                <span class="text-xl sm:text-2xl">😄</span>
+                <span class="text-[10px] text-slate-400 font-medium">Ecstatic</span>
+              </div>
+            </label>
+
+            <label class="cursor-pointer text-center">
+              <input type="radio" name="summaryEmotion" value="4" checked class="peer sr-only">
+              <div class="p-2 sm:p-2.5 rounded-xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center gap-1 peer-checked:border-cyan-500 peer-checked:bg-cyan-500/10 transition">
+                <span class="text-xl sm:text-2xl">🙂</span>
+                <span class="text-[10px] text-slate-400 font-medium">Good</span>
+              </div>
+            </label>
+
+            <label class="cursor-pointer text-center">
+              <input type="radio" name="summaryEmotion" value="3" class="peer sr-only">
+              <div class="p-2 sm:p-2.5 rounded-xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center gap-1 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 transition">
+                <span class="text-xl sm:text-2xl">😐</span>
+                <span class="text-[10px] text-slate-400 font-medium">Neutral</span>
+              </div>
+            </label>
+
+            <label class="cursor-pointer text-center">
+              <input type="radio" name="summaryEmotion" value="2" class="peer sr-only">
+              <div class="p-2 sm:p-2.5 rounded-xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center gap-1 peer-checked:border-orange-500 peer-checked:bg-orange-500/10 transition">
+                <span class="text-xl sm:text-2xl">🙁</span>
+                <span class="text-[10px] text-slate-400 font-medium">Low</span>
+              </div>
+            </label>
+
+            <label class="cursor-pointer text-center">
+              <input type="radio" name="summaryEmotion" value="1" class="peer sr-only">
+              <div class="p-2 sm:p-2.5 rounded-xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center gap-1 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 transition">
+                <span class="text-xl sm:text-2xl">😞</span>
+                <span class="text-[10px] text-slate-400 font-medium">Down</span>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Guided Question 7: Personal Notes -->
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800/80">
+          <label class="block text-xs font-semibold text-indigo-300 mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="feather" class="w-3.5 h-3.5"></i> 7. Personal Notes & Tomorrow's Intentions
+          </label>
+          <textarea id="summaryNotes" rows="2" placeholder="Random thoughts, key learnings, or what you want to achieve tomorrow..." 
+                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <span id="summaryStatusText" class="text-xs text-slate-500 italic">Unsaved for this date</span>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+            <i data-lucide="check-check" class="w-4 h-4"></i> Save Day's Summary
+          </button>
+        </div>
+
+      </form>
+    </section>
+
   </main>
+
+  <!-- MODAL: Past Summaries, Mindset & Reflection Analytics -->
+  <div id="reflectionHistoryModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-800/90 flex items-center justify-between bg-slate-950/60">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white leading-tight">Daily Reflection & Mindset Analytics</h3>
+            <p class="text-xs text-slate-400 font-mono mt-0.5">Historical summaries, emotional distribution & productivity scores</p>
+          </div>
+        </div>
+        <button onclick="closeReflectionHistoryModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-5 overflow-y-auto space-y-6">
+
+        <!-- Top Mindset KPIs -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Total Summarized</span>
+            <div id="kpiTotalSummaries" class="text-2xl font-bold font-mono text-indigo-400">0 days</div>
+            <span class="text-[10px] text-slate-500 font-mono mt-0.5 block" id="kpiSummaryStreak">0d current streak</span>
+          </div>
+
+          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Productivity Rate</span>
+            <div id="kpiProductivityRate" class="text-2xl font-bold font-mono text-emerald-400">0%</div>
+            <span class="text-[10px] text-slate-500 font-mono mt-0.5 block" id="kpiProductiveCount">0 Yes / 0 Part</span>
+          </div>
+
+          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Growth Trajectory</span>
+            <div id="kpiBetterRate" class="text-2xl font-bold font-mono text-cyan-400">0%</div>
+            <span class="text-[10px] text-slate-500 font-mono mt-0.5 block">Better than yesterday</span>
+          </div>
+
+          <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+            <span class="text-[11px] font-medium text-slate-400 block mb-1">Avg Emotion Score</span>
+            <div id="kpiAvgEmotion" class="text-2xl font-bold font-mono text-amber-400">- / 5.0</div>
+            <span class="text-[10px] text-slate-500 font-mono mt-0.5 block" id="kpiDominantMood">Mood: -</span>
+          </div>
+        </div>
+
+        <!-- Emotion Distribution Chart & Breakdown -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Emotion Chart -->
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-300 block mb-3">Emotion of the Day Distribution</span>
+            <div class="relative h-44 w-full flex items-center justify-center">
+              <canvas id="emotionDistributionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Quick Stats Breakdown -->
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <span class="text-xs font-semibold text-slate-300 block mb-2">Mindset Breakdown</span>
+            
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+                <span class="flex items-center gap-2 text-slate-300">
+                  <span class="text-base">😄</span> Ecstatic (5/5)
+                </span>
+                <span id="breakdownEcstatic" class="font-mono text-slate-400 font-bold">0</span>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+                <span class="flex items-center gap-2 text-slate-300">
+                  <span class="text-base">🙂</span> Good (4/5)
+                </span>
+                <span id="breakdownGood" class="font-mono text-slate-400 font-bold">0</span>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+                <span class="flex items-center gap-2 text-slate-300">
+                  <span class="text-base">😐</span> Neutral (3/5)
+                </span>
+                <span id="breakdownNeutral" class="font-mono text-slate-400 font-bold">0</span>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+                <span class="flex items-center gap-2 text-slate-300">
+                  <span class="text-base">🙁</span> Low / Sad (1-2/5)
+                </span>
+                <span id="breakdownLow" class="font-mono text-slate-400 font-bold">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Searchable Past Reflections Feed -->
+        <div class="bg-slate-950 p-4 sm:p-5 rounded-xl border border-slate-800 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-300">Historical Journal & Reflections</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Browse past days, answers, and learnings.</p>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500"></i>
+              <input type="text" id="reflectionSearchInput" oninput="filterReflectionFeed()" placeholder="Search notes, wins, regrets..."
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <!-- Feed Container -->
+          <div id="reflectionFeedContainer" class="space-y-3 max-h-[380px] overflow-y-auto pr-1"></div>
+        </div>
+
+      </div>
+
+      <div class="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
+        <button onclick="closeReflectionHistoryModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition">
+          Close History
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- MODAL 1: Create, Edit & Evaluate Planned vs Actual Time Block -->
   <div id="timeBlockModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -693,8 +987,6 @@
         [`3_${getTodayKey()}`]: { value: "3", completed: true },
         [`4_${getTodayKey()}`]: { value: "true", completed: true }
       },
-      // 24-Hour Calendar Events / Time Blocks with Planned vs Actual Schema
-      // { id, date, title, startTime, endTime, color, notes, actualStartTime, actualEndTime, actualNotes, status }
       timeBlocks: [
         { 
           id: 101, 
@@ -721,49 +1013,36 @@
           actualEndTime: "12:00",
           actualNotes: "Shipped core sync module, delayed 30m by urgent email",
           status: "Partial / Deviated"
-        },
-        { 
-          id: 103, 
-          date: getTodayKey(), 
-          title: "Client & Team Sync", 
-          startTime: "13:30", 
-          endTime: "14:30", 
-          color: "cyan", 
-          notes: "Roadmap discussion",
-          actualStartTime: "13:30",
-          actualEndTime: "14:25",
-          actualNotes: "Covered all sprint blockers on time",
-          status: "Completed"
-        },
-        { 
-          id: 104, 
-          date: getTodayKey(), 
-          title: "Evening Reading & Shutdown", 
-          startTime: "21:30", 
-          endTime: "22:30", 
-          color: "purple", 
-          notes: "20 pages reading, no phone",
-          actualStartTime: "",
-          actualEndTime: "",
-          actualNotes: "",
-          status: "Planned"
         }
       ],
       tasks: [],
       focusLogs: [],
+      dailySummaries: [
+        {
+          date: getTodayKey(),
+          goodThing: "Delivered app prototype ahead of time",
+          disliked: "Delayed morning workout by 20 mins",
+          productive: "Yes",
+          betterThanYesterday: "Yes",
+          regrets: "A bit too much social media during lunch",
+          emotion: "4",
+          notes: "Focus on gym tomorrow at 7 AM sharp."
+        }
+      ],
       apiUrl: ""
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v5')) || defaultState;
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v6')) || defaultState;
 
     if (!appData.habitLogs) appData.habitLogs = {};
     if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
+    if (!appData.dailySummaries) appData.dailySummaries = defaultState.dailySummaries || [];
     if (!appData.apiUrl) {
       appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
     }
 
     function saveState() {
-      localStorage.setItem('daily_flow_state_v5', JSON.stringify(appData));
+      localStorage.setItem('daily_flow_state_v6', JSON.stringify(appData));
     }
 
     // ---------- Sync Status & Google Apps Script Sync ----------
@@ -821,9 +1100,9 @@
               habits: appData.habits,
               habitLogs: logsArray,
               planner: appData.timeBlocks,
-              timeBlocks: appData.timeBlocks,
               tasks: appData.tasks,
-              focusLogs: appData.focusLogs
+              focusLogs: appData.focusLogs,
+              dailySummaries: appData.dailySummaries
             }
           })
         });
@@ -880,7 +1159,7 @@
           appData.timeBlocks = json.planner.map(p => ({
             id: Number(p.id) || Date.now() + Math.random(),
             date: String(p.date || '').split('T')[0],
-            title: p.title || p.morning || "Block",
+            title: p.title || "Block",
             startTime: p.startTime || "09:00",
             endTime: p.endTime || "10:00",
             color: p.color || "indigo",
@@ -903,6 +1182,19 @@
 
         if (json.focusLogs && Array.isArray(json.focusLogs)) {
           appData.focusLogs = json.focusLogs;
+        }
+
+        if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
+          appData.dailySummaries = json.dailySummaries.map(s => ({
+            date: String(s.date || '').split('T')[0],
+            goodThing: s.goodThing || '',
+            disliked: s.disliked || '',
+            productive: s.productive || 'Yes',
+            betterThanYesterday: s.betterThanYesterday || 'Yes',
+            regrets: s.regrets || '',
+            emotion: String(s.emotion || '4'),
+            notes: s.notes || ''
+          }));
         }
 
         saveState();
@@ -939,13 +1231,11 @@
         const timeLabel = `${String(h).padStart(2, '0')}:00`;
         const displayLabel = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
 
-        // Left rail label
         const lbl = document.createElement('div');
         lbl.className = "h-[60px] flex flex-col justify-start pt-1";
         lbl.innerHTML = `<span class="text-[11px] font-mono text-slate-400">${timeLabel}</span><span class="text-[9px] text-slate-600 font-sans leading-none">${displayLabel}</span>`;
         labelsCol.appendChild(lbl);
 
-        // Canvas guideline
         const line = document.createElement('div');
         line.className = "hour-line border-b border-slate-800/40 w-full pointer-events-none";
         gridLines.appendChild(line);
@@ -956,10 +1246,8 @@
       const datePicker = document.getElementById('plannerDatePicker');
       datePicker.value = selectedPlannerDate;
 
-      // Filter blocks for selected date
       const daysBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
 
-      // Compute Planned vs Actual Summary Metrics
       let totalPlannedMins = 0;
       let totalActualMins = 0;
       let completedOrPartialCount = 0;
@@ -1004,7 +1292,6 @@
         varianceEl.className = "text-xs font-mono font-semibold text-rose-400";
       }
 
-      // Render comparative cards into timeline surface
       const container = document.getElementById('scheduledBlocksContainer');
       container.innerHTML = '';
 
@@ -1027,7 +1314,7 @@
       daysBlocks.forEach(block => {
         const theme = colorMap[block.color] || colorMap.indigo;
 
-        // 1. PLANNED BLOCK (Positioned on Left Track: left: 2%, width: 46%)
+        // Planned Block
         const pStartM = timeToMinutes(block.startTime);
         let pEndM = timeToMinutes(block.endTime);
         if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
@@ -1060,7 +1347,7 @@
         `;
         container.appendChild(planCard);
 
-        // 2. ACTUAL BLOCK (Positioned on Right Track: left: 51%, width: 47%)
+        // Actual Block
         const statusClass = statusBadges[block.status] || statusBadges["Planned"];
         let aStartM = block.actualStartTime ? timeToMinutes(block.actualStartTime) : pStartM;
         let aEndM = block.actualEndTime ? timeToMinutes(block.actualEndTime) : (block.actualStartTime ? aStartM + 45 : pEndM);
@@ -1142,11 +1429,13 @@
       curr.setDate(curr.getDate() + deltaDays);
       selectedPlannerDate = curr.toISOString().split('T')[0];
       render24HourPlanner();
+      loadDaySummaryForCurrentDate();
     }
 
     function goToPlannerToday() {
       selectedPlannerDate = getTodayKey();
       render24HourPlanner();
+      loadDaySummaryForCurrentDate();
       scrollToCurrentTimeOrStart();
     }
 
@@ -1154,6 +1443,7 @@
       if (val) {
         selectedPlannerDate = val;
         render24HourPlanner();
+        loadDaySummaryForCurrentDate();
       }
     }
 
@@ -1176,7 +1466,6 @@
     }
 
     function openTimeBlockModal(editId = null, defaultStart = "09:00", defaultEnd = "10:00") {
-      const form = document.getElementById('timeBlockForm');
       const deleteBtn = document.getElementById('deleteTimeBlockBtn');
 
       if (editId) {
@@ -1237,9 +1526,7 @@
       const actualNotes = document.getElementById('tbActualNotesInput').value.trim();
       const status = document.getElementById('tbStatusSelect').value;
 
-      if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
-        return;
-      }
+      if (timeToMinutes(endTime) <= timeToMinutes(startTime)) return;
 
       if (editId) {
         const block = appData.timeBlocks.find(b => b.id == editId);
@@ -1622,7 +1909,7 @@
       syncToRemote();
     }
 
-    // ---------- Chart.js Analytics Modal Engine ----------
+    // ---------- Chart.js Habit Analytics Engine ----------
     let activeChartInstance = null;
 
     function openAnalyticsModal(habitId) {
@@ -1728,7 +2015,6 @@
         });
       }
 
-      // Render Chart
       renderChartForHabit(habit);
       document.getElementById('analyticsModal').classList.remove('hidden');
       lucide.createIcons();
@@ -1983,6 +2269,320 @@
       syncToRemote();
     }
 
+    // ---------- Section 5: Summarise My Day Engine ----------
+    function loadDaySummaryForCurrentDate() {
+      document.getElementById('summaryActiveDateBadge').textContent = selectedPlannerDate;
+      const summary = appData.dailySummaries.find(s => s.date === selectedPlannerDate);
+      const statusText = document.getElementById('summaryStatusText');
+
+      if (summary) {
+        document.getElementById('summaryGoodThing').value = summary.goodThing || "";
+        document.getElementById('summaryDisliked').value = summary.disliked || "";
+        document.getElementById('summaryRegrets').value = summary.regrets || "";
+        document.getElementById('summaryNotes').value = summary.notes || "";
+
+        const prodRadio = document.querySelector(`input[name="summaryProductive"][value="${summary.productive || 'Partial'}"]`);
+        if (prodRadio) prodRadio.checked = true;
+
+        const betterRadio = document.querySelector(`input[name="summaryBetter"][value="${summary.betterThanYesterday || 'Yes'}"]`);
+        if (betterRadio) betterRadio.checked = true;
+
+        const emotionRadio = document.querySelector(`input[name="summaryEmotion"][value="${summary.emotion || '4'}"]`);
+        if (emotionRadio) emotionRadio.checked = true;
+
+        statusText.textContent = `Saved for ${selectedPlannerDate}`;
+        statusText.className = "text-xs text-emerald-400 font-medium flex items-center gap-1";
+      } else {
+        document.getElementById('summaryGoodThing').value = "";
+        document.getElementById('summaryDisliked').value = "";
+        document.getElementById('summaryRegrets').value = "";
+        document.getElementById('summaryNotes').value = "";
+        document.querySelector('input[name="summaryProductive"][value="Partial"]').checked = true;
+        document.querySelector('input[name="summaryBetter"][value="Yes"]').checked = true;
+        document.querySelector('input[name="summaryEmotion"][value="4"]').checked = true;
+
+        statusText.textContent = `Unsaved for ${selectedPlannerDate}`;
+        statusText.className = "text-xs text-slate-500 italic";
+      }
+    }
+
+    function handleSaveDailySummary(e) {
+      e.preventDefault();
+      const goodThing = document.getElementById('summaryGoodThing').value.trim();
+      const disliked = document.getElementById('summaryDisliked').value.trim();
+      const productive = document.querySelector('input[name="summaryProductive"]:checked')?.value || 'Partial';
+      const betterThanYesterday = document.querySelector('input[name="summaryBetter"]:checked')?.value || 'Yes';
+      const regrets = document.getElementById('summaryRegrets').value.trim();
+      const emotion = document.querySelector('input[name="summaryEmotion"]:checked')?.value || '4';
+      const notes = document.getElementById('summaryNotes').value.trim();
+
+      const existingIndex = appData.dailySummaries.findIndex(s => s.date === selectedPlannerDate);
+      const summaryPayload = {
+        date: selectedPlannerDate,
+        goodThing,
+        disliked,
+        productive,
+        betterThanYesterday,
+        regrets,
+        emotion,
+        notes
+      };
+
+      if (existingIndex >= 0) {
+        appData.dailySummaries[existingIndex] = summaryPayload;
+      } else {
+        appData.dailySummaries.push(summaryPayload);
+      }
+
+      saveState();
+      syncToRemote();
+
+      const statusText = document.getElementById('summaryStatusText');
+      statusText.textContent = `Saved for ${selectedPlannerDate} ✓`;
+      statusText.className = "text-xs text-emerald-400 font-medium animate-pulse";
+      setTimeout(() => {
+        statusText.className = "text-xs text-emerald-400 font-medium";
+      }, 2000);
+    }
+
+    // ---------- Past Reflections Archive & Mindset Analytics Modal Engine ----------
+    let emotionChartInstance = null;
+
+    const emojiIconsMap = {
+      "5": { emoji: "😄", label: "Ecstatic", color: "#10b981" },
+      "4": { emoji: "🙂", label: "Good", color: "#06b6d4" },
+      "3": { emoji: "😐", label: "Neutral", color: "#f59e0b" },
+      "2": { emoji: "🙁", label: "Low", color: "#f97316" },
+      "1": { emoji: "😞", label: "Down", color: "#ef4444" }
+    };
+
+    function openReflectionHistoryModal() {
+      computeAndRenderReflectionAnalytics();
+      renderReflectionFeed(appData.dailySummaries);
+      document.getElementById('reflectionHistoryModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeReflectionHistoryModal() {
+      document.getElementById('reflectionHistoryModal').classList.add('hidden');
+      if (emotionChartInstance) {
+        emotionChartInstance.destroy();
+        emotionChartInstance = null;
+      }
+    }
+
+    function computeReflectionStreak() {
+      let streak = 0;
+      let check = new Date();
+      const datesSet = new Set(appData.dailySummaries.map(s => s.date));
+
+      while (true) {
+        const ds = check.toISOString().split('T')[0];
+        if (datesSet.has(ds)) {
+          streak++;
+          check.setDate(check.getDate() - 1);
+        } else {
+          if (streak === 0 && ds === getTodayKey()) {
+            check.setDate(check.getDate() - 1);
+            const yds = check.toISOString().split('T')[0];
+            if (datesSet.has(yds)) {
+              streak++;
+              check.setDate(check.getDate() - 1);
+              continue;
+            }
+          }
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function computeAndRenderReflectionAnalytics() {
+      const summaries = [...appData.dailySummaries];
+      const totalDays = summaries.length;
+
+      document.getElementById('kpiTotalSummaries').textContent = `${totalDays} days`;
+      document.getElementById('kpiSummaryStreak').textContent = `${computeReflectionStreak()}d active streak`;
+
+      if (totalDays === 0) {
+        document.getElementById('kpiProductivityRate').textContent = "0%";
+        document.getElementById('kpiProductiveCount').textContent = "0 recorded";
+        document.getElementById('kpiBetterRate').textContent = "0%";
+        document.getElementById('kpiAvgEmotion').textContent = "- / 5.0";
+        document.getElementById('kpiDominantMood').textContent = "Mood: None";
+        return;
+      }
+
+      // 1. Productivity Calculation
+      const yesProd = summaries.filter(s => s.productive === "Yes").length;
+      const partProd = summaries.filter(s => s.productive === "Partial").length;
+      const prodScore = Math.round(((yesProd + (partProd * 0.5)) / totalDays) * 100);
+
+      document.getElementById('kpiProductivityRate').textContent = `${prodScore}%`;
+      document.getElementById('kpiProductiveCount').textContent = `${yesProd} Yes / ${partProd} Partial`;
+
+      // 2. Growth Trajectory
+      const betterCount = summaries.filter(s => s.betterThanYesterday === "Yes").length;
+      const betterRate = Math.round((betterCount / totalDays) * 100);
+      document.getElementById('kpiBetterRate').textContent = `${betterRate}%`;
+
+      // 3. Emotion breakdown & average
+      let emotionSum = 0;
+      const distribution = { "5": 0, "4": 0, "3": 0, "2": 0, "1": 0 };
+
+      summaries.forEach(s => {
+        const val = s.emotion || "4";
+        emotionSum += parseInt(val, 10) || 3;
+        if (distribution[val] !== undefined) {
+          distribution[val]++;
+        } else {
+          distribution["3"]++;
+        }
+      });
+
+      const avgScore = (emotionSum / totalDays).toFixed(1);
+      document.getElementById('kpiAvgEmotion').textContent = `${avgScore} / 5.0`;
+
+      // Dominant mood
+      let dominantKey = "4";
+      let dominantCount = -1;
+      Object.keys(distribution).forEach(k => {
+        if (distribution[k] > dominantCount) {
+          dominantCount = distribution[k];
+          dominantKey = k;
+        }
+      });
+      document.getElementById('kpiDominantMood').textContent = `Dominant: ${emojiIconsMap[dominantKey].label} (${emojiIconsMap[dominantKey].emoji})`;
+
+      // Breakdown numbers
+      document.getElementById('breakdownEcstatic').textContent = `${distribution["5"]} days`;
+      document.getElementById('breakdownGood').textContent = `${distribution["4"]} days`;
+      document.getElementById('breakdownNeutral').textContent = `${distribution["3"]} days`;
+      document.getElementById('breakdownLow').textContent = `${(distribution["2"] || 0) + (distribution["1"] || 0)} days`;
+
+      // Chart.js Emotion Doughnut Chart
+      const ctx = document.getElementById('emotionDistributionChart').getContext('2d');
+      if (emotionChartInstance) emotionChartInstance.destroy();
+
+      emotionChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Ecstatic 😄', 'Good 🙂', 'Neutral 😐', 'Low 🙁', 'Down 😞'],
+          datasets: [{
+            data: [
+              distribution["5"],
+              distribution["4"],
+              distribution["3"],
+              distribution["2"],
+              distribution["1"]
+            ],
+            backgroundColor: [
+              '#10b981',
+              '#06b6d4',
+              '#f59e0b',
+              '#f97316',
+              '#ef4444'
+            ],
+            borderColor: '#020617',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12 }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    function renderReflectionFeed(items) {
+      const container = document.getElementById('reflectionFeedContainer');
+      container.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">No past summaries recorded yet. Save an evening summary to see it here!</div>`;
+        return;
+      }
+
+      const sorted = [...items].sort((a, b) => b.date.localeCompare(a.date));
+
+      sorted.forEach(s => {
+        const emo = emojiIconsMap[s.emotion] || emojiIconsMap["4"];
+        const prodBadge = s.productive === "Yes" 
+          ? "bg-emerald-950 text-emerald-300 border-emerald-800/50"
+          : s.productive === "Partial"
+          ? "bg-amber-950 text-amber-300 border-amber-800/50"
+          : "bg-rose-950 text-rose-300 border-rose-800/50";
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-2.5 transition hover:border-slate-700";
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-800/70">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">${emo.emoji}</span>
+              <div>
+                <span class="text-xs font-bold text-white font-mono">${s.date}</span>
+                <span class="text-[10px] text-slate-400 block">${emo.label} Mindset</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${prodBadge}">
+                Productive: ${s.productive || 'Partial'}
+              </span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${s.betterThanYesterday === 'Yes' ? 'bg-indigo-950 text-indigo-300 border-indigo-800/50' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+                Better: ${s.betterThanYesterday || 'Yes'}
+              </span>
+              <button onclick="jumpToDateFromArchive('${s.date}')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-200 transition">
+                Open Day
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            ${s.goodThing ? `<div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800"><span class="text-[10px] font-semibold text-emerald-400 block mb-0.5">🌟 Good Thing:</span><p class="text-slate-200 text-[11px] leading-relaxed">${s.goodThing}</p></div>` : ''}
+            ${s.disliked ? `<div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800"><span class="text-[10px] font-semibold text-rose-400 block mb-0.5">⚡ Disliked / Friction:</span><p class="text-slate-200 text-[11px] leading-relaxed">${s.disliked}</p></div>` : ''}
+            ${s.regrets ? `<div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800"><span class="text-[10px] font-semibold text-amber-400 block mb-0.5">⚠️ Regrets:</span><p class="text-slate-200 text-[11px] leading-relaxed">${s.regrets}</p></div>` : ''}
+            ${s.notes ? `<div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800"><span class="text-[10px] font-semibold text-indigo-300 block mb-0.5">📝 Notes & Insights:</span><p class="text-slate-200 text-[11px] leading-relaxed">${s.notes}</p></div>` : ''}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function filterReflectionFeed() {
+      const q = document.getElementById('reflectionSearchInput').value.toLowerCase().trim();
+      if (!q) {
+        renderReflectionFeed(appData.dailySummaries);
+        return;
+      }
+
+      const filtered = appData.dailySummaries.filter(s => 
+        (s.date && s.date.includes(q)) ||
+        (s.goodThing && s.goodThing.toLowerCase().includes(q)) ||
+        (s.disliked && s.disliked.toLowerCase().includes(q)) ||
+        (s.regrets && s.regrets.toLowerCase().includes(q)) ||
+        (s.notes && s.notes.toLowerCase().includes(q)) ||
+        (s.productive && s.productive.toLowerCase().includes(q))
+      );
+
+      renderReflectionFeed(filtered);
+    }
+
+    function jumpToDateFromArchive(dateStr) {
+      closeReflectionHistoryModal();
+      onPlannerDateSelected(dateStr);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     // ---------- Settings & Data Backup/Restore ----------
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
@@ -2036,6 +2636,7 @@
       renderHabits();
       renderTasks();
       renderFocusLogs();
+      loadDaySummaryForCurrentDate();
       lucide.createIcons();
     }
 
