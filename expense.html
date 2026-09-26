@@ -214,7 +214,7 @@
             <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
               <i data-lucide="target" class="w-4 h-4 text-cyan-400"></i> Category Budgets & Sinking Funds
             </h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">Click any card to inspect its transactions directly.</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Click any category card to view its corresponding expenses.</p>
           </div>
           <button onclick="openCategoryModal()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-cyan-600/30">
             <i data-lucide="plus" class="w-4 h-4"></i> New Category
@@ -539,27 +539,75 @@
 
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
+    // Robust Date & Month Key Formatter
     function getMonthKeyFromDate(dateStr) {
       if (!dateStr) return "";
-      const d = new Date(dateStr + "T00:00:00");
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      return `${y}-${m}`;
+      
+      if (dateStr instanceof Date) {
+        const y = dateStr.getFullYear();
+        const m = String(dateStr.getMonth() + 1).padStart(2, '0');
+        return `${y}-${m}`;
+      }
+
+      const s = String(dateStr).trim();
+
+      // If already YYYY-MM
+      if (/^\d{4}-\d{2}$/.test(s)) return s;
+
+      // If starts with YYYY-MM-DD or ISO timestamp
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        return s.slice(0, 7);
+      }
+
+      // If DD/MM/YYYY or DD-MM-YYYY
+      const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (dmyMatch) {
+        const y = dmyMatch[3];
+        const m = String(dmyMatch[2]).padStart(2, '0');
+        return `${y}-${m}`;
+      }
+
+      // Fallback native Date parse
+      const parsed = new Date(s);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        return `${y}-${m}`;
+      }
+
+      return "";
+    }
+
+    function normalizeDateDisplay(rawDate) {
+      if (!rawDate) return getTodayKey();
+      if (rawDate instanceof Date) {
+        return rawDate.toISOString().split('T')[0];
+      }
+      const s = String(rawDate).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+      
+      const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (dmyMatch) {
+        return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, '0')}-${String(dmyMatch[1]).padStart(2, '0')}`;
+      }
+      
+      const d = new Date(s);
+      return !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : getTodayKey();
     }
 
     function formatMonthDisplay(monthKey) {
+      if (!monthKey || !monthKey.includes('-')) return "All Time";
       const parts = monthKey.split('-');
       const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
       return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     }
 
     let selectedMonthKey = getMonthKeyFromDate(getTodayKey());
-    let isAllMonthsView = false; // Toggle to view historical/all expenses
+    let isAllMonthsView = false;
 
     // Direct standardized extractor for "Sinking Fund"
     function extractSinkingFundFlag(c) {
       if (!c) return "No";
-      // Exact check for 'Sinking Fund' or common variations
       const raw = c["Sinking Fund"] ?? c["sinkingFund"] ?? c["Sinking Fund(yes/No)"] ?? c["Sinking Fund(Yes/No)"];
       if (raw !== undefined && raw !== null) {
         const val = String(raw).trim().toLowerCase();
@@ -581,7 +629,7 @@
       return sf === 'yes' || sf === 'y' || sf === 'true' || sf === '1';
     }
 
-    // Default Categories
+    // Default Baseline Categories
     const defaultCategories = [
       { subcategory: "Groceries & Household", masterCategory: "Needs & Essentials", budget: 15000, "Sinking Fund": "No" },
       { subcategory: "Housing (Rent)", masterCategory: "Needs & Essentials", budget: 16000, "Sinking Fund": "No" },
@@ -608,30 +656,6 @@
         notes: "Automated monthly baseline",
         month: selectedMonthKey,
         paymentMode: "UPI"
-      },
-      {
-        id: "EXP_101",
-        date: getTodayKey(),
-        subcategory: "Groceries & Household",
-        masterCategory: "Needs & Essentials",
-        type: "Expense",
-        description: "Fresh Vegetables & Milk",
-        amount: 850,
-        notes: "Supermarket Pay",
-        month: selectedMonthKey,
-        paymentMode: "UPI"
-      },
-      {
-        id: "EXP_102",
-        date: getTodayKey(),
-        subcategory: "Commute & Transport",
-        masterCategory: "Needs & Essentials",
-        type: "Expense",
-        description: "Petrol Refill",
-        amount: 1500,
-        notes: "Indian Oil",
-        month: selectedMonthKey,
-        paymentMode: "Credit Card"
       }
     ];
 
@@ -726,23 +750,31 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Process Sheet 1: Expense Tracker
+        // 1. Process Sheet 1: Expense Tracker with resilient date parser
         if (json.expenses && Array.isArray(json.expenses)) {
-          appData.transactions = json.expenses.map(e => ({
-            id: String(e.ID || e.id || Date.now() + Math.random()),
-            date: String(e.Date || e.date || '').split('T')[0],
-            subcategory: e.Subcategory || e.subcategory || "Other",
-            masterCategory: e["Master Category"] || e.masterCategory || getMasterCategoryForSub(e.Subcategory || e.subcategory),
-            type: e.Type || e.type || "Expense",
-            description: e.Description || e.description || "",
-            amount: parseFloat(e.Amount || e.amount) || 0,
-            notes: e.Notes || e.notes || "",
-            month: e.Month || e.month || getMonthKeyFromDate(String(e.Date).split('T')[0]),
-            paymentMode: normalizePaymentMode(e["Payment Mode"] || e.paymentMode || e.PaymentMode || "UPI")
-          }));
+          appData.transactions = json.expenses
+            .filter(e => e && (e.Amount || e.amount || e.Description || e.description || e.Subcategory || e.subcategory))
+            .map(e => {
+              const rawDate = e.Date || e.date;
+              const cleanDate = normalizeDateDisplay(rawDate);
+              const computedMonth = getMonthKeyFromDate(e.Month || e.month || cleanDate);
+
+              return {
+                id: String(e.ID || e.id || Date.now() + Math.random()),
+                date: cleanDate,
+                subcategory: String(e.Subcategory || e.subcategory || "Other").trim(),
+                masterCategory: String(e["Master Category"] || e.masterCategory || getMasterCategoryForSub(e.Subcategory || e.subcategory)).trim(),
+                type: String(e.Type || e.type || "Expense").trim(),
+                description: String(e.Description || e.description || "").trim(),
+                amount: parseFloat(e.Amount || e.amount) || 0,
+                notes: String(e.Notes || e.notes || "").trim(),
+                month: computedMonth,
+                paymentMode: normalizePaymentMode(e["Payment Mode"] || e.paymentMode || e.PaymentMode || "UPI")
+              };
+            });
         }
 
-        // 2. Process Sheet 2: Categories (Standardizing on "Sinking Fund")
+        // 2. Process Sheet 2: Categories (Standardized Sinking Fund Header)
         if (json.categories && Array.isArray(json.categories)) {
           appData.categories = json.categories
             .filter(c => {
@@ -863,7 +895,6 @@
         document.getElementById('kpiIncomeTitle').textContent = "Monthly Income";
       }
 
-      // Filter transactions based on active view mode
       const relevantTxns = isAllMonthsView 
         ? appData.transactions 
         : appData.transactions.filter(t => t.month === selectedMonthKey);
@@ -1018,7 +1049,6 @@
       renderTransactions();
     }
 
-    // Direct toggle from a category card to inspect its expenses
     function filterBySubcategory(subcat) {
       switchViewTab('txns');
       const searchBox = document.getElementById('txnSearchInput');
@@ -1048,7 +1078,6 @@
         }
 
         const card = document.createElement('div');
-        // Category cards are clickable to drill-down into corresponding expenses
         card.className = "bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5 transition hover:border-emerald-500/60 cursor-pointer group shadow-sm";
         card.onclick = () => filterBySubcategory(c.subcategory);
 
