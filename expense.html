@@ -741,12 +741,20 @@
 
         // 2. Process Sheet 2: Categories with robust Sinking Fund header mapping
         if (json.categories && Array.isArray(json.categories)) {
-          appData.categories = json.categories.map(c => ({
-            subcategory: c.Subcategory || c.subcategory || "",
-            masterCategory: c["Master Category"] || c.masterCategory || "",
-            budget: parseFloat(c.Budget || c.budget) || 0,
-            sinkingFund: extractSinkingFundFlag(c)
-          }));
+          appData.categories = json.categories
+            .filter(c => {
+              if (!c) return false;
+              const sub = String(c.Subcategory || c.subcategory || '').trim();
+              const master = String(c["Master Category"] || c.masterCategory || '').trim();
+              // Skip rows where subcategory or master category name doesn't exist
+              return sub.length > 0 && master.length > 0;
+            })
+            .map(c => ({
+              subcategory: String(c.Subcategory || c.subcategory).trim(),
+              masterCategory: String(c["Master Category"] || c.masterCategory).trim(),
+              budget: parseFloat(c.Budget || c.budget) || 0,
+              sinkingFund: extractSinkingFundFlag(c)
+            }));
         }
 
         saveState();
@@ -860,9 +868,12 @@
       netLabel.textContent = `Net: ${netSavings >= 0 ? '+' : '-'}₹${Math.abs(netSavings).toLocaleString('en-IN')}`;
       netLabel.className = `text-[10px] font-mono mt-0.5 block ${netSavings >= 0 ? 'text-emerald-400' : 'text-rose-400 font-bold'}`;
 
-      // Total Budget Consumption
+      // Total Budget Consumption (Exclude Income / Salary and Total rows)
       let totalBudgetLimit = 0;
       appData.categories.forEach(c => {
+        const sub = String(c.subcategory || '').trim().toLowerCase();
+        const master = String(c.masterCategory || '').trim().toLowerCase();
+        if (master === 'income' || sub === 'salary' || sub.includes('total')) return;
         totalBudgetLimit += (parseFloat(c.budget) || 0);
       });
 
