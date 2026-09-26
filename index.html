@@ -68,32 +68,69 @@
           <span class="hidden sm:inline font-semibold">Mindset & History</span>
         </button>
 
-        <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
+        <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncText" class="font-mono text-[11px]">Synced</span>
           <i data-lucide="refresh-cw" id="syncIcon" class="w-3.5 h-3.5 text-slate-400"></i>
         </button>
 
-        <button onclick="exportData()" title="Backup state to JSON" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
-          <i data-lucide="download" class="w-4 h-4"></i>
-        </button>
+        <div class="hidden sm:flex items-center gap-2">
+          <button onclick="exportData()" title="Backup state to JSON" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </button>
 
-        <label title="Import state from JSON" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 cursor-pointer">
-          <i data-lucide="upload" class="w-4 h-4"></i>
-          <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
-        </label>
+          <label title="Import state from JSON" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 cursor-pointer">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
+          </label>
 
-        <button onclick="openConfigModal()" title="Google Sheets API URL" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
-          <i data-lucide="settings" class="w-4 h-4"></i>
-        </button>
+          <button onclick="openConfigModal()" title="Google Sheets API URL" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Mobile More Actions Dropdown Button -->
+        <div class="relative sm:hidden">
+          <button onclick="toggleMobileActionsMenu()" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
+            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+          </button>
+          <div id="mobileActionsMenu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-1.5 z-50 space-y-1">
+            <button onclick="openConfigModal(); toggleMobileActionsMenu()" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-200 hover:bg-slate-800 transition">
+              <i data-lucide="settings" class="w-4 h-4 text-indigo-400"></i> Sheets API Config
+            </button>
+            <button onclick="exportData(); toggleMobileActionsMenu()" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-200 hover:bg-slate-800 transition">
+              <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i> Export JSON Backup
+            </button>
+            <label class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-200 hover:bg-slate-800 transition cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4 text-emerald-400"></i> Import JSON Backup
+              <input type="file" class="hidden" accept=".json" onchange="importData(event); toggleMobileActionsMenu()">
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-7">
+  <main class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-7">
+
+    <!-- Mobile Top Segment Switcher -->
+    <div class="md:hidden flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-2xl gap-1 text-xs shadow-inner">
+      <button id="tabBtn_planner" onclick="switchMobileTab('planner')" class="flex-1 py-1.5 px-2 rounded-xl font-semibold text-center transition bg-indigo-600 text-white shadow">
+        📅 Planner
+      </button>
+      <button id="tabBtn_tasks" onclick="switchMobileTab('tasks')" class="flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+        ⏱️ Tasks
+      </button>
+      <button id="tabBtn_habits" onclick="switchMobileTab('habits')" class="flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+        🔥 Habits
+      </button>
+      <button id="tabBtn_review" onclick="switchMobileTab('review')" class="flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+        🌙 Review
+      </button>
+    </div>
 
     <!-- Section 1: Live Focus Stopwatch -->
-    <section class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden backdrop-blur-sm">
+    <section id="module_stopwatch" class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden backdrop-blur-sm">
       <div class="absolute -right-8 -top-8 w-36 h-36 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex items-center justify-between mb-2">
@@ -128,7 +165,7 @@
     </section>
 
     <!-- Section 2: 24-Hour Calendar Day Planner with Planned vs Actual Evaluation -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+    <section id="module_planner" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       <!-- Calendar View Control Bar -->
       <div class="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
         
@@ -226,14 +263,14 @@
       <!-- 24-Hour Scrollable Schedule Canvas -->
       <div id="plannerScrollContainer" class="h-[520px] overflow-y-auto relative bg-slate-950/70 select-none">
         
-        <div class="flex min-w-[500px] relative">
+        <div class="flex w-full min-w-0 relative">
           <!-- Left Hour Axis (00:00 to 23:00) -->
-          <div class="w-16 sm:w-20 flex-shrink-0 border-r border-slate-800/80 bg-slate-950/90 text-right pr-2 select-none z-10">
+          <div class="w-12 sm:w-16 flex-shrink-0 border-r border-slate-800/80 bg-slate-950/90 text-right pr-1.5 select-none z-10">
             <div id="hourLabelsColumn"></div>
           </div>
 
           <!-- Main Timeline Surface (1440px high = 1px per min) -->
-          <div id="timelineSurface" class="timeline-canvas flex-1 relative" onclick="handleTimelineCanvasClick(event)">
+          <div id="timelineSurface" class="timeline-canvas flex-1 relative overflow-hidden" onclick="handleTimelineCanvasClick(event)">
             <div id="hourGridLines"></div>
 
             <!-- Current Time Indicator -->
@@ -258,7 +295,7 @@
     </section>
 
     <!-- Section 3: Habits & Daily Metrics -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
+    <section id="module_habits" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -287,7 +324,7 @@
     </section>
 
     <!-- Two-Column Layout: Priority Tasks & Focus History -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div id="module_tasks_container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
       <!-- Priority Tasks with Planned vs Actual Duration -->
       <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
@@ -401,7 +438,7 @@
     </div>
 
     <!-- Section 5: Summarise My Day (Evening Ritual Form at the End of the Page) -->
-    <section class="bg-gradient-to-b from-slate-900/95 to-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+    <section id="module_review" class="bg-gradient-to-b from-slate-900/95 to-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800/80">
         <div>
           <div class="flex items-center gap-2">
@@ -570,6 +607,26 @@
     </section>
 
   </main>
+
+  <!-- Mobile Fixed Bottom Navigation Bar -->
+  <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-around py-1.5 px-2 shadow-2xl">
+    <button id="bottomNav_planner" onclick="switchMobileTab('planner')" class="flex flex-col items-center gap-0.5 text-indigo-400 font-medium py-1 px-3 rounded-xl transition">
+      <i data-lucide="calendar" class="w-5 h-5"></i>
+      <span class="text-[10px]">Planner</span>
+    </button>
+    <button id="bottomNav_tasks" onclick="switchMobileTab('tasks')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition">
+      <i data-lucide="check-square" class="w-5 h-5"></i>
+      <span class="text-[10px]">Tasks</span>
+    </button>
+    <button id="bottomNav_habits" onclick="switchMobileTab('habits')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition">
+      <i data-lucide="flame" class="w-5 h-5"></i>
+      <span class="text-[10px]">Habits</span>
+    </button>
+    <button id="bottomNav_review" onclick="switchMobileTab('review')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition">
+      <i data-lucide="sparkles" class="w-5 h-5"></i>
+      <span class="text-[10px]">Review</span>
+    </button>
+  </nav>
 
   <!-- MODAL: Past Summaries, Mindset & Reflection Analytics -->
   <div id="reflectionHistoryModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
@@ -3242,6 +3299,74 @@
       if (event.target.files[0]) reader.readAsText(event.target.files[0]);
     }
 
+    // ---------- Mobile Navigation & Drawer Helpers ----------
+    let activeMobileTab = 'planner';
+
+    function switchMobileTab(tab) {
+      activeMobileTab = tab;
+      
+      const pMod = document.getElementById('module_planner');
+      const hMod = document.getElementById('module_habits');
+      const tModCont = document.getElementById('module_tasks_container');
+      const swMod = document.getElementById('module_stopwatch');
+      const rMod = document.getElementById('module_review');
+
+      // Update Top Switcher and Bottom Bar Buttons safely
+      ['planner', 'tasks', 'habits', 'review'].forEach(t => {
+        const topBtn = document.getElementById(`tabBtn_${t}`);
+        const btmBtn = document.getElementById(`bottomNav_${t}`);
+        const isActive = (t === tab);
+        
+        if (topBtn) {
+          if (isActive) {
+            topBtn.className = "flex-1 py-1.5 px-2 rounded-xl font-semibold text-center transition bg-indigo-600 text-white shadow";
+          } else {
+            topBtn.className = "flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200";
+          }
+        }
+        if (btmBtn) {
+          if (isActive) {
+            btmBtn.className = "flex flex-col items-center gap-0.5 text-indigo-400 font-semibold py-1 px-3 rounded-xl transition";
+          } else {
+            btmBtn.className = "flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition";
+          }
+        }
+      });
+
+      // Filter visible modules on mobile screens (desktop shows all modules)
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        if (pMod) pMod.classList.toggle('hidden', tab !== 'planner');
+        if (hMod) hMod.classList.toggle('hidden', tab !== 'habits');
+        if (tModCont) tModCont.classList.toggle('hidden', tab !== 'tasks');
+        if (swMod) swMod.classList.toggle('hidden', tab !== 'tasks');
+        if (rMod) rMod.classList.toggle('hidden', tab !== 'review');
+      } else {
+        if (pMod) pMod.classList.remove('hidden');
+        if (hMod) hMod.classList.remove('hidden');
+        if (tModCont) tModCont.classList.remove('hidden');
+        if (swMod) swMod.classList.remove('hidden');
+        if (rMod) rMod.classList.remove('hidden');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (tab === 'planner') {
+        scrollToCurrentTimeOrStart();
+      }
+      lucide.createIcons();
+    }
+
+    function toggleMobileActionsMenu() {
+      const menu = document.getElementById('mobileActionsMenu');
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      switchMobileTab(activeMobileTab);
+    });
+
     // ---------- Master App Render Loop ----------
     function renderAll() {
       const today = new Date();
@@ -3254,6 +3379,7 @@
       renderTasks();
       renderFocusLogs();
       loadDaySummaryForCurrentDate();
+      switchMobileTab(activeMobileTab);
       lucide.createIcons();
     }
 
