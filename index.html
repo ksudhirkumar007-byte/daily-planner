@@ -115,56 +115,24 @@
 
     <!-- Mobile Top Segment Switcher -->
     <div class="md:hidden flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-2xl gap-1 text-xs shadow-inner">
-      <button id="tabBtn_planner" onclick="switchMobileTab('planner')" class="flex-1 py-1.5 px-2 rounded-xl font-semibold text-center transition bg-indigo-600 text-white shadow">
+      <button id="tabBtn_planner" onclick="switchMobileTab('planner')" class="flex-1 py-1.5 px-1.5 rounded-xl font-semibold text-center transition bg-indigo-600 text-white shadow text-[11px]">
         📅 Planner
       </button>
-      <button id="tabBtn_tasks" onclick="switchMobileTab('tasks')" class="flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
-        ⏱️ Tasks
+      <button id="tabBtn_tasks" onclick="switchMobileTab('tasks')" class="flex-1 py-1.5 px-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200 text-[11px]">
+        ✅ Tasks
       </button>
-      <button id="tabBtn_habits" onclick="switchMobileTab('habits')" class="flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+      <button id="tabBtn_focus" onclick="switchMobileTab('focus')" class="flex-1 py-1.5 px-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200 text-[11px]">
+        ⏱️ Focus
+      </button>
+      <button id="tabBtn_habits" onclick="switchMobileTab('habits')" class="flex-1 py-1.5 px-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200 text-[11px]">
         🔥 Habits
       </button>
-      <button id="tabBtn_review" onclick="switchMobileTab('review')" class="flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+      <button id="tabBtn_review" onclick="switchMobileTab('review')" class="flex-1 py-1.5 px-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200 text-[11px]">
         🌙 Review
       </button>
     </div>
 
-    <!-- Section 1: Live Focus Stopwatch -->
-    <section id="module_stopwatch" class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden backdrop-blur-sm">
-      <div class="absolute -right-8 -top-8 w-36 h-36 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Active Focus Stopwatch
-        </h2>
-        <span id="timerTaskTag" class="text-[11px] bg-slate-950 text-indigo-300 px-2.5 py-0.5 rounded-full font-medium border border-slate-800">Ready</span>
-      </div>
-
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div class="w-full sm:w-auto">
-          <div id="stopwatchDisplay" class="text-3xl sm:text-4xl font-mono font-bold text-white tracking-widest">
-            00:00:00
-          </div>
-          <input type="text" id="timerLabelInput" placeholder="What task are you executing?" 
-                 class="mt-2 w-full sm:w-80 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
-        </div>
-
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button id="toggleTimerBtn" onclick="toggleTimer()" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-md shadow-indigo-600/30">
-            <i data-lucide="play" id="timerIcon" class="w-4 h-4"></i>
-            <span id="timerBtnText">Start</span>
-          </button>
-          <button onclick="logFocusSession()" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-200 transition active:scale-95 border border-slate-700/60">
-            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Log
-          </button>
-          <button onclick="resetTimer()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition border border-slate-700/60">
-            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 2: 24-Hour Calendar Day Planner with Planned vs Actual Evaluation -->
+    <!-- Section 1: 24-Hour Calendar Day Planner with Planned vs Actual Evaluation -->
     <section id="module_planner" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       <!-- Calendar View Control Bar -->
       <div class="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -323,119 +291,176 @@
       </div>
     </section>
 
-    <!-- Two-Column Layout: Priority Tasks & Focus History -->
-    <div id="module_tasks_container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Section 3: Standalone Priority Tasks (Separated from Stopwatch) -->
+    <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Priority Tasks
+          </h2>
+          <button type="button" onclick="openTaskAnalyticsModal()" title="View Task Aging & Status Analytics" class="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-950/60 border border-indigo-700/50 hover:bg-indigo-900/50 text-[10px] text-indigo-300 transition active:scale-95">
+            <i data-lucide="bar-chart-2" class="w-3 h-3 text-indigo-400"></i>
+            <span>Analytics</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-2 font-mono text-[11px]">
+          <span id="taskStats" class="text-slate-400">0 pending</span>
+          <span class="text-slate-600">|</span>
+          <span id="taskDateLabel" class="text-indigo-400 font-semibold">Today</span>
+        </div>
+      </div>
 
-      <!-- Priority Tasks with Planned vs Actual Duration -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Priority Tasks
-              </h2>
-              <button type="button" onclick="openTaskAnalyticsModal()" title="View Task Aging & Status Analytics" class="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-950/60 border border-indigo-700/50 hover:bg-indigo-900/50 text-[10px] text-indigo-300 transition active:scale-95">
-                <i data-lucide="bar-chart-2" class="w-3 h-3 text-indigo-400"></i>
-                <span>Analytics</span>
+      <!-- Add Task Form with Timebound vs Simple Toggle -->
+      <form onsubmit="handleAddTask(event)" class="space-y-2 mb-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="taskTitleInput" placeholder="Task title or goal..." required
+                 class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <!-- 3 Quick Schedule Buttons: Today, Tomorrow, In Future -->
+            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 text-xs shadow-inner">
+              <button type="button" id="taskWhenBtn_today" onclick="setTaskScheduleTarget('today')" 
+                      class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition bg-indigo-600 text-white shadow-sm">
+                Today
+              </button>
+              <button type="button" id="taskWhenBtn_tomorrow" onclick="setTaskScheduleTarget('tomorrow')" 
+                      class="px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition text-slate-400 hover:text-slate-200">
+                Tomorrow
+              </button>
+              <button type="button" id="taskWhenBtn_future" onclick="setTaskScheduleTarget('future')" 
+                      class="px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition text-slate-400 hover:text-slate-200 flex items-center gap-1">
+                <span>In Future</span>
+                <i data-lucide="calendar" class="w-3 h-3"></i>
               </button>
             </div>
-            <div class="flex items-center gap-2 font-mono text-[11px]">
-              <span id="taskStats" class="text-slate-400">0 pending</span>
-              <span class="text-slate-600">|</span>
-              <span id="taskDateLabel" class="text-indigo-400 font-semibold">Today</span>
+
+            <!-- Future Date Picker (Revealed only when 'In Future' is clicked) -->
+            <div id="taskFutureDateWrapper" class="hidden relative items-center" title="Pick a future date">
+              <input type="date" id="taskScheduleDateInput"
+                     class="bg-slate-900 border border-indigo-500/60 rounded-xl px-2.5 py-1.5 text-xs text-indigo-300 font-mono focus:outline-none focus:border-indigo-400 cursor-pointer">
             </div>
+
+            <select id="taskPriorityInput" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
+              <option value="High">High</option>
+              <option value="Med" selected>Medium</option>
+              <option value="Low">Low</option>
+            </select>
           </div>
-
-          <!-- Add Task Form with Timebound vs Simple Toggle -->
-          <form onsubmit="handleAddTask(event)" class="space-y-2 mb-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input type="text" id="taskTitleInput" placeholder="Task title or goal..." required
-                     class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-              
-              <select id="taskPriorityInput" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
-                <option value="High">High</option>
-                <option value="Med" selected>Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </div>
-
-            <!-- Task Type Toggle: Timebound vs Simple Yes/No -->
-            <div class="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-slate-900">
-              <div class="flex items-center gap-3">
-                <span class="text-[11px] text-slate-500 font-mono uppercase">Type:</span>
-                <label class="flex items-center gap-1.5 cursor-pointer text-xs text-slate-300">
-                  <input type="radio" name="newTaskType" value="timebound" checked onchange="toggleTaskTypeFields()" class="peer sr-only">
-                  <span class="px-2 py-0.5 rounded-lg border border-slate-800 bg-slate-900 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/20 peer-checked:text-indigo-300 text-[11px] font-medium transition">
-                    ⏱️ Timebound
-                  </span>
-                </label>
-                <label class="flex items-center gap-1.5 cursor-pointer text-xs text-slate-300">
-                  <input type="radio" name="newTaskType" value="simple" onchange="toggleTaskTypeFields()" class="peer sr-only">
-                  <span class="px-2 py-0.5 rounded-lg border border-slate-800 bg-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 text-[11px] font-medium transition">
-                    ✓ Yes / No
-                  </span>
-                </label>
-              </div>
-
-              <!-- Timebound Minutes Configuration -->
-              <div id="taskTimeboundRow" class="flex items-center gap-1.5 text-xs text-slate-400">
-                <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
-                <span class="text-[11px]">Plan:</span>
-                <input type="number" id="taskPlannedMinsInput" min="1" max="1440" value="25"
-                       class="w-14 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-100 font-mono text-center focus:outline-none focus:border-indigo-500">
-                <span class="text-[11px] text-slate-500">m</span>
-                <div class="flex items-center gap-1 ml-1">
-                  <button type="button" onclick="setPlannedMinsPreset(15)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-400">15</button>
-                  <button type="button" onclick="setPlannedMinsPreset(30)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-400">30</button>
-                  <button type="button" onclick="setPlannedMinsPreset(60)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-400">60</button>
-                </div>
-              </div>
-
-              <button type="submit" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 flex items-center justify-center gap-1 shadow-sm ml-auto">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Task
-              </button>
-            </div>
-          </form>
-
-          <!-- Task Filter Tabs -->
-          <div class="flex items-center gap-1 mb-2.5 pb-1 border-b border-slate-800/80 text-[11px] overflow-x-auto">
-            <span class="text-slate-500 font-mono text-[10px] mr-1">FILTER:</span>
-            <button onclick="setTaskFilter('all')" id="taskFilter_all" class="px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 font-medium">All (<span id="countFilterAll">0</span>)</button>
-            <button onclick="setTaskFilter('Need to Start')" id="taskFilter_Need_to_Start" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Start (<span id="countFilterStart">0</span>)</button>
-            <button onclick="setTaskFilter('In Progress')" id="taskFilter_In_Progress" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">In Progress (<span id="countFilterProgress">0</span>)</button>
-            <button onclick="setTaskFilter('Pending')" id="taskFilter_Pending" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Pending (<span id="countFilterPending">0</span>)</button>
-            <button onclick="setTaskFilter('Completed')" id="taskFilter_Completed" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Done (<span id="countFilterDone">0</span>)</button>
-          </div>
-
-          <!-- Task List -->
-          <div id="taskList" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Task Time Summary Footer Bar -->
-        <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] gap-2">
-          <div class="flex items-center gap-3 font-mono">
-            <span class="text-slate-400">Plan: <strong id="taskTotalPlanned" class="text-indigo-300">0m</strong></span>
-            <span class="text-slate-400">Actual: <strong id="taskTotalActual" class="text-emerald-300">0m</strong></span>
-            <span id="taskTotalVarianceBadge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-950 border border-slate-800 text-slate-400">0m on track</span>
+        <!-- Task Type Toggle: Timebound vs Simple Yes/No -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-slate-900">
+          <div class="flex items-center gap-3">
+            <span class="text-[11px] text-slate-500 font-mono uppercase">Type:</span>
+            <label class="flex items-center gap-1.5 cursor-pointer text-xs text-slate-300">
+              <input type="radio" name="newTaskType" value="timebound" checked onchange="toggleTaskTypeFields()" class="peer sr-only">
+              <span class="px-2 py-0.5 rounded-lg border border-slate-800 bg-slate-900 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/20 peer-checked:text-indigo-300 text-[11px] font-medium transition">
+                ⏱️ Timebound
+              </span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer text-xs text-slate-300">
+              <input type="radio" name="newTaskType" value="simple" onchange="toggleTaskTypeFields()" class="peer sr-only">
+              <span class="px-2 py-0.5 rounded-lg border border-slate-800 bg-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 text-[11px] font-medium transition">
+                ✓ Yes / No
+              </span>
+            </label>
           </div>
-          <span class="text-slate-500 text-[10px]">Track statuses & aging history</span>
-        </div>
-      </section>
 
-      <!-- Focus Stopwatch History Log -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-4">
+          <!-- Timebound Minutes Configuration -->
+          <div id="taskTimeboundRow" class="flex items-center gap-1.5 text-xs text-slate-400">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span class="text-[11px]">Plan:</span>
+            <input type="number" id="taskPlannedMinsInput" min="1" max="1440" value="25"
+                   class="w-14 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-100 font-mono text-center focus:outline-none focus:border-indigo-500">
+            <span class="text-[11px] text-slate-500">m</span>
+            <div class="flex items-center gap-1 ml-1">
+              <button type="button" onclick="setPlannedMinsPreset(15)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-400">15</button>
+              <button type="button" onclick="setPlannedMinsPreset(30)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-400">30</button>
+              <button type="button" onclick="setPlannedMinsPreset(60)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-400">60</button>
+            </div>
+          </div>
+
+          <button type="submit" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 flex items-center justify-center gap-1 shadow-sm ml-auto">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Task
+          </button>
+        </div>
+      </form>
+
+      <!-- Task Filter Tabs -->
+      <div class="flex items-center gap-1 mb-2.5 pb-1 border-b border-slate-800/80 text-[11px] overflow-x-auto">
+        <span class="text-slate-500 font-mono text-[10px] mr-1">FILTER:</span>
+        <button onclick="setTaskFilter('all')" id="taskFilter_all" class="px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 font-medium">All (<span id="countFilterAll">0</span>)</button>
+        <button onclick="setTaskFilter('Need to Start')" id="taskFilter_Need_to_Start" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Start (<span id="countFilterStart">0</span>)</button>
+        <button onclick="setTaskFilter('In Progress')" id="taskFilter_In_Progress" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">In Progress (<span id="countFilterProgress">0</span>)</button>
+        <button onclick="setTaskFilter('Pending')" id="taskFilter_Pending" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Pending (<span id="countFilterPending">0</span>)</button>
+        <button onclick="setTaskFilter('In Future')" id="taskFilter_In_Future" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Future (<span id="countFilterFuture">0</span>)</button>
+        <button onclick="setTaskFilter('Completed')" id="taskFilter_Completed" class="px-2 py-0.5 rounded-lg text-slate-400 hover:text-slate-200">Done (<span id="countFilterDone">0</span>)</button>
+      </div>
+
+      <!-- Task List -->
+      <div id="taskList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+
+      <!-- Task Time Summary Footer Bar -->
+      <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] gap-2">
+        <div class="flex items-center gap-3 font-mono">
+          <span class="text-slate-400">Plan: <strong id="taskTotalPlanned" class="text-indigo-300">0m</strong></span>
+          <span class="text-slate-400">Actual: <strong id="taskTotalActual" class="text-emerald-300">0m</strong></span>
+          <span id="taskTotalVarianceBadge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-950 border border-slate-800 text-slate-400">0m on track</span>
+        </div>
+        <span class="text-slate-500 text-[10px]">Track statuses & aging history</span>
+      </div>
+    </section>
+
+    <!-- Section 4: Dedicated Focus Studio Tab -->
+    <section id="module_focus" class="space-y-5">
+      <!-- Live Focus Stopwatch -->
+      <div id="module_stopwatch" class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-5 sm:p-7 shadow-xl relative overflow-hidden backdrop-blur-sm">
+        <div class="absolute -right-10 -top-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between mb-4">
+          <div>
             <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i> Logged Focus Sessions
+              <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Active Focus Stopwatch
             </h2>
-            <button onclick="clearTimeLogs()" class="text-[11px] text-rose-400 hover:underline">Clear</button>
+            <p class="text-xs text-slate-400 mt-0.5">Isolate distractions and track uninterrupted deep work sessions.</p>
           </div>
-          <div id="timeLogList" class="space-y-2 max-h-64 overflow-y-auto pr-1 font-mono text-xs"></div>
+          <span id="timerTaskTag" class="text-xs bg-slate-950 text-indigo-300 px-3 py-1 rounded-full font-medium border border-slate-800">Ready</span>
         </div>
-      </section>
 
-    </div>
+        <div class="flex flex-col items-center justify-center py-4 space-y-4">
+          <div id="stopwatchDisplay" class="text-5xl sm:text-6xl font-mono font-bold text-white tracking-widest drop-shadow-md">
+            00:00:00
+          </div>
+          
+          <input type="text" id="timerLabelInput" placeholder="What deep work task are you focusing on?" 
+                 class="w-full max-w-md bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 text-center focus:outline-none focus:border-indigo-500 transition shadow-inner">
+          
+          <div class="flex items-center gap-2 pt-2">
+            <button id="toggleTimerBtn" onclick="toggleTimer()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition active:scale-95 shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+              <i data-lucide="play" id="timerIcon" class="w-4 h-4"></i>
+              <span id="timerBtnText">Start Focus</span>
+            </button>
+            <button onclick="logFocusSession()" class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-200 transition active:scale-95 border border-slate-700/60">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Log Session
+            </button>
+            <button onclick="resetTimer()" title="Reset Stopwatch" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition border border-slate-700/60">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logged Focus Sessions History -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i> Logged Focus Sessions
+          </h3>
+          <button onclick="clearTimeLogs()" class="text-[11px] text-rose-400 hover:underline">Clear History</button>
+        </div>
+        <div id="timeLogList" class="space-y-2 max-h-72 overflow-y-auto pr-1 font-mono text-xs"></div>
+      </div>
+    </section>
 
     <!-- Section 5: Summarise My Day (Evening Ritual Form at the End of the Page) -->
     <section id="module_review" class="bg-gradient-to-b from-slate-900/95 to-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
@@ -609,22 +634,26 @@
   </main>
 
   <!-- Mobile Fixed Bottom Navigation Bar -->
-  <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-around py-1.5 px-2 shadow-2xl">
-    <button id="bottomNav_planner" onclick="switchMobileTab('planner')" class="flex flex-col items-center gap-0.5 text-indigo-400 font-medium py-1 px-3 rounded-xl transition">
-      <i data-lucide="calendar" class="w-5 h-5"></i>
-      <span class="text-[10px]">Planner</span>
+  <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-around py-1.5 px-1 shadow-2xl">
+    <button id="bottomNav_planner" onclick="switchMobileTab('planner')" class="flex flex-col items-center gap-0.5 text-indigo-400 font-medium py-1 px-2 rounded-xl transition">
+      <i data-lucide="calendar" class="w-4 h-4"></i>
+      <span class="text-[9px]">Planner</span>
     </button>
-    <button id="bottomNav_tasks" onclick="switchMobileTab('tasks')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition">
-      <i data-lucide="check-square" class="w-5 h-5"></i>
-      <span class="text-[10px]">Tasks</span>
+    <button id="bottomNav_tasks" onclick="switchMobileTab('tasks')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-2 rounded-xl transition">
+      <i data-lucide="check-square" class="w-4 h-4"></i>
+      <span class="text-[9px]">Tasks</span>
     </button>
-    <button id="bottomNav_habits" onclick="switchMobileTab('habits')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition">
-      <i data-lucide="flame" class="w-5 h-5"></i>
-      <span class="text-[10px]">Habits</span>
+    <button id="bottomNav_focus" onclick="switchMobileTab('focus')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-2 rounded-xl transition">
+      <i data-lucide="timer" class="w-4 h-4"></i>
+      <span class="text-[9px]">Focus</span>
     </button>
-    <button id="bottomNav_review" onclick="switchMobileTab('review')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition">
-      <i data-lucide="sparkles" class="w-5 h-5"></i>
-      <span class="text-[10px]">Review</span>
+    <button id="bottomNav_habits" onclick="switchMobileTab('habits')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-2 rounded-xl transition">
+      <i data-lucide="flame" class="w-4 h-4"></i>
+      <span class="text-[9px]">Habits</span>
+    </button>
+    <button id="bottomNav_review" onclick="switchMobileTab('review')" class="flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-2 rounded-xl transition">
+      <i data-lucide="sparkles" class="w-4 h-4"></i>
+      <span class="text-[9px]">Review</span>
     </button>
   </nav>
 
@@ -1171,6 +1200,12 @@
                   <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Pending / Blocked
                 </span>
                 <span id="breakdownPending" class="font-mono text-amber-300 font-bold">0</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-purple-900/40">
+                <span class="flex items-center gap-2 text-purple-300">
+                  <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> In Future (Scheduled)
+                </span>
+                <span id="breakdownFuture" class="font-mono text-purple-300 font-bold">0</span>
               </div>
               <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-emerald-900/40">
                 <span class="flex items-center gap-2 text-emerald-300">
@@ -2340,6 +2375,58 @@
 
     // ---------- Priority Tasks Logic with Planned vs Actual Duration ----------
     let currentTaskFilter = 'all';
+    let newTaskScheduleTarget = 'today'; // 'today' | 'tomorrow' | 'future'
+
+    function getTomorrowKey() {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    }
+
+    function setTaskScheduleTarget(target) {
+      newTaskScheduleTarget = target;
+      
+      const btnToday = document.getElementById('taskWhenBtn_today');
+      const btnTomorrow = document.getElementById('taskWhenBtn_tomorrow');
+      const btnFuture = document.getElementById('taskWhenBtn_future');
+      const futureDateWrapper = document.getElementById('taskFutureDateWrapper');
+      const dateInput = document.getElementById('taskScheduleDateInput');
+
+      // Reset button styles
+      [
+        { el: btnToday, key: 'today' },
+        { el: btnTomorrow, key: 'tomorrow' },
+        { el: btnFuture, key: 'future' }
+      ].forEach(b => {
+        if (!b.el) return;
+        if (b.key === target) {
+          b.el.className = "px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition bg-indigo-600 text-white shadow-sm flex items-center gap-1";
+        } else {
+          b.el.className = "px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition text-slate-400 hover:text-slate-200 flex items-center gap-1";
+        }
+      });
+
+      if (target === 'future') {
+        futureDateWrapper.classList.remove('hidden');
+        futureDateWrapper.classList.add('flex');
+        
+        // Default future date input to day after tomorrow if empty or past
+        const dayAfterTomorrow = new Date();
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+        const dayAfterKey = dayAfterTomorrow.toISOString().split('T')[0];
+        
+        dateInput.min = getTomorrowKey();
+        if (!dateInput.value || dateInput.value <= getTomorrowKey()) {
+          dateInput.value = dayAfterKey;
+        }
+        dateInput.focus();
+      } else {
+        futureDateWrapper.classList.add('hidden');
+        futureDateWrapper.classList.remove('flex');
+      }
+
+      lucide.createIcons();
+    }
 
     function setTaskFilter(filter) {
       currentTaskFilter = filter;
@@ -2389,27 +2476,48 @@
       const titleInput = document.getElementById('taskTitleInput');
       const priorityInput = document.getElementById('taskPriorityInput');
       const plannedMinsInput = document.getElementById('taskPlannedMinsInput');
+      const dateInput = document.getElementById('taskScheduleDateInput');
       const taskType = document.querySelector('input[name="newTaskType"]:checked')?.value || 'timebound';
 
       const plannedMins = taskType === 'timebound' ? Math.max(1, parseInt(plannedMinsInput.value, 10) || 25) : 0;
       const today = getTodayKey();
+      
+      // Determine target date based on the active schedule target button
+      let targetDate = today;
+      if (newTaskScheduleTarget === 'today') {
+        targetDate = today;
+      } else if (newTaskScheduleTarget === 'tomorrow') {
+        targetDate = getTomorrowKey();
+      } else if (newTaskScheduleTarget === 'future') {
+        targetDate = (dateInput && dateInput.value && dateInput.value > today) 
+          ? dateInput.value 
+          : getTomorrowKey();
+      }
+
+      // Automatically determine status: if target date is in the future, set to 'In Future'
+      const isFuture = targetDate > today;
+      const initialStatus = isFuture ? "In Future" : "Need to Start";
 
       appData.tasks.unshift({
         id: Date.now(),
         title: titleInput.value.trim(),
         priority: priorityInput.value,
         type: taskType, // 'timebound' | 'simple'
-        status: "Need to Start", // 'Need to Start' | 'In Progress' | 'Pending' | 'Completed'
+        status: initialStatus, // 'Need to Start' | 'In Progress' | 'Pending' | 'In Future' | 'Completed'
         plannedMins: plannedMins,
         actualMins: 0,
         completed: false,
-        date: selectedPlannerDate,
+        date: targetDate,
         createdAt: today,
         pendingSince: ""
       });
 
       titleInput.value = '';
       plannedMinsInput.value = '25';
+      
+      // Reset back to 'Today' button for rapid entry
+      setTaskScheduleTarget('today');
+
       renderTasks();
       syncToRemote();
     }
@@ -2425,6 +2533,13 @@
         if (!t.pendingSince) t.pendingSince = today;
       } else if (newStatus !== "Pending") {
         t.pendingSince = "";
+      }
+
+      // If marked as In Future and the date is in the past/today, adjust date to tomorrow
+      if (newStatus === "In Future" && t.date <= today) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        t.date = tomorrow.toISOString().split('T')[0];
       }
 
       // If completed a timebound task and actual time was 0, auto-fill with planned
@@ -2493,7 +2608,7 @@
       if (t.status === "Need to Start") {
         updateTaskStatus(id, "In Progress");
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      switchMobileTab('focus');
     }
 
     function deleteTask(id) {
@@ -2505,6 +2620,25 @@
     function renderTasks() {
       const listEl = document.getElementById('taskList');
       listEl.innerHTML = '';
+      const today = getTodayKey();
+
+      // Ensure date input defaults to the currently viewed planner date
+      const dateInput = document.getElementById('taskScheduleDateInput');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = selectedPlannerDate;
+      }
+
+      // 1. Auto-promote any 'In Future' tasks whose scheduled date has arrived (today or earlier)
+      let autoPromotedAny = false;
+      appData.tasks.forEach(t => {
+        if (t.status === "In Future" && t.date && t.date <= today) {
+          t.status = "Need to Start";
+          autoPromotedAny = true;
+        }
+      });
+      if (autoPromotedAny) {
+        saveState();
+      }
 
       // Normalize task properties for legacy tasks
       appData.tasks.forEach(t => {
@@ -2515,44 +2649,55 @@
           t.type = (t.plannedMins && t.plannedMins > 0) ? "timebound" : "simple";
         }
         if (!t.createdAt) {
-          t.createdAt = t.date || getTodayKey();
+          t.createdAt = t.date || today;
         }
       });
 
       // Filter tasks for selected date with smart rollover:
-      // When viewing Today, automatically carry forward unfinished tasks from past dates!
-      const isViewingToday = (selectedPlannerDate === getTodayKey());
-      const dayTasks = appData.tasks.filter(t => {
-        if (!t.date) return true;
-        // Direct match for the selected date
-        if (t.date === selectedPlannerDate) return true;
-        // Rollover: If viewing Today, include incomplete tasks from past dates
-        if (isViewingToday && t.date < selectedPlannerDate && t.status !== "Completed") {
-          return true;
-        }
-        return false;
-      });
+      // When viewing Today, automatically carry forward unfinished tasks from past dates.
+      // If filtering explicitly by 'In Future', display all future scheduled tasks!
+      const isViewingToday = (selectedPlannerDate === today);
+      const isViewingFutureDate = (selectedPlannerDate > today);
 
-      // Status counters for the current date
+      let dayTasks = [];
+      if (currentTaskFilter === 'In Future') {
+        dayTasks = appData.tasks.filter(t => t.status === 'In Future' || (t.date && t.date > today));
+      } else {
+        dayTasks = appData.tasks.filter(t => {
+          if (!t.date) return true;
+          // Direct match for the selected date
+          if (t.date === selectedPlannerDate) return true;
+          // Rollover: If viewing Today, include incomplete past tasks (skip future ones)
+          if (isViewingToday && t.date < selectedPlannerDate && t.status !== "Completed" && t.status !== "In Future") {
+            return true;
+          }
+          return false;
+        });
+      }
+
+      // Status counters
       const totalDayTasks = dayTasks.length;
       const countStart = dayTasks.filter(t => t.status === "Need to Start").length;
       const countProgress = dayTasks.filter(t => t.status === "In Progress").length;
       const countPending = dayTasks.filter(t => t.status === "Pending").length;
+      const countFuture = appData.tasks.filter(t => t.status === "In Future" || (t.date && t.date > today)).length;
       const countDone = dayTasks.filter(t => t.status === "Completed").length;
 
       document.getElementById('countFilterAll').textContent = totalDayTasks;
       document.getElementById('countFilterStart').textContent = countStart;
       document.getElementById('countFilterProgress').textContent = countProgress;
       document.getElementById('countFilterPending').textContent = countPending;
+      document.getElementById('countFilterFuture').textContent = countFuture;
       document.getElementById('countFilterDone').textContent = countDone;
 
-      const pendingAndOpen = totalDayTasks - countDone;
+      const pendingAndOpen = dayTasks.filter(t => t.status !== "Completed").length;
       document.getElementById('taskStats').textContent = `${pendingAndOpen} open`;
-      document.getElementById('taskDateLabel').textContent = selectedPlannerDate === getTodayKey() ? 'Today' : selectedPlannerDate;
+      document.getElementById('taskDateLabel').textContent = selectedPlannerDate === today ? 'Today' : selectedPlannerDate;
 
       // Filter based on active tab
       const visibleTasks = dayTasks.filter(t => {
         if (currentTaskFilter === 'all') return true;
+        if (currentTaskFilter === 'In Future') return t.status === 'In Future' || (t.date && t.date > today);
         return t.status === currentTaskFilter;
       });
 
@@ -2600,6 +2745,7 @@
         "Need to Start": "bg-slate-900 text-slate-400 border-slate-800",
         "In Progress": "bg-cyan-950 text-cyan-300 border-cyan-800 animate-pulse",
         "Pending": "bg-amber-950 text-amber-300 border-amber-800",
+        "In Future": "bg-purple-950 text-purple-300 border-purple-800",
         "Completed": "bg-emerald-950 text-emerald-300 border-emerald-800"
       };
 
@@ -2612,7 +2758,7 @@
         // Calculate task aging
         const daysOpen = computeDaysDifference(task.createdAt);
         const daysPending = task.status === 'Pending' ? (computeDaysDifference(task.pendingSince || task.createdAt)) : 0;
-        const isRolledOver = (task.date && task.date < selectedPlannerDate && task.status !== "Completed");
+        const isRolledOver = (task.date && task.date < selectedPlannerDate && task.status !== "Completed" && task.status !== "In Future");
 
         let rolloverBadgeHtml = "";
         if (isRolledOver) {
@@ -2620,7 +2766,9 @@
         }
 
         let agingBadgeHtml = "";
-        if (task.status === "Pending") {
+        if (task.status === "In Future") {
+          agingBadgeHtml = `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-950/80 border border-purple-800/70 text-purple-300 font-semibold" title="Scheduled for ${task.date}">📅 For ${task.date}</span>`;
+        } else if (task.status === "Pending") {
           agingBadgeHtml = `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-800/70 text-amber-300 font-semibold" title="Pending since ${task.pendingSince || task.createdAt}">⏳ Pending ${daysPending}d</span>`;
         } else if (daysOpen > 1 && task.status !== "Completed") {
           agingBadgeHtml = `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400" title="Created ${task.createdAt}">Open ${daysOpen}d</span>`;
@@ -2658,11 +2806,12 @@
             </div>
 
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <!-- Status Dropdown Selector -->
+              <!-- Status Dropdown Selector with In Future Option -->
               <select onchange="updateTaskStatus(${task.id}, this.value)" class="text-[10px] font-mono font-semibold px-2 py-0.8 rounded-lg border focus:outline-none cursor-pointer ${statusBadgeStyles[task.status] || statusBadgeStyles['Need to Start']}">
                 <option value="Need to Start" ${task.status === "Need to Start" ? 'selected' : ''}>Start</option>
                 <option value="In Progress" ${task.status === "In Progress" ? 'selected' : ''}>In Progress</option>
                 <option value="Pending" ${task.status === "Pending" ? 'selected' : ''}>Pending</option>
+                <option value="In Future" ${task.status === "In Future" ? 'selected' : ''}>In Future</option>
                 <option value="Completed" ${task.status === "Completed" ? 'selected' : ''}>Completed</option>
               </select>
 
@@ -2747,6 +2896,7 @@
       const startCount = allTasks.filter(t => t.status === "Need to Start").length;
       const progressCount = allTasks.filter(t => t.status === "In Progress").length;
       const pendingCount = allTasks.filter(t => t.status === "Pending").length;
+      const futureCount = allTasks.filter(t => t.status === "In Future").length;
       const completedCount = allTasks.filter(t => t.status === "Completed").length;
 
       const completionRate = Math.round((completedCount / total) * 100);
@@ -2783,6 +2933,7 @@
       document.getElementById('breakdownStart').textContent = `${startCount} tasks (${Math.round((startCount/total)*100)}%)`;
       document.getElementById('breakdownProgress').textContent = `${progressCount} tasks (${Math.round((progressCount/total)*100)}%)`;
       document.getElementById('breakdownPending').textContent = `${pendingCount} tasks (${Math.round((pendingCount/total)*100)}%)`;
+      document.getElementById('breakdownFuture').textContent = `${futureCount} tasks (${Math.round((futureCount/total)*100)}%)`;
       document.getElementById('breakdownCompleted').textContent = `${completedCount} tasks (${Math.round((completedCount/total)*100)}%)`;
 
       // Status Chart
@@ -2792,10 +2943,10 @@
       taskChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Need to Start', 'In Progress', 'Pending', 'Completed'],
+          labels: ['Need to Start', 'In Progress', 'Pending', 'In Future', 'Completed'],
           datasets: [{
-            data: [startCount, progressCount, pendingCount, completedCount],
-            backgroundColor: ['#64748b', '#06b6d4', '#f59e0b', '#10b981'],
+            data: [startCount, progressCount, pendingCount, futureCount, completedCount],
+            backgroundColor: ['#64748b', '#06b6d4', '#f59e0b', '#a855f7', '#10b981'],
             borderColor: '#020617',
             borderWidth: 2
           }]
@@ -3307,28 +3458,28 @@
       
       const pMod = document.getElementById('module_planner');
       const hMod = document.getElementById('module_habits');
-      const tModCont = document.getElementById('module_tasks_container');
-      const swMod = document.getElementById('module_stopwatch');
+      const tMod = document.getElementById('module_tasks');
+      const fMod = document.getElementById('module_focus');
       const rMod = document.getElementById('module_review');
 
       // Update Top Switcher and Bottom Bar Buttons safely
-      ['planner', 'tasks', 'habits', 'review'].forEach(t => {
+      ['planner', 'tasks', 'focus', 'habits', 'review'].forEach(t => {
         const topBtn = document.getElementById(`tabBtn_${t}`);
         const btmBtn = document.getElementById(`bottomNav_${t}`);
         const isActive = (t === tab);
         
         if (topBtn) {
           if (isActive) {
-            topBtn.className = "flex-1 py-1.5 px-2 rounded-xl font-semibold text-center transition bg-indigo-600 text-white shadow";
+            topBtn.className = "flex-1 py-1.5 px-1.5 rounded-xl font-semibold text-center transition bg-indigo-600 text-white shadow text-[11px]";
           } else {
-            topBtn.className = "flex-1 py-1.5 px-2 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200";
+            topBtn.className = "flex-1 py-1.5 px-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200 text-[11px]";
           }
         }
         if (btmBtn) {
           if (isActive) {
-            btmBtn.className = "flex flex-col items-center gap-0.5 text-indigo-400 font-semibold py-1 px-3 rounded-xl transition";
+            btmBtn.className = "flex flex-col items-center gap-0.5 text-indigo-400 font-semibold py-1 px-2 rounded-xl transition";
           } else {
-            btmBtn.className = "flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-3 rounded-xl transition";
+            btmBtn.className = "flex flex-col items-center gap-0.5 text-slate-400 font-medium py-1 px-2 rounded-xl transition";
           }
         }
       });
@@ -3337,15 +3488,15 @@
       const isMobile = window.innerWidth < 768;
       if (isMobile) {
         if (pMod) pMod.classList.toggle('hidden', tab !== 'planner');
+        if (tMod) tMod.classList.toggle('hidden', tab !== 'tasks');
+        if (fMod) fMod.classList.toggle('hidden', tab !== 'focus');
         if (hMod) hMod.classList.toggle('hidden', tab !== 'habits');
-        if (tModCont) tModCont.classList.toggle('hidden', tab !== 'tasks');
-        if (swMod) swMod.classList.toggle('hidden', tab !== 'tasks');
         if (rMod) rMod.classList.toggle('hidden', tab !== 'review');
       } else {
         if (pMod) pMod.classList.remove('hidden');
+        if (tMod) tMod.classList.remove('hidden');
+        if (fMod) fMod.classList.remove('hidden');
         if (hMod) hMod.classList.remove('hidden');
-        if (tModCont) tModCont.classList.remove('hidden');
-        if (swMod) swMod.classList.remove('hidden');
         if (rMod) rMod.classList.remove('hidden');
       }
 
