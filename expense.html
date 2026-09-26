@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FlowExpense - Personal Expense & Budget Tracker</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for Budget & Category Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-24 antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Top App Bar / Header -->
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 sm:px-6">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600/30 to-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+          <i data-lucide="wallet" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            FlowExpense <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Sheets Sync</span>
+          </h1>
+          <p id="headerMonthLabel" class="text-xs text-slate-400 font-mono"></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Sync Status Button -->
+        <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
+          <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="syncText" class="font-mono text-[11px] hidden sm:inline">Synced</span>
+          <i data-lucide="refresh-cw" id="syncIcon" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
+
+        <button onclick="openConfigModal()" title="Google Sheets API URL" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto px-3 sm:px-6 py-4 space-y-5">
+
+    <!-- Month Navigator & Quick Month Selector -->
+    <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-2 rounded-2xl shadow-sm">
+      <div class="flex items-center gap-1">
+        <button onclick="shiftMonth(-1)" class="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        </button>
+        <span id="currentMonthDisplay" class="font-mono text-xs sm:text-sm font-semibold text-slate-200 px-2"></span>
+        <button onclick="shiftMonth(1)" class="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition">
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="goToCurrentMonth()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition">
+          Current
+        </button>
+        <button onclick="openAddExpenseModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-600/30">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Spend
+        </button>
+      </div>
+    </div>
+
+    <!-- Monthly Financial Overview Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <!-- Total Spent -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-3.5 sm:p-4 rounded-2xl relative overflow-hidden">
+        <div class="text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+          <i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-rose-400"></i> Monthly Spend
+        </div>
+        <div id="kpiTotalSpent" class="text-xl sm:text-2xl font-bold font-mono text-rose-400">₹0</div>
+        <span id="kpiTxnCount" class="text-[10px] text-slate-500 font-mono mt-0.5 block">0 transactions</span>
+      </div>
+
+      <!-- Total Income -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-3.5 sm:p-4 rounded-2xl relative overflow-hidden">
+        <div class="text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-emerald-400"></i> Monthly Income
+        </div>
+        <div id="kpiTotalIncome" class="text-xl sm:text-2xl font-bold font-mono text-emerald-400">₹0</div>
+        <span id="kpiNetSavings" class="text-[10px] text-emerald-500/80 font-mono mt-0.5 block">Net: ₹0</span>
+      </div>
+
+      <!-- Budget Consumption Meter -->
+      <div class="col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between">
+        <div class="flex items-center justify-between text-[11px] font-medium text-slate-400">
+          <span class="flex items-center gap-1">
+            <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-400"></i> Budget Limit
+          </span>
+          <span id="kpiBudgetUsedPercent" class="font-mono text-cyan-400 font-bold">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden my-1.5">
+          <div id="kpiBudgetProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="flex items-center justify-between text-[10px] font-mono text-slate-500">
+          <span id="kpiBudgetSpentLabel">₹0</span>
+          <span id="kpiBudgetTotalLabel">of ₹0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Top Navigation Tabs -->
+    <div class="flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-2xl gap-1 text-xs shadow-inner">
+      <button id="viewTabBtn_txns" onclick="switchViewTab('txns')" class="flex-1 py-1.5 rounded-xl font-semibold text-center transition bg-emerald-600 text-white shadow">
+        💸 Transactions
+      </button>
+      <button id="viewTabBtn_budgets" onclick="switchViewTab('budgets')" class="flex-1 py-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+        🎯 Categories & Budgets
+      </button>
+      <button id="viewTabBtn_analytics" onclick="switchViewTab('analytics')" class="flex-1 py-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
+        📊 Analytics
+      </button>
+    </div>
+
+    <!-- TAB 1: Transactions View -->
+    <section id="module_txns" class="space-y-4">
+      <!-- Search & Filters Toolbar -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 sm:p-4 space-y-3">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <!-- Live Search Input -->
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-500"></i>
+            <input type="text" id="txnSearchInput" oninput="renderTransactions()" placeholder="Search description, subcategory, notes..."
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <!-- Master Category Quick Filter -->
+          <select id="filterMasterCategory" onchange="renderTransactions()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
+            <option value="ALL">All Categories</option>
+          </select>
+
+          <!-- Payment Mode Quick Filter -->
+          <select id="filterPaymentMode" onchange="renderTransactions()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
+            <option value="ALL">All Payment Modes</option>
+            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Debit Card">Debit Card</option>
+            <option value="Cash">Cash</option>
+            <option value="Net Banking">Net Banking</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Transactions List Container -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i data-lucide="receipt" class="w-4 h-4 text-emerald-400"></i>
+            Entries for <span id="txnMonthTitle" class="text-emerald-400 font-mono"></span>
+          </h2>
+          <span id="filteredCountBadge" class="text-[11px] text-slate-400 font-mono">0 records</span>
+        </div>
+
+        <div id="transactionsList" class="space-y-2.5 max-h-[580px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Categories & Budgets View (Matches Sheet 2 Schema) -->
+    <section id="module_budgets" class="hidden space-y-4">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800/80">
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <i data-lucide="target" class="w-4 h-4 text-cyan-400"></i> Category Budgets & Sinking Funds
+            </h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Budget allocations, monthly spend velocity & sinking fund allocations.</p>
+          </div>
+          <button onclick="openCategoryModal()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-cyan-600/30">
+            <i data-lucide="plus" class="w-4 h-4"></i> New Category
+          </button>
+        </div>
+
+        <!-- Dynamic Category Cards Container -->
+        <div id="categoryCardsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Visual Analytics View -->
+    <section id="module_analytics" class="hidden space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Master Category Spend Donut -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Category Breakdown</span>
+            <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded text-emerald-400 border border-slate-800">This Month</span>
+          </div>
+          <div class="relative h-56 w-full flex items-center justify-center">
+            <canvas id="categoryDonutChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Payment Mode Breakdown Donut -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Payment Modes (UPI / Cards / Cash)</span>
+            <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded text-cyan-400 border border-slate-800">Distribution</span>
+          </div>
+          <div class="relative h-56 w-full flex items-center justify-center">
+            <canvas id="paymentModeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Daily Spending Velocity Bar Chart -->
+        <div class="col-span-1 md:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Daily Spending Velocity</span>
+            <span class="text-[10px] font-mono text-slate-500">Day 1 to 31</span>
+          </div>
+          <div class="relative h-60 w-full">
+            <canvas id="dailyVelocityChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Add / Edit Transaction (Matches Sheet 1 Schema) -->
+  <div id="expenseModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <h3 id="expenseModalTitle" class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i> Add New Expense
+        </h3>
+        <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="expenseForm" onsubmit="handleSaveExpense(event)" class="space-y-4">
+        <input type="hidden" id="expEditId" value="">
+
+        <!-- Big Amount Display & Input -->
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/90 text-center">
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Amount (₹)</label>
+          <div class="flex items-center justify-center gap-1">
+            <span class="text-2xl font-bold font-mono text-emerald-400">₹</span>
+            <input type="number" step="any" id="expAmountInput" required placeholder="0.00"
+                   class="w-48 bg-transparent text-center text-3xl sm:text-4xl font-mono font-bold text-white focus:outline-none placeholder-slate-700">
+          </div>
+        </div>
+
+        <!-- Type Selector (Expense vs Income) -->
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="expType" value="Expense" checked onchange="onTypeToggle()" class="peer sr-only">
+            <div class="py-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-xs font-semibold peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 text-slate-400 transition">
+              Expense
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="expType" value="Income" onchange="onTypeToggle()" class="peer sr-only">
+            <div class="py-2 rounded-xl border border-slate-800 bg-slate-950 text-center text-xs font-semibold peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-400 text-slate-400 transition">
+              Income
+            </div>
+          </label>
+        </div>
+
+        <!-- Description / Payee -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Description / Merchant</label>
+          <input type="text" id="expDescInput" required placeholder="e.g. Swiggy, DMart Grocery, Petrol, Netflix"
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <!-- Master Category & Subcategory -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Master Category</label>
+            <select id="expMasterCatSelect" onchange="updateSubcatOptions()" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Subcategory</label>
+            <select id="expSubcatSelect" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+            </select>
+          </div>
+        </div>
+
+        <!-- Date & Payment Mode -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Date</label>
+            <input type="date" id="expDateInput" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500 cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Payment Mode</label>
+            <select id="expPaymentModeSelect" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+              <option value="UPI">UPI (GPay / PhonePe)</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Cash">Cash</option>
+              <option value="Net Banking">Net Banking</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Notes (Optional)</label>
+          <input type="text" id="expNotesInput" placeholder="Split with friend, bill reference, warranty..."
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <!-- Submit & Actions -->
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeExpenseModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition active:scale-95 shadow-md shadow-emerald-600/30">
+            Save Expense
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Create / Edit Category & Budget (Sheet 2) -->
+  <div id="categoryModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <h3 id="categoryModalTitle" class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="target" class="w-5 h-5 text-cyan-400"></i> Category & Budget Target
+        </h3>
+        <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="categoryForm" onsubmit="handleSaveCategory(event)" class="space-y-4">
+        <input type="hidden" id="catEditKey" value="">
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Master Category</label>
+          <input type="text" id="catMasterInput" required placeholder="e.g. Food & Dining, Housing, Utilities, Leisure"
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Subcategory</label>
+          <input type="text" id="catSubInput" required placeholder="e.g. Groceries, Restaurants, Electricity, Rent"
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Monthly Budget (₹)</label>
+            <input type="number" step="any" id="catBudgetInput" required placeholder="5000"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono placeholder-slate-600 focus:outline-none focus:border-cyan-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Sinking Fund?</label>
+            <select id="catSinkingSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeCategoryModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-xs font-semibold text-white transition active:scale-95 shadow-md">
+            Save Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Google Apps Script API Config -->
+  <div id="configModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-emerald-400"></i> Google Sheets API URL
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Paste your Google Apps Script Web App URL (`.../exec`). Syncs both <strong>Expense Tracker</strong> and <strong>Categories</strong> sheets seamlessly.
+        </p>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Web App URL</label>
+          <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="button" onclick="saveApiUrlConfig()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition active:scale-95 shadow-md">
+            Save & Sync
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Core State & Dates Engine ----------
+    const getTodayKey = () => new Date().toISOString().split('T')[0];
+
+    // Helper: Formats Date into "Sep 2026" or Month Key "2026-09"
+    function getMonthKeyFromDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr + "T00:00:00");
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`;
+    }
+
+    function formatMonthDisplay(monthKey) {
+      const parts = monthKey.split('-');
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1);
+      return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    let selectedMonthKey = getMonthKeyFromDate(getTodayKey());
+
+    // Default Seed Data matching the user's Google Sheet Schemas
+    const defaultCategories = [
+      { subcategory: "Groceries", masterCategory: "Food & Dining", budget: 12000, sinkingFund: "No" },
+      { subcategory: "Restaurants", masterCategory: "Food & Dining", budget: 4000, sinkingFund: "No" },
+      { subcategory: "House Rent", masterCategory: "Housing", budget: 20000, sinkingFund: "No" },
+      { subcategory: "Electricity & Gas", masterCategory: "Utilities", budget: 3500, sinkingFund: "No" },
+      { subcategory: "Fuel & Metro", masterCategory: "Transportation", budget: 4500, sinkingFund: "No" },
+      { subcategory: "Medical & Health", masterCategory: "Healthcare", budget: 3000, sinkingFund: "Yes" },
+      { subcategory: "Shopping & Clothes", masterCategory: "Personal", budget: 5000, sinkingFund: "No" },
+      { subcategory: "Entertainment", masterCategory: "Leisure", budget: 2500, sinkingFund: "No" },
+      { subcategory: "Salary", masterCategory: "Income", budget: 0, sinkingFund: "No" }
+    ];
+
+    const defaultTransactions = [
+      {
+        id: "EXP_101",
+        date: getTodayKey(),
+        subcategory: "Groceries",
+        masterCategory: "Food & Dining",
+        type: "Expense",
+        description: "Fresh Vegetables & Milk",
+        amount: 650,
+        notes: "DMart Quick Pay",
+        month: selectedMonthKey,
+        paymentMode: "UPI"
+      },
+      {
+        id: "EXP_102",
+        date: getTodayKey(),
+        subcategory: "Fuel & Metro",
+        masterCategory: "Transportation",
+        type: "Expense",
+        description: "Petrol Refill",
+        amount: 1500,
+        notes: "Indian Oil",
+        month: selectedMonthKey,
+        paymentMode: "Credit Card"
+      }
+    ];
+
+    let appData = JSON.parse(localStorage.getItem('flow_expense_state_v1')) || {
+      transactions: defaultTransactions,
+      categories: defaultCategories,
+      apiUrl: localStorage.getItem('flow_expense_api_url') || ""
+    };
+
+    function saveState() {
+      localStorage.setItem('flow_expense_state_v1', JSON.stringify(appData));
+    }
+
+    // ---------- Sync Engine (Google Apps Script) ----------
+    function setSyncStatus(state) {
+      const dot = document.getElementById('syncDot');
+      const txt = document.getElementById('syncText');
+      const icon = document.getElementById('syncIcon');
+
+      if (state === 'syncing') {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+        txt.textContent = "Syncing...";
+        icon.classList.add('animate-spin');
+      } else if (state === 'error') {
+        dot.className = "w-2 h-2 rounded-full bg-rose-500";
+        txt.textContent = "Offline / Err";
+        icon.classList.remove('animate-spin');
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        txt.textContent = "Synced";
+        icon.classList.remove('animate-spin');
+      }
+    }
+
+    async function syncToRemote() {
+      saveState();
+      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        setSyncStatus('error');
+        return;
+      }
+
+      setSyncStatus('syncing');
+
+      try {
+        // Calculate Sheet 2 Category metrics dynamically prior to sync
+        const calculatedCategories = computeCategorySummaries();
+
+        const res = await fetch(appData.apiUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "syncAllExpenses",
+            data: {
+              expenses: appData.transactions,
+              categories: calculatedCategories
+            }
+          })
+        });
+
+        if (res.ok) {
+          setSyncStatus('synced');
+        } else {
+          setSyncStatus('error');
+        }
+      } catch (err) {
+        console.error("Sync error:", err);
+        setSyncStatus('error');
+      }
+    }
+
+    async function fetchRemoteData() {
+      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        setSyncStatus('error');
+        return;
+      }
+
+      setSyncStatus('syncing');
+
+      try {
+        const res = await fetch(appData.apiUrl, {
+          method: "GET",
+          redirect: "follow"
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch");
+        const json = await res.json();
+
+        // 1. Process Sheet 1: Expense Tracker
+        if (json.expenses && Array.isArray(json.expenses)) {
+          appData.transactions = json.expenses.map(e => ({
+            id: String(e.ID || e.id || Date.now() + Math.random()),
+            date: String(e.Date || e.date || '').split('T')[0],
+            subcategory: e.Subcategory || e.subcategory || "Other",
+            masterCategory: e["Master Category"] || e.masterCategory || "Uncategorized",
+            type: e.Type || e.type || "Expense",
+            description: e.Description || e.description || "",
+            amount: parseFloat(e.Amount || e.amount) || 0,
+            notes: e.Notes || e.notes || "",
+            month: e.Month || e.month || getMonthKeyFromDate(String(e.Date).split('T')[0]),
+            paymentMode: e["Payment Mode"] || e.paymentMode || "UPI"
+          }));
+        }
+
+        // 2. Process Sheet 2: Categories
+        if (json.categories && Array.isArray(json.categories)) {
+          appData.categories = json.categories.map(c => ({
+            subcategory: c.Subcategory || c.subcategory || "",
+            masterCategory: c["Master Category"] || c.masterCategory || "",
+            budget: parseFloat(c.Budget || c.budget) || 0,
+            sinkingFund: c["Sinking Fund(yes/No)"] || c.sinkingFund || "No"
+          }));
+        }
+
+        saveState();
+        renderAll();
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error("Fetch remote data error:", err);
+        setSyncStatus('error');
+      }
+    }
+
+    // Compute Sheet 2 Category Values: Budget, Total Spent, Current Month Spent, % of Budget Used
+    function computeCategorySummaries() {
+      const allTxns = appData.transactions || [];
+      const currentMonthTxns = allTxns.filter(t => t.month === selectedMonthKey && t.type === 'Expense');
+
+      // Unique distinct months count for Average Monthly Spend
+      const uniqueMonths = new Set(allTxns.filter(t => t.type === 'Expense').map(t => t.month));
+      const monthDivisor = Math.max(1, uniqueMonths.size);
+
+      return appData.categories.map(cat => {
+        // Total spent all time for this subcategory
+        const catAllTimeTxns = allTxns.filter(t => t.subcategory.toLowerCase() === cat.subcategory.toLowerCase() && t.type === 'Expense');
+        const totalSpent = catAllTimeTxns.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+        // Average monthly spend
+        const avgMonthlySpend = Math.round(totalSpent / monthDivisor);
+
+        // Current month spent
+        const currentMonthSpent = currentMonthTxns
+          .filter(t => t.subcategory.toLowerCase() === cat.subcategory.toLowerCase())
+          .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+        // % of budget used
+        const budgetVal = parseFloat(cat.budget) || 0;
+        const percentUsed = budgetVal > 0 ? Math.round((currentMonthSpent / budgetVal) * 100) : 0;
+
+        return {
+          subcategory: cat.subcategory,
+          masterCategory: cat.masterCategory,
+          budget: budgetVal,
+          totalSpent: totalSpent,
+          averageMonthlySpend: avgMonthlySpend,
+          currentMonthSpent: currentMonthSpent,
+          percentUsed: percentUsed,
+          sinkingFund: cat.sinkingFund || "No"
+        };
+      });
+    }
+
+    // ---------- Month Navigation ----------
+    function shiftMonth(delta) {
+      const parts = selectedMonthKey.split('-');
+      let y = parseInt(parts[0], 10);
+      let m = parseInt(parts[1], 10) + delta;
+
+      if (m > 12) { m = 1; y++; }
+      if (m < 1) { m = 12; y--; }
+
+      selectedMonthKey = `${y}-${String(m).padStart(2, '0')}`;
+      renderAll();
+    }
+
+    function goToCurrentMonth() {
+      selectedMonthKey = getMonthKeyFromDate(getTodayKey());
+      renderAll();
+    }
+
+    // ---------- Dashboard & KPIs Render ----------
+    function renderKPIs() {
+      const monthTitle = formatMonthDisplay(selectedMonthKey);
+      document.getElementById('currentMonthDisplay').textContent = monthTitle;
+      document.getElementById('headerMonthLabel').textContent = monthTitle;
+      document.getElementById('txnMonthTitle').textContent = monthTitle;
+
+      const monthTxns = appData.transactions.filter(t => t.month === selectedMonthKey);
+
+      let totalSpent = 0;
+      let totalIncome = 0;
+      let expCount = 0;
+
+      monthTxns.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        if (t.type === 'Expense') {
+          totalSpent += amt;
+          expCount++;
+        } else if (t.type === 'Income') {
+          totalIncome += amt;
+        }
+      });
+
+      const netSavings = totalIncome - totalSpent;
+
+      document.getElementById('kpiTotalSpent').textContent = `₹${totalSpent.toLocaleString('en-IN')}`;
+      document.getElementById('kpiTxnCount').textContent = `${expCount} expenses`;
+      document.getElementById('kpiTotalIncome').textContent = `₹${totalIncome.toLocaleString('en-IN')}`;
+      
+      const netLabel = document.getElementById('kpiNetSavings');
+      netLabel.textContent = `Net: ${netSavings >= 0 ? '+' : '-'}₹${Math.abs(netSavings).toLocaleString('en-IN')}`;
+      netLabel.className = `text-[10px] font-mono mt-0.5 block ${netSavings >= 0 ? 'text-emerald-400' : 'text-rose-400 font-bold'}`;
+
+      // Total Budget Consumption
+      let totalBudgetLimit = 0;
+      appData.categories.forEach(c => {
+        totalBudgetLimit += (parseFloat(c.budget) || 0);
+      });
+
+      const budgetPercent = totalBudgetLimit > 0 ? Math.min(100, Math.round((totalSpent / totalBudgetLimit) * 100)) : 0;
+      document.getElementById('kpiBudgetUsedPercent').textContent = `${budgetPercent}%`;
+      
+      const pBar = document.getElementById('kpiBudgetProgressBar');
+      pBar.style.width = `${budgetPercent}%`;
+      if (budgetPercent > 95) {
+        pBar.className = "h-full bg-rose-500 rounded-full transition-all duration-500";
+      } else if (budgetPercent > 75) {
+        pBar.className = "h-full bg-amber-400 rounded-full transition-all duration-500";
+      } else {
+        pBar.className = "h-full bg-emerald-500 rounded-full transition-all duration-500";
+      }
+
+      document.getElementById('kpiBudgetSpentLabel').textContent = `₹${totalSpent.toLocaleString('en-IN')}`;
+      document.getElementById('kpiBudgetTotalLabel').textContent = `of ₹${totalBudgetLimit.toLocaleString('en-IN')}`;
+    }
+
+    // ---------- Transactions Feed Render ----------
+    function renderTransactions() {
+      const container = document.getElementById('transactionsList');
+      container.innerHTML = '';
+
+      const searchVal = document.getElementById('txnSearchInput').value.toLowerCase().trim();
+      const filterCat = document.getElementById('filterMasterCategory').value;
+      const filterMode = document.getElementById('filterPaymentMode').value;
+
+      let monthTxns = appData.transactions.filter(t => t.month === selectedMonthKey);
+
+      // Populate Master Category options in toolbar dropdown
+      const masterSelect = document.getElementById('filterMasterCategory');
+      const currentSelectedCat = masterSelect.value;
+      const uniqueCats = Array.from(new Set(appData.categories.map(c => c.masterCategory).filter(Boolean)));
+      masterSelect.innerHTML = `<option value="ALL">All Categories</option>`;
+      uniqueCats.forEach(cat => {
+        masterSelect.innerHTML += `<option value="${cat}" ${currentSelectedCat === cat ? 'selected' : ''}>${cat}</option>`;
+      });
+
+      // Apply Filters
+      const filtered = monthTxns.filter(t => {
+        const matchesSearch = !searchVal ||
+          (t.description && t.description.toLowerCase().includes(searchVal)) ||
+          (t.subcategory && t.subcategory.toLowerCase().includes(searchVal)) ||
+          (t.notes && t.notes.toLowerCase().includes(searchVal));
+
+        const matchesCat = filterCat === 'ALL' || t.masterCategory === filterCat;
+        const matchesMode = filterMode === 'ALL' || t.paymentMode === filterMode;
+
+        return matchesSearch && matchesCat && matchesMode;
+      });
+
+      // Sort newest first
+      filtered.sort((a, b) => b.date.localeCompare(a.date));
+
+      document.getElementById('filteredCountBadge').textContent = `${filtered.length} of ${monthTxns.length} records`;
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-2xl">No transactions found for ${formatMonthDisplay(selectedMonthKey)}. Tap "+ Add Spend" to log one.</div>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const isExp = t.type === 'Expense';
+        const card = document.createElement('div');
+        card.className = "flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-slate-950 border border-slate-800/90 hover:border-slate-700/80 transition shadow-sm";
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0 flex-1 pr-2">
+            <div class="w-9 h-9 rounded-xl ${isExp ? 'bg-rose-950/60 text-rose-400 border border-rose-800/40' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'} flex items-center justify-center flex-shrink-0 text-sm">
+              <i data-lucide="${isExp ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-semibold text-slate-100 truncate">${t.description || t.subcategory}</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">
+                  ${t.subcategory}
+                </span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 border-indigo-800/50 text-indigo-300">
+                  ${t.paymentMode}
+                </span>
+              </div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">
+                ${t.date} ${t.notes ? `• <span class="italic text-slate-400">${t.notes}</span>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-sm sm:text-base font-bold font-mono ${isExp ? 'text-rose-400' : 'text-emerald-400'}">
+              ${isExp ? '-' : '+'}₹${parseFloat(t.amount).toLocaleString('en-IN')}
+            </span>
+            <button onclick="deleteTransaction('${t.id}')" title="Delete" class="text-slate-600 hover:text-rose-400 p-1.5 rounded-lg transition hover:bg-slate-900">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    // ---------- Categories & Budgets Render ----------
+    function renderCategories() {
+      const container = document.getElementById('categoryCardsList');
+      container.innerHTML = '';
+
+      const catSummaries = computeCategorySummaries();
+
+      catSummaries.forEach(c => {
+        const isSinking = String(c.sinkingFund).toLowerCase() === 'yes';
+        const progress = Math.min(100, c.percentUsed);
+
+        let statusColor = "bg-emerald-500";
+        let statusTextColor = "text-emerald-400";
+        if (c.percentUsed > 100) {
+          statusColor = "bg-rose-500";
+          statusTextColor = "text-rose-400";
+        } else if (c.percentUsed > 80) {
+          statusColor = "bg-amber-400";
+          statusTextColor = "text-amber-400";
+        }
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5 transition hover:border-slate-700";
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h4 class="text-xs font-bold text-white">${c.subcategory}</h4>
+                ${isSinking ? `<span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Sinking Fund</span>` : ''}
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">${c.masterCategory}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold font-mono ${statusTextColor}">${c.percentUsed}%</span>
+              <span class="text-[10px] text-slate-500 block font-mono">of budget</span>
+            </div>
+          </div>
+
+          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+            <div class="h-full ${statusColor} rounded-full transition-all" style="width: ${progress}%"></div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-900 text-[10px] font-mono">
+            <div>
+              <span class="text-slate-500 block">Current Mo:</span>
+              <span class="text-slate-200 font-semibold">₹${c.currentMonthSpent.toLocaleString('en-IN')}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Monthly Limit:</span>
+              <span class="text-slate-200 font-semibold">₹${c.budget.toLocaleString('en-IN')}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Avg Monthly:</span>
+              <span class="text-slate-400">₹${c.averageMonthlySpend.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    // ---------- Analytics & Charts Render ----------
+    let categoryDonutInstance = null;
+    let paymentModeInstance = null;
+    let velocityChartInstance = null;
+
+    function renderAnalytics() {
+      const monthTxns = appData.transactions.filter(t => t.month === selectedMonthKey && t.type === 'Expense');
+
+      // 1. Group By Master Category
+      const catTotals = {};
+      monthTxns.forEach(t => {
+        const cat = t.masterCategory || "Uncategorized";
+        catTotals[cat] = (catTotals[cat] || 0) + (parseFloat(t.amount) || 0);
+      });
+
+      const catLabels = Object.keys(catTotals);
+      const catValues = Object.values(catTotals);
+
+      // Donut 1: Categories
+      const ctxCat = document.getElementById('categoryDonutChart').getContext('2d');
+      if (categoryDonutInstance) categoryDonutInstance.destroy();
+
+      categoryDonutInstance = new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+          labels: catLabels.length ? catLabels : ['No Expenses'],
+          datasets: [{
+            data: catValues.length ? catValues : [1],
+            backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#64748b'],
+            borderColor: '#020617',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 10 } }
+          },
+          cutout: '65%'
+        }
+      });
+
+      // 2. Group By Payment Mode
+      const modeTotals = {};
+      monthTxns.forEach(t => {
+        const mode = t.paymentMode || "UPI";
+        modeTotals[mode] = (modeTotals[mode] || 0) + (parseFloat(t.amount) || 0);
+      });
+
+      const modeLabels = Object.keys(modeTotals);
+      const modeValues = Object.values(modeTotals);
+
+      const ctxMode = document.getElementById('paymentModeChart').getContext('2d');
+      if (paymentModeInstance) paymentModeInstance.destroy();
+
+      paymentModeInstance = new Chart(ctxMode, {
+        type: 'doughnut',
+        data: {
+          labels: modeLabels.length ? modeLabels : ['No Expenses'],
+          datasets: [{
+            data: modeValues.length ? modeValues : [1],
+            backgroundColor: ['#06b6d4', '#f59e0b', '#10b981', '#8b5cf6', '#64748b'],
+            borderColor: '#020617',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 10 } }
+          },
+          cutout: '65%'
+        }
+      });
+
+      // 3. Daily Velocity Bar Chart (Days 1 to 31)
+      const dayBuckets = Array(31).fill(0);
+      monthTxns.forEach(t => {
+        const dayNum = parseInt(t.date.split('-')[2], 10);
+        if (dayNum >= 1 && dayNum <= 31) {
+          dayBuckets[dayNum - 1] += (parseFloat(t.amount) || 0);
+        }
+      });
+
+      const dayLabels = Array.from({ length: 31 }, (_, i) => String(i + 1));
+      const ctxVel = document.getElementById('dailyVelocityChart').getContext('2d');
+      if (velocityChartInstance) velocityChartInstance.destroy();
+
+      velocityChartInstance = new Chart(ctxVel, {
+        type: 'bar',
+        data: {
+          labels: dayLabels,
+          datasets: [{
+            label: 'Daily Spend (₹)',
+            data: dayBuckets,
+            backgroundColor: 'rgba(16, 185, 129, 0.65)',
+            borderColor: '#10b981',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#64748b', font: { size: 9 } },
+              grid: { color: 'rgba(51, 65, 85, 0.25)' }
+            },
+            x: {
+              ticks: { color: '#64748b', font: { size: 9 } },
+              grid: { display: false }
+            }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // ---------- Modal & Form Handlers ----------
+    function openAddExpenseModal() {
+      document.getElementById('expenseModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i> Add New Expense`;
+      document.getElementById('expEditId').value = "";
+      document.getElementById('expAmountInput').value = "";
+      document.getElementById('expDescInput').value = "";
+      document.getElementById('expNotesInput').value = "";
+      document.getElementById('expDateInput').value = getTodayKey();
+      document.querySelector('input[name="expType"][value="Expense"]').checked = true;
+
+      // Populate Master Categories
+      populateModalCategorySelects();
+
+      document.getElementById('expenseModal').classList.remove('hidden');
+      lucide.createIcons();
+      document.getElementById('expAmountInput').focus();
+    }
+
+    function closeExpenseModal() {
+      document.getElementById('expenseModal').classList.add('hidden');
+    }
+
+    function populateModalCategorySelects() {
+      const masterSelect = document.getElementById('expMasterCatSelect');
+      const uniqueMasters = Array.from(new Set(appData.categories.map(c => c.masterCategory).filter(Boolean)));
+      
+      masterSelect.innerHTML = '';
+      uniqueMasters.forEach(m => {
+        masterSelect.innerHTML += `<option value="${m}">${m}</option>`;
+      });
+
+      updateSubcatOptions();
+    }
+
+    function updateSubcatOptions() {
+      const masterVal = document.getElementById('expMasterCatSelect').value;
+      const subSelect = document.getElementById('expSubcatSelect');
+      const filteredSubs = appData.categories.filter(c => c.masterCategory === masterVal);
+
+      subSelect.innerHTML = '';
+      filteredSubs.forEach(s => {
+        subSelect.innerHTML += `<option value="${s.subcategory}">${s.subcategory}</option>`;
+      });
+
+      if (!filteredSubs.length) {
+        subSelect.innerHTML = `<option value="General">General</option>`;
+      }
+    }
+
+    function onTypeToggle() {
+      const selectedType = document.querySelector('input[name="expType"]:checked').value;
+      const masterSelect = document.getElementById('expMasterCatSelect');
+      if (selectedType === 'Income') {
+        const incomeCat = appData.categories.find(c => c.masterCategory.toLowerCase().includes('income'));
+        if (incomeCat) {
+          masterSelect.value = incomeCat.masterCategory;
+          updateSubcatOptions();
+        }
+      }
+    }
+
+    function handleSaveExpense(e) {
+      e.preventDefault();
+      const editId = document.getElementById('expEditId').value;
+      const amount = parseFloat(document.getElementById('expAmountInput').value) || 0;
+      const type = document.querySelector('input[name="expType"]:checked').value;
+      const desc = document.getElementById('expDescInput').value.trim();
+      const masterCat = document.getElementById('expMasterCatSelect').value;
+      const subCat = document.getElementById('expSubcatSelect').value;
+      const dateVal = document.getElementById('expDateInput').value;
+      const paymentMode = document.getElementById('expPaymentModeSelect').value;
+      const notes = document.getElementById('expNotesInput').value.trim();
+
+      if (amount <= 0 || !dateVal) return;
+
+      const monthKey = getMonthKeyFromDate(dateVal);
+
+      if (editId) {
+        const txn = appData.transactions.find(t => t.id === editId);
+        if (txn) {
+          txn.amount = amount;
+          txn.type = type;
+          txn.description = desc;
+          txn.masterCategory = masterCat;
+          txn.subcategory = subCat;
+          txn.date = dateVal;
+          txn.month = monthKey;
+          txn.paymentMode = paymentMode;
+          txn.notes = notes;
+        }
+      } else {
+        const newTxn = {
+          id: `EXP_${Date.now()}`,
+          date: dateVal,
+          subcategory: subCat,
+          masterCategory: masterCat,
+          type: type,
+          description: desc,
+          amount: amount,
+          notes: notes,
+          month: monthKey,
+          paymentMode: paymentMode
+        };
+        appData.transactions.unshift(newTxn);
+      }
+
+      closeExpenseModal();
+      renderAll();
+      syncToRemote();
+    }
+
+    function deleteTransaction(id) {
+      appData.transactions = appData.transactions.filter(t => t.id !== id);
+      renderAll();
+      syncToRemote();
+    }
+
+    // Category Modal Handlers
+    function openCategoryModal() {
+      document.getElementById('catEditKey').value = "";
+      document.getElementById('catMasterInput').value = "";
+      document.getElementById('catSubInput').value = "";
+      document.getElementById('catBudgetInput').value = "";
+      document.getElementById('catSinkingSelect').value = "No";
+      document.getElementById('categoryModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('categoryModal').classList.add('hidden');
+    }
+
+    function handleSaveCategory(e) {
+      e.preventDefault();
+      const master = document.getElementById('catMasterInput').value.trim();
+      const sub = document.getElementById('catSubInput').value.trim();
+      const budget = parseFloat(document.getElementById('catBudgetInput').value) || 0;
+      const sinking = document.getElementById('catSinkingSelect').value;
+
+      if (!master || !sub) return;
+
+      const existingIndex = appData.categories.findIndex(c => c.subcategory.toLowerCase() === sub.toLowerCase());
+      if (existingIndex >= 0) {
+        appData.categories[existingIndex] = { subcategory: sub, masterCategory: master, budget, sinkingFund: sinking };
+      } else {
+        appData.categories.push({ subcategory: sub, masterCategory: master, budget, sinkingFund: sinking });
+      }
+
+      closeCategoryModal();
+      renderAll();
+      syncToRemote();
+    }
+
+    // Settings Modal Handlers
+    function openConfigModal() {
+      document.getElementById('apiUrlInput').value = appData.apiUrl || "";
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    function saveApiUrlConfig() {
+      const url = document.getElementById('apiUrlInput').value.trim();
+      appData.apiUrl = url;
+      localStorage.setItem('flow_expense_api_url', url);
+      saveState();
+      closeConfigModal();
+      fetchRemoteData();
+    }
+
+    // ---------- Navigation Tabs Switcher ----------
+    let activeTab = 'txns';
+    function switchViewTab(tab) {
+      activeTab = tab;
+      const tMod = document.getElementById('module_txns');
+      const bMod = document.getElementById('module_budgets');
+      const aMod = document.getElementById('module_analytics');
+
+      tMod.classList.toggle('hidden', tab !== 'txns');
+      bMod.classList.toggle('hidden', tab !== 'budgets');
+      aMod.classList.toggle('hidden', tab !== 'analytics');
+
+      ['txns', 'budgets', 'analytics'].forEach(t => {
+        const btn = document.getElementById(`viewTabBtn_${t}`);
+        if (t === tab) {
+          btn.className = "flex-1 py-1.5 rounded-xl font-semibold text-center transition bg-emerald-600 text-white shadow";
+        } else {
+          btn.className = "flex-1 py-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200";
+        }
+      });
+
+      if (tab === 'analytics') {
+        renderAnalytics();
+      }
+      lucide.createIcons();
+    }
+
+    // ---------- Master App Render Loop ----------
+    function renderAll() {
+      renderKPIs();
+      renderTransactions();
+      renderCategories();
+      if (activeTab === 'analytics') {
+        renderAnalytics();
+      }
+      lucide.createIcons();
+    }
+
+    window.onload = () => {
+      renderAll();
+      if (appData.apiUrl) {
+        fetchRemoteData();
+      } else {
+        setSyncStatus('error');
+      }
+    };
+  </script>
+</body>
+</html>
