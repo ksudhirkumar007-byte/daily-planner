@@ -62,7 +62,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Quick Link to Daily Flow App -->
         <a href="index.html" title="Go to Daily Flow" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-400 border border-slate-800 flex items-center gap-1.5 text-xs font-semibold transition">
           <i data-lucide="zap" class="w-4 h-4"></i>
           <span class="hidden sm:inline">Daily Flow</span>
@@ -98,7 +97,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Toggle All Months vs Current Month -->
         <button id="allMonthsToggleBtn" onclick="toggleAllMonthsView()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition border border-slate-700/60">
           🌐 All Months
         </button>
@@ -166,7 +164,6 @@
     <section id="module_txns" class="space-y-4">
       <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 sm:p-4 space-y-3">
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <!-- Live Search Input -->
           <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-500"></i>
             <input type="text" id="txnSearchInput" oninput="renderTransactions()" placeholder="Search description, subcategory, notes..."
@@ -176,12 +173,10 @@
             </button>
           </div>
 
-          <!-- Master Category Quick Filter -->
           <select id="filterMasterCategory" onchange="renderTransactions()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
             <option value="ALL">All Categories</option>
           </select>
 
-          <!-- Payment Mode Quick Filter -->
           <select id="filterPaymentMode" onchange="renderTransactions()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
             <option value="ALL">All Modes</option>
             <option value="UPI">UPI</option>
@@ -191,7 +186,6 @@
         </div>
       </div>
 
-      <!-- Transactions List Container -->
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg">
         <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -220,7 +214,6 @@
           </button>
         </div>
 
-        <!-- Dynamic Category Cards Container -->
         <div id="categoryCardsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
       </div>
     </section>
@@ -236,10 +229,8 @@
         </button>
       </div>
 
-      <!-- SUB-TAB A: General Analytics -->
       <div id="analyticsView_general" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Master Category Spend Donut -->
           <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Category Breakdown</span>
@@ -250,7 +241,6 @@
             </div>
           </div>
 
-          <!-- Payment Mode Breakdown Donut -->
           <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Payment Modes (UPI / Card / Cash)</span>
@@ -261,7 +251,6 @@
             </div>
           </div>
 
-          <!-- Daily Spending Velocity Bar Chart -->
           <div class="col-span-1 md:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Daily Spending Velocity</span>
@@ -274,7 +263,6 @@
         </div>
       </div>
 
-      <!-- SUB-TAB B: Sinking Fund Details -->
       <div id="analyticsView_sinking" class="hidden space-y-4">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="bg-slate-900/90 border border-indigo-900/50 p-3.5 sm:p-4 rounded-2xl">
@@ -311,7 +299,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Sinking Donut Chart -->
           <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Sinking Expenses Spent</span>
@@ -322,7 +309,6 @@
             </div>
           </div>
 
-          <!-- Sinking Category List -->
           <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -337,7 +323,6 @@
           </div>
         </div>
 
-        <!-- Sinking Fund Transactions Log -->
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -367,7 +352,6 @@
       <form id="expenseForm" onsubmit="handleSaveExpense(event)" class="space-y-4">
         <input type="hidden" id="expEditId" value="">
 
-        <!-- Big Amount Display & Input -->
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/90 text-center">
           <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Amount (₹)</label>
           <div class="flex items-center justify-center gap-1">
@@ -377,7 +361,6 @@
           </div>
         </div>
 
-        <!-- Type Selector (Expense vs Income) -->
         <div class="grid grid-cols-2 gap-2">
           <label class="cursor-pointer">
             <input type="radio" name="expType" value="Expense" checked onchange="populateModalSubcategories()" class="peer sr-only">
@@ -393,14 +376,12 @@
           </label>
         </div>
 
-        <!-- Description / Payee -->
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Description / Merchant</label>
           <input type="text" id="expDescInput" required placeholder="e.g. DMart, Swiggy, Fuel refill, Maintenance"
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
         </div>
 
-        <!-- Subcategory Only (Auto-maps Master in background) -->
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-medium text-slate-400">Subcategory</label>
@@ -411,7 +392,6 @@
           </select>
         </div>
 
-        <!-- Date & Payment Mode -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Date</label>
@@ -429,14 +409,12 @@
           </div>
         </div>
 
-        <!-- Notes -->
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Notes (Optional)</label>
           <input type="text" id="expNotesInput" placeholder="Split with friend, bill reference, policy no..."
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
         </div>
 
-        <!-- Submit & Actions -->
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
           <button type="button" onclick="closeExpenseModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
           <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition active:scale-95 shadow-md shadow-emerald-600/30">
@@ -538,10 +516,8 @@
 
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-    // Robust Date & Month Key Formatter
     function getMonthKeyFromDate(dateStr) {
       if (!dateStr) return "";
-      
       if (dateStr instanceof Date) {
         const y = dateStr.getFullYear();
         const m = String(dateStr.getMonth() + 1).padStart(2, '0');
@@ -549,12 +525,8 @@
       }
 
       const s = String(dateStr).trim();
-
       if (/^\d{4}-\d{2}$/.test(s)) return s;
-
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-        return s.slice(0, 7);
-      }
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 7);
 
       const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
       if (dmyMatch) {
@@ -600,7 +572,6 @@
     let selectedMonthKey = getMonthKeyFromDate(getTodayKey());
     let isAllMonthsView = false;
 
-    // Standardized Sinking Fund Extractor
     function extractSinkingFundFlag(c) {
       if (!c) return "No";
       const raw = c["Sinking Fund"] ?? c["sinkingFund"] ?? c["Sinking Fund(yes/No)"] ?? c["Sinking Fund(Yes/No)"];
@@ -624,7 +595,6 @@
       return sf === 'yes' || sf === 'y' || sf === 'true' || sf === '1';
     }
 
-    // Default Baseline Categories
     const defaultCategories = [
       { subcategory: "Groceries & Household", masterCategory: "Needs & Essentials", budget: 15000, "Sinking Fund": "No" },
       { subcategory: "Housing (Rent)", masterCategory: "Needs & Essentials", budget: 16000, "Sinking Fund": "No" },
@@ -649,14 +619,12 @@
       localStorage.setItem('flow_expense_state_v2', JSON.stringify(appData));
     }
 
-    // Lookup Master Category strictly by Subcategory name
     function getMasterCategoryForSub(subcat) {
       if (!subcat) return "Needs & Essentials";
-      const match = appData.categories.find(c => c.subcategory.trim().toLowerCase() === subcat.trim().toLowerCase());
+      const match = appData.categories.find(c => c.subcategory && c.subcategory.trim().toLowerCase() === subcat.trim().toLowerCase());
       return match ? match.masterCategory : "Needs & Essentials";
     }
 
-    // ---------- Sync Engine (Google Apps Script) ----------
     function setSyncStatus(state) {
       const dot = document.getElementById('syncDot');
       const txt = document.getElementById('syncText');
@@ -694,57 +662,7 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Process Sheet 1: Expense Tracker (Case-insensitive & space-tolerant parser)
-        if (json.expenses && Array.isArray(json.expenses)) {
-          appData.transactions = json.expenses
-            .filter(row => row && typeof row === 'object')
-            .map((row, idx) => {
-              const getField = (keys) => {
-                for (let k of Object.keys(row)) {
-                  const cleanKey = k.trim().toLowerCase();
-                  for (let target of keys) {
-                    if (cleanKey === target.toLowerCase()) return row[k];
-                  }
-                }
-                return "";
-              };
-
-              const rawDate = getField(["date", "txn date", "timestamp"]);
-              const cleanDate = normalizeDateDisplay(rawDate);
-              const rawMonth = getField(["month", "year-month"]);
-              const computedMonth = getMonthKeyFromDate(rawMonth || cleanDate);
-
-              let rawAmount = getField(["amount", "spend", "cost", "price"]);
-              if (typeof rawAmount === 'string') {
-                rawAmount = rawAmount.replace(/[^0-9.-]/g, '');
-              }
-              const parsedAmount = parseFloat(rawAmount) || 0;
-
-              const subcat = String(getField(["subcategory", "sub category", "category"]) || "General").trim();
-              const master = String(getField(["master category", "mastercategory"]) || getMasterCategoryForSub(subcat)).trim();
-              const desc = String(getField(["description", "item", "merchant", "payee", "desc"]) || subcat).trim();
-              const type = String(getField(["type", "transaction type"]) || "Expense").trim();
-              const notes = String(getField(["notes", "note", "remark", "remarks"]) || "").trim();
-              const mode = normalizePaymentMode(getField(["payment mode", "mode", "payment method", "paymentmode"]));
-              const id = String(getField(["id", "txnid", "transaction id"]) || `EXP_${Date.now()}_${idx}`);
-
-              return {
-                id: id,
-                date: cleanDate,
-                subcategory: subcat,
-                masterCategory: master,
-                type: type.toLowerCase() === 'income' ? 'Income' : 'Expense',
-                description: desc,
-                amount: parsedAmount,
-                notes: notes,
-                month: computedMonth,
-                paymentMode: mode
-              };
-            })
-            .filter(t => t.amount > 0 || t.description !== "");
-        }
-
-        // 2. Process Sheet 2: Categories
+        // 1. Process Sheet 2: Categories (loads configuration table)
         if (json.categories && Array.isArray(json.categories)) {
           appData.categories = json.categories
             .filter(c => c && typeof c === 'object')
@@ -777,6 +695,61 @@
             .filter(c => c.subcategory.length > 0 && c.masterCategory.length > 0);
         }
 
+        // 2. Process Sheet 1: Expenses (preserves sheet's existing Master Category)
+        if (json.expenses && Array.isArray(json.expenses)) {
+          appData.transactions = json.expenses
+            .filter(row => row && typeof row === 'object')
+            .map((row, idx) => {
+              const getField = (keys) => {
+                for (let k of Object.keys(row)) {
+                  const cleanKey = k.trim().toLowerCase();
+                  for (let target of keys) {
+                    if (cleanKey === target.toLowerCase()) return row[k];
+                  }
+                }
+                return "";
+              };
+
+              const rawDate = getField(["date", "txn date", "timestamp"]);
+              const cleanDate = normalizeDateDisplay(rawDate);
+              const rawMonth = getField(["month", "year-month"]);
+              const computedMonth = getMonthKeyFromDate(rawMonth || cleanDate);
+
+              let rawAmount = getField(["amount", "spend", "cost", "price"]);
+              if (typeof rawAmount === 'string') {
+                rawAmount = rawAmount.replace(/[^0-9.-]/g, '');
+              }
+              const parsedAmount = parseFloat(rawAmount) || 0;
+
+              const subcat = String(getField(["subcategory", "sub category", "category"]) || "General").trim();
+              
+              let master = String(getField(["master category", "mastercategory"])).trim();
+              if (!master) {
+                master = getMasterCategoryForSub(subcat);
+              }
+
+              const desc = String(getField(["description", "item", "merchant", "payee", "desc"]) || subcat).trim();
+              const type = String(getField(["type", "transaction type"]) || "Expense").trim();
+              const notes = String(getField(["notes", "note", "remark", "remarks"]) || "").trim();
+              const mode = normalizePaymentMode(getField(["payment mode", "mode", "payment method", "paymentmode"]));
+              const id = String(getField(["id", "txnid", "transaction id"]) || `EXP_${Date.now()}_${idx}`);
+
+              return {
+                id: id,
+                date: cleanDate,
+                subcategory: subcat,
+                masterCategory: master,
+                type: type.toLowerCase() === 'income' ? 'Income' : 'Expense',
+                description: desc,
+                amount: parsedAmount,
+                notes: notes,
+                month: computedMonth,
+                paymentMode: mode
+              };
+            })
+            .filter(t => t.amount > 0 || t.description !== "");
+        }
+
         saveState();
         renderAll();
         setSyncStatus('synced');
@@ -794,6 +767,7 @@
       return "UPI";
     }
 
+    // Dynamic math engine for category summaries
     function computeCategorySummaries() {
       const allTxns = appData.transactions || [];
       const currentMonthTxns = allTxns.filter(t => (isAllMonthsView || t.month === selectedMonthKey) && t.type === 'Expense');
@@ -832,7 +806,6 @@
       });
     }
 
-    // ---------- Month & Historical Navigation ----------
     function shiftMonth(delta) {
       isAllMonthsView = false;
       const parts = selectedMonthKey.split('-');
@@ -857,7 +830,6 @@
       renderAll();
     }
 
-    // ---------- Dashboard & KPIs Render ----------
     function renderKPIs() {
       const toggleBtn = document.getElementById('allMonthsToggleBtn');
       const monthTitle = isAllMonthsView ? "All Months" : formatMonthDisplay(selectedMonthKey);
@@ -933,7 +905,6 @@
       document.getElementById('kpiBudgetTotalLabel').textContent = `of ₹${totalBudgetLimit.toLocaleString('en-IN')}`;
     }
 
-    // ---------- Transactions Feed Render ----------
     function renderTransactions() {
       const container = document.getElementById('transactionsList');
       container.innerHTML = '';
@@ -1036,7 +1007,6 @@
       renderTransactions();
     }
 
-    // ---------- Categories & Budgets Render ----------
     function renderCategories() {
       const container = document.getElementById('categoryCardsList');
       container.innerHTML = '';
@@ -1105,7 +1075,6 @@
       lucide.createIcons();
     }
 
-    // ---------- Analytics & Sinking Fund Sub-Tabs ----------
     let currentAnalyticsSubTab = 'general';
     function switchAnalyticsSubTab(tab) {
       currentAnalyticsSubTab = tab;
@@ -1394,7 +1363,6 @@
       lucide.createIcons();
     }
 
-    // ---------- Modal & Form Handlers ----------
     function openAddExpenseModal() {
       document.getElementById('expenseModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i> Add New Spend`;
       document.getElementById('expEditId').value = "";
@@ -1447,7 +1415,6 @@
       badge.classList.remove('hidden');
     }
 
-    // Append single transaction safely without wiping the sheet
     async function handleSaveExpense(e) {
       e.preventDefault();
       const editId = document.getElementById('expEditId').value;
@@ -1543,7 +1510,6 @@
       }
     }
 
-    // Category Modal Handlers
     function openCategoryModal() {
       document.getElementById('catEditKey').value = "";
       document.getElementById('catMasterInput').value = "";
@@ -1586,25 +1552,28 @@
       closeCategoryModal();
       renderAll();
 
-      // Sync categories to remote
       if (appData.apiUrl && appData.apiUrl.startsWith('http')) {
         syncCategoriesToRemote();
       }
     }
 
+    // Sync only raw configuration columns to Google Sheets
     async function syncCategoriesToRemote() {
       setSyncStatus('syncing');
       try {
-        const calculatedCategories = computeCategorySummaries();
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
-            action: "syncAllExpenses",
+            action: "syncCategories",
             data: {
-              expenses: appData.transactions,
-              categories: calculatedCategories
+              categories: appData.categories.map(c => ({
+                subcategory: c.subcategory,
+                masterCategory: c.masterCategory,
+                budget: c.budget,
+                "Sinking Fund": c["Sinking Fund"] || c.sinkingFund || "No"
+              }))
             }
           })
         });
@@ -1615,7 +1584,6 @@
       }
     }
 
-    // Settings Modal Handlers
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
       document.getElementById('configModal').classList.remove('hidden');
@@ -1634,7 +1602,6 @@
       fetchRemoteData();
     }
 
-    // ---------- Navigation Tabs Switcher ----------
     let activeTab = 'txns';
     function switchViewTab(tab) {
       activeTab = tab;
@@ -1665,7 +1632,6 @@
       lucide.createIcons();
     }
 
-    // ---------- Master App Render Loop ----------
     function renderAll() {
       renderKPIs();
       renderTransactions();
