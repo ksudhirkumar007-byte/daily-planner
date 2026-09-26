@@ -98,7 +98,7 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Toggle All/Historical Months vs Current Month -->
+        <!-- Toggle All Months vs Current Month -->
         <button id="allMonthsToggleBtn" onclick="toggleAllMonthsView()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition border border-slate-700/60">
           🌐 All Months
         </button>
@@ -164,7 +164,6 @@
 
     <!-- TAB 1: Transactions View -->
     <section id="module_txns" class="space-y-4">
-      <!-- Search & Filters Toolbar -->
       <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 sm:p-4 space-y-3">
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <!-- Live Search Input -->
@@ -214,7 +213,7 @@
             <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
               <i data-lucide="target" class="w-4 h-4 text-cyan-400"></i> Category Budgets & Sinking Funds
             </h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">Click any category card to view its corresponding expenses.</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Click any category card to drill down into its transactions.</p>
           </div>
           <button onclick="openCategoryModal()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-cyan-600/30">
             <i data-lucide="plus" class="w-4 h-4"></i> New Category
@@ -353,7 +352,7 @@
 
   </main>
 
-  <!-- MODAL: Add / Edit Transaction (Subcategory Only, Auto-Maps Master Category) -->
+  <!-- MODAL: Add / Edit Transaction -->
   <div id="expenseModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative my-auto">
       <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
@@ -401,7 +400,7 @@
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
         </div>
 
-        <!-- Subcategory Only (Master mapped automatically in background) -->
+        <!-- Subcategory Only (Auto-maps Master in background) -->
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-medium text-slate-400">Subcategory</label>
@@ -514,7 +513,7 @@
 
       <div class="space-y-4">
         <p class="text-xs text-slate-400 leading-relaxed">
-          Paste your Google Apps Script Web App URL (`.../exec`). Syncs both <strong>Expense Tracker</strong> and <strong>Categories</strong> sheets seamlessly.
+          Paste your Google Apps Script Web App URL (`.../exec`). Syncs both <strong>Expense Tracker</strong> and <strong>Categories</strong> sheets safely.
         </p>
 
         <div>
@@ -551,15 +550,12 @@
 
       const s = String(dateStr).trim();
 
-      // If already YYYY-MM
       if (/^\d{4}-\d{2}$/.test(s)) return s;
 
-      // If starts with YYYY-MM-DD or ISO timestamp
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
         return s.slice(0, 7);
       }
 
-      // If DD/MM/YYYY or DD-MM-YYYY
       const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
       if (dmyMatch) {
         const y = dmyMatch[3];
@@ -567,7 +563,6 @@
         return `${y}-${m}`;
       }
 
-      // Fallback native Date parse
       const parsed = new Date(s);
       if (!isNaN(parsed.getTime())) {
         const y = parsed.getFullYear();
@@ -605,7 +600,7 @@
     let selectedMonthKey = getMonthKeyFromDate(getTodayKey());
     let isAllMonthsView = false;
 
-    // Direct standardized extractor for "Sinking Fund"
+    // Standardized Sinking Fund Extractor
     function extractSinkingFundFlag(c) {
       if (!c) return "No";
       const raw = c["Sinking Fund"] ?? c["sinkingFund"] ?? c["Sinking Fund(yes/No)"] ?? c["Sinking Fund(Yes/No)"];
@@ -644,23 +639,8 @@
       { subcategory: "Salary", masterCategory: "Income", budget: 0, "Sinking Fund": "No" }
     ];
 
-    const defaultTransactions = [
-      {
-        id: "INC_BASE_01",
-        date: getTodayKey(),
-        subcategory: "Salary",
-        masterCategory: "Income",
-        type: "Income",
-        description: "Monthly Salary / Professional Income",
-        amount: DEFAULT_INCOME_BASELINE,
-        notes: "Automated monthly baseline",
-        month: selectedMonthKey,
-        paymentMode: "UPI"
-      }
-    ];
-
     let appData = JSON.parse(localStorage.getItem('flow_expense_state_v2')) || {
-      transactions: defaultTransactions,
+      transactions: [],
       categories: defaultCategories,
       apiUrl: localStorage.getItem('flow_expense_api_url') || ""
     };
@@ -669,7 +649,7 @@
       localStorage.setItem('flow_expense_state_v2', JSON.stringify(appData));
     }
 
-    // Helper: Lookup Master Category strictly by Subcategory name
+    // Lookup Master Category strictly by Subcategory name
     function getMasterCategoryForSub(subcat) {
       if (!subcat) return "Needs & Essentials";
       const match = appData.categories.find(c => c.subcategory.trim().toLowerCase() === subcat.trim().toLowerCase());
@@ -697,42 +677,6 @@
       }
     }
 
-    async function syncToRemote() {
-      saveState();
-      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
-        setSyncStatus('error');
-        return;
-      }
-
-      setSyncStatus('syncing');
-
-      try {
-        const calculatedCategories = computeCategorySummaries();
-
-        const res = await fetch(appData.apiUrl, {
-          method: "POST",
-          redirect: "follow",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "syncAllExpenses",
-            data: {
-              expenses: appData.transactions,
-              categories: calculatedCategories
-            }
-          })
-        });
-
-        if (res.ok) {
-          setSyncStatus('synced');
-        } else {
-          setSyncStatus('error');
-        }
-      } catch (err) {
-        console.error("Sync error:", err);
-        setSyncStatus('error');
-      }
-    }
-
     async function fetchRemoteData() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
@@ -750,49 +694,87 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Process Sheet 1: Expense Tracker with resilient date parser
+        // 1. Process Sheet 1: Expense Tracker (Case-insensitive & space-tolerant parser)
         if (json.expenses && Array.isArray(json.expenses)) {
           appData.transactions = json.expenses
-            .filter(e => e && (e.Amount || e.amount || e.Description || e.description || e.Subcategory || e.subcategory))
-            .map(e => {
-              const rawDate = e.Date || e.date;
+            .filter(row => row && typeof row === 'object')
+            .map((row, idx) => {
+              const getField = (keys) => {
+                for (let k of Object.keys(row)) {
+                  const cleanKey = k.trim().toLowerCase();
+                  for (let target of keys) {
+                    if (cleanKey === target.toLowerCase()) return row[k];
+                  }
+                }
+                return "";
+              };
+
+              const rawDate = getField(["date", "txn date", "timestamp"]);
               const cleanDate = normalizeDateDisplay(rawDate);
-              const computedMonth = getMonthKeyFromDate(e.Month || e.month || cleanDate);
+              const rawMonth = getField(["month", "year-month"]);
+              const computedMonth = getMonthKeyFromDate(rawMonth || cleanDate);
+
+              let rawAmount = getField(["amount", "spend", "cost", "price"]);
+              if (typeof rawAmount === 'string') {
+                rawAmount = rawAmount.replace(/[^0-9.-]/g, '');
+              }
+              const parsedAmount = parseFloat(rawAmount) || 0;
+
+              const subcat = String(getField(["subcategory", "sub category", "category"]) || "General").trim();
+              const master = String(getField(["master category", "mastercategory"]) || getMasterCategoryForSub(subcat)).trim();
+              const desc = String(getField(["description", "item", "merchant", "payee", "desc"]) || subcat).trim();
+              const type = String(getField(["type", "transaction type"]) || "Expense").trim();
+              const notes = String(getField(["notes", "note", "remark", "remarks"]) || "").trim();
+              const mode = normalizePaymentMode(getField(["payment mode", "mode", "payment method", "paymentmode"]));
+              const id = String(getField(["id", "txnid", "transaction id"]) || `EXP_${Date.now()}_${idx}`);
 
               return {
-                id: String(e.ID || e.id || Date.now() + Math.random()),
+                id: id,
                 date: cleanDate,
-                subcategory: String(e.Subcategory || e.subcategory || "Other").trim(),
-                masterCategory: String(e["Master Category"] || e.masterCategory || getMasterCategoryForSub(e.Subcategory || e.subcategory)).trim(),
-                type: String(e.Type || e.type || "Expense").trim(),
-                description: String(e.Description || e.description || "").trim(),
-                amount: parseFloat(e.Amount || e.amount) || 0,
-                notes: String(e.Notes || e.notes || "").trim(),
+                subcategory: subcat,
+                masterCategory: master,
+                type: type.toLowerCase() === 'income' ? 'Income' : 'Expense',
+                description: desc,
+                amount: parsedAmount,
+                notes: notes,
                 month: computedMonth,
-                paymentMode: normalizePaymentMode(e["Payment Mode"] || e.paymentMode || e.PaymentMode || "UPI")
+                paymentMode: mode
               };
-            });
+            })
+            .filter(t => t.amount > 0 || t.description !== "");
         }
 
-        // 2. Process Sheet 2: Categories (Standardized Sinking Fund Header)
+        // 2. Process Sheet 2: Categories
         if (json.categories && Array.isArray(json.categories)) {
           appData.categories = json.categories
-            .filter(c => {
-              if (!c) return false;
-              const sub = String(c.Subcategory || c.subcategory || '').trim();
-              const master = String(c["Master Category"] || c.masterCategory || '').trim();
-              return sub.length > 0 && master.length > 0;
-            })
+            .filter(c => c && typeof c === 'object')
             .map(c => {
+              const getField = (keys) => {
+                for (let k of Object.keys(c)) {
+                  const cleanKey = k.trim().toLowerCase();
+                  for (let target of keys) {
+                    if (cleanKey === target.toLowerCase()) return c[k];
+                  }
+                }
+                return "";
+              };
+
+              const sub = String(getField(["subcategory", "sub category", "category"])).trim();
+              const master = String(getField(["master category", "mastercategory"])).trim();
+              let rawBudget = getField(["budget", "monthly budget", "limit"]);
+              if (typeof rawBudget === 'string') rawBudget = rawBudget.replace(/[^0-9.-]/g, '');
+              const budget = parseFloat(rawBudget) || 0;
               const sf = extractSinkingFundFlag(c);
+
               return {
-                subcategory: String(c.Subcategory || c.subcategory).trim(),
-                masterCategory: String(c["Master Category"] || c.masterCategory).trim(),
-                budget: parseFloat(c.Budget || c.budget) || 0,
+                subcategory: sub,
+                masterCategory: master,
+                budget: budget,
                 "Sinking Fund": sf,
                 sinkingFund: sf
               };
-            });
+            })
+            .filter(c => c.subcategory.length > 0 && c.masterCategory.length > 0);
         }
 
         saveState();
@@ -967,7 +949,6 @@
         ? appData.transactions 
         : appData.transactions.filter(t => t.month === selectedMonthKey);
 
-      // Populate Master Category options in toolbar dropdown
       const masterSelect = document.getElementById('filterMasterCategory');
       const currentSelectedCat = masterSelect.value;
       const uniqueCats = Array.from(new Set(appData.categories.map(c => c.masterCategory).filter(Boolean)));
@@ -976,7 +957,6 @@
         masterSelect.innerHTML += `<option value="${cat}" ${currentSelectedCat === cat ? 'selected' : ''}>${cat}</option>`;
       });
 
-      // Filter transactions
       const filtered = relevantTxns.filter(t => {
         const matchesSearch = !searchVal ||
           (t.description && t.description.toLowerCase().includes(searchVal)) ||
@@ -1160,7 +1140,6 @@
         ? appData.transactions.filter(t => t.type === 'Expense')
         : appData.transactions.filter(t => t.month === selectedMonthKey && t.type === 'Expense');
 
-      // 1. Group By Master Category
       const catTotals = {};
       relevantTxns.forEach(t => {
         const cat = t.masterCategory || "Uncategorized";
@@ -1194,7 +1173,6 @@
         }
       });
 
-      // 2. Group By Strict 3 Payment Modes
       const modeTotals = { "UPI": 0, "Credit Card": 0, "Cash": 0 };
       relevantTxns.forEach(t => {
         const mode = normalizePaymentMode(t.paymentMode);
@@ -1228,7 +1206,6 @@
         }
       });
 
-      // 3. Daily Velocity Bar Chart
       const dayBuckets = Array(31).fill(0);
       relevantTxns.forEach(t => {
         const dayNum = parseInt(t.date.split('-')[2], 10);
@@ -1303,7 +1280,6 @@
       document.getElementById('sinkingFundCountBadge').textContent = `${sinkingCategories.length} categories`;
       document.getElementById('sinkingTxnCountBadge').textContent = `${relevantTxns.length} transactions`;
 
-      // Sinking Donut Chart
       const spendingBySinkingCat = {};
       sinkingCategories.forEach(sc => {
         if (sc.currentMonthSpent > 0) {
@@ -1351,7 +1327,6 @@
         }
       });
 
-      // Detailed Category Budget vs Spent List
       const listContainer = document.getElementById('sinkingDetailedList');
       listContainer.innerHTML = '';
 
@@ -1387,7 +1362,6 @@
         });
       }
 
-      // Sinking Transactions List
       const txnContainer = document.getElementById('sinkingTxnList');
       txnContainer.innerHTML = '';
 
@@ -1442,7 +1416,6 @@
       document.getElementById('expenseModal').classList.add('hidden');
     }
 
-    // Only subcategories are listed; Master Category is resolved dynamically
     function populateModalSubcategories() {
       const type = document.querySelector('input[name="expType"]:checked').value;
       const subSelect = document.getElementById('expSubcatSelect');
@@ -1474,14 +1447,15 @@
       badge.classList.remove('hidden');
     }
 
-    function handleSaveExpense(e) {
+    // Append single transaction safely without wiping the sheet
+    async function handleSaveExpense(e) {
       e.preventDefault();
       const editId = document.getElementById('expEditId').value;
       const amount = parseFloat(document.getElementById('expAmountInput').value) || 0;
       const type = document.querySelector('input[name="expType"]:checked').value;
       const desc = document.getElementById('expDescInput').value.trim();
       const subCat = document.getElementById('expSubcatSelect').value;
-      const masterCat = getMasterCategoryForSub(subCat); // Auto mapped
+      const masterCat = getMasterCategoryForSub(subCat);
       const dateVal = document.getElementById('expDateInput').value;
       const paymentMode = document.getElementById('expPaymentModeSelect').value;
       const notes = document.getElementById('expNotesInput').value.trim();
@@ -1489,45 +1463,84 @@
       if (amount <= 0 || !dateVal) return;
 
       const monthKey = getMonthKeyFromDate(dateVal);
+      const txnId = editId || `EXP_${Date.now()}`;
+
+      const txnPayload = {
+        id: txnId,
+        date: dateVal,
+        subcategory: subCat,
+        masterCategory: masterCat,
+        type: type,
+        description: desc,
+        amount: amount,
+        notes: notes,
+        month: monthKey,
+        paymentMode: paymentMode
+      };
 
       if (editId) {
-        const txn = appData.transactions.find(t => t.id === editId);
-        if (txn) {
-          txn.amount = amount;
-          txn.type = type;
-          txn.description = desc;
-          txn.masterCategory = masterCat;
-          txn.subcategory = subCat;
-          txn.date = dateVal;
-          txn.month = monthKey;
-          txn.paymentMode = paymentMode;
-          txn.notes = notes;
-        }
+        const idx = appData.transactions.findIndex(t => t.id === editId);
+        if (idx >= 0) appData.transactions[idx] = txnPayload;
       } else {
-        const newTxn = {
-          id: `EXP_${Date.now()}`,
-          date: dateVal,
-          subcategory: subCat,
-          masterCategory: masterCat,
-          type: type,
-          description: desc,
-          amount: amount,
-          notes: notes,
-          month: monthKey,
-          paymentMode: paymentMode
-        };
-        appData.transactions.unshift(newTxn);
+        appData.transactions.unshift(txnPayload);
       }
 
+      saveState();
       closeExpenseModal();
       renderAll();
-      syncToRemote();
+
+      if (appData.apiUrl && appData.apiUrl.startsWith('http')) {
+        setSyncStatus('syncing');
+        try {
+          const res = await fetch(appData.apiUrl, {
+            method: "POST",
+            redirect: "follow",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "addExpense",
+              data: txnPayload
+            })
+          });
+          if (res.ok) {
+            setSyncStatus('synced');
+          } else {
+            setSyncStatus('error');
+          }
+        } catch (err) {
+          console.error("Append error:", err);
+          setSyncStatus('error');
+        }
+      }
     }
 
-    function deleteTransaction(id) {
+    async function deleteTransaction(id) {
+      if (!confirm("Delete this transaction?")) return;
       appData.transactions = appData.transactions.filter(t => t.id !== id);
+      saveState();
       renderAll();
-      syncToRemote();
+
+      if (appData.apiUrl && appData.apiUrl.startsWith('http')) {
+        setSyncStatus('syncing');
+        try {
+          const res = await fetch(appData.apiUrl, {
+            method: "POST",
+            redirect: "follow",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "deleteExpense",
+              data: { id: id }
+            })
+          });
+          if (res.ok) {
+            setSyncStatus('synced');
+          } else {
+            setSyncStatus('error');
+          }
+        } catch (err) {
+          console.error("Delete error:", err);
+          setSyncStatus('error');
+        }
+      }
     }
 
     // Category Modal Handlers
@@ -1569,9 +1582,37 @@
         appData.categories.push(categoryEntry);
       }
 
+      saveState();
       closeCategoryModal();
       renderAll();
-      syncToRemote();
+
+      // Sync categories to remote
+      if (appData.apiUrl && appData.apiUrl.startsWith('http')) {
+        syncCategoriesToRemote();
+      }
+    }
+
+    async function syncCategoriesToRemote() {
+      setSyncStatus('syncing');
+      try {
+        const calculatedCategories = computeCategorySummaries();
+        const res = await fetch(appData.apiUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "syncAllExpenses",
+            data: {
+              expenses: appData.transactions,
+              categories: calculatedCategories
+            }
+          })
+        });
+        if (res.ok) setSyncStatus('synced');
+        else setSyncStatus('error');
+      } catch (err) {
+        setSyncStatus('error');
+      }
     }
 
     // Settings Modal Handlers
