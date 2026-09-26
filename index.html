@@ -158,8 +158,13 @@
           </div>
         </div>
 
-        <!-- Quick Block Presets & Add Block Action -->
+        <!-- Quick Block Presets, Recurring Routines & Add Block Action -->
         <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openRoutineManagerModal()" title="Manage Recurring Routines" class="px-3 py-1.5 rounded-xl bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/60 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+            <i data-lucide="repeat" class="w-3.5 h-3.5"></i>
+            <span>Routines (<span id="activeRoutineCountBadge">0</span>)</span>
+          </button>
+
           <div class="hidden lg:flex items-center gap-1.5 text-[11px] text-slate-400 pr-2 border-r border-slate-800">
             <span class="text-slate-500 font-mono text-[10px]">PRESETS:</span>
             <button onclick="quickAddPreset('Deep Work', '09:00', '11:30', 'Deep Work', 'indigo')" class="px-2 py-1 rounded-lg bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 hover:bg-indigo-900/60 transition">
@@ -222,6 +227,9 @@
           <span class="flex items-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded bg-emerald-500/80 inline-block"></span> Actual Track
           </span>
+          <span class="flex items-center gap-1.5 text-amber-300/90 hidden sm:inline-flex">
+            <i data-lucide="repeat" class="w-3 h-3 text-amber-400"></i> Recurring Routines active
+          </span>
         </div>
         <button onclick="scrollToCurrentTimeOrStart()" class="text-[11px] text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1">
           <i data-lucide="locate-fixed" class="w-3 h-3"></i> Jump to current hour
@@ -258,11 +266,11 @@
       <!-- Schedule Footer Help Hint -->
       <div class="p-3 border-t border-slate-800/80 bg-slate-950/70 flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-500 gap-2">
         <span>💡 Tap a block to <strong>Evaluate Actuals</strong> vs Plan. Click empty area to add a planned block.</span>
-        <button onclick="clearDayPlanner()" class="text-rose-400 hover:text-rose-300 hover:underline">Clear Day's Blocks</button>
+        <button onclick="clearDayPlanner()" class="text-rose-400 hover:text-rose-300 hover:underline">Clear Day's Non-Routine Blocks</button>
       </div>
     </section>
 
-    <!-- Section 3: Habits & Daily Metrics -->
+    <!-- Section 2: Habits & Daily Metrics -->
     <section id="module_habits" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
@@ -291,7 +299,7 @@
       </div>
     </section>
 
-    <!-- Section 3: Standalone Priority Tasks (Separated from Stopwatch) -->
+    <!-- Section 3: Standalone Priority Tasks with "Merge with Planner" Integration -->
     <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -370,7 +378,7 @@
           <div id="taskTimeboundRow" class="flex items-center gap-1.5 text-xs text-slate-400">
             <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
             <span class="text-[11px]">Plan:</span>
-            <input type="number" id="taskPlannedMinsInput" min="1" max="1440" value="25"
+            <input type="number" id="taskPlannedMinsInput" min="1" max="1440" value="30"
                    class="w-14 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-100 font-mono text-center focus:outline-none focus:border-indigo-500">
             <span class="text-[11px] text-slate-500">m</span>
             <div class="flex items-center gap-1 ml-1">
@@ -407,7 +415,7 @@
           <span class="text-slate-400">Actual: <strong id="taskTotalActual" class="text-emerald-300">0m</strong></span>
           <span id="taskTotalVarianceBadge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-950 border border-slate-800 text-slate-400">0m on track</span>
         </div>
-        <span class="text-slate-500 text-[10px]">Track statuses & aging history</span>
+        <span class="text-slate-500 text-[10px]">💡 Tasks merged to Planner will sync status & actual execution automatically.</span>
       </div>
     </section>
 
@@ -657,6 +665,159 @@
     </button>
   </nav>
 
+  <!-- MODAL: Recurring Routines Manager -->
+  <div id="routineManagerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <div class="p-5 border-b border-slate-800/90 flex items-center justify-between bg-slate-950/60">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i data-lucide="repeat" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white leading-tight">Recursive Daily Routines</h3>
+            <p class="text-xs text-slate-400 font-mono mt-0.5">Automated blocks that repeat on every day's 24H calendar</p>
+          </div>
+        </div>
+        <button onclick="closeRoutineManagerModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-5">
+        <!-- New Routine Form -->
+        <form id="routineForm" onsubmit="handleSaveRoutine(event)" class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between pb-1.5 border-b border-slate-900">
+            <span class="text-xs font-semibold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Recurring Routine
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Routine Title</label>
+            <input type="text" id="routineTitleInput" required placeholder="e.g. Morning Meditation, Gym & Cardio, Bedtime Read"
+                   class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Start Time</label>
+              <input type="time" id="routineStartTimeInput" required value="07:00"
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">End Time</label>
+              <input type="time" id="routineEndTimeInput" required value="08:00"
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Recurrence</label>
+              <select id="routineRepeatSelect" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                <option value="everyday" selected>Everyday</option>
+                <option value="weekdays">Mon - Fri</option>
+                <option value="weekends">Sat - Sun</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-slate-400">Color:</span>
+              <select id="routineColorSelect" class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none">
+                <option value="amber">Amber (Routine)</option>
+                <option value="emerald">Emerald (Fitness)</option>
+                <option value="indigo">Indigo (Deep Focus)</option>
+                <option value="cyan">Cyan (Office)</option>
+                <option value="purple">Purple (Rest)</option>
+              </select>
+            </div>
+            <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white transition active:scale-95 shadow">
+              Save Routine
+            </button>
+          </div>
+        </form>
+
+        <!-- Current Routines List -->
+        <div class="space-y-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Configured Routines</span>
+          <div id="routineListContainer" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
+        <button onclick="closeRoutineManagerModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Merge Task to Planner -->
+  <div id="mergeTaskModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-400"></i> Merge Task with Planner
+        </h3>
+        <button onclick="closeMergeTaskModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="mergeTaskForm" onsubmit="handleConfirmMergeTask(event)" class="space-y-4">
+        <input type="hidden" id="mergeTaskId" value="">
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
+          <div id="mergeTaskTitleDisplay" class="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-semibold text-indigo-300"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Schedule Date</label>
+            <input type="date" id="mergeTaskDateInput" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500 cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Time Category</label>
+            <select id="mergeTaskColorSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="indigo" selected>Deep Work (Indigo)</option>
+              <option value="cyan">Office / Meetings (Cyan)</option>
+              <option value="emerald">Fitness / Movement (Emerald)</option>
+              <option value="amber">Routine (Amber)</option>
+              <option value="purple">Rest / Personal (Purple)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Planned Start Time</label>
+            <input type="time" id="mergeTaskStartTimeInput" required value="10:00" onchange="autoAdjustMergeEndTime()"
+                   class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Planned End Time</label>
+            <input type="time" id="mergeTaskEndTimeInput" required value="10:30"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-500">
+          💡 This creates a dedicated time block on your 24H calendar timeline. Marking it done in Planner updates your task automatically.
+        </p>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeMergeTaskModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md shadow-indigo-600/30">
+            Schedule on Timeline
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: Past Summaries, Mindset & Reflection Analytics -->
   <div id="reflectionHistoryModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
@@ -796,6 +957,8 @@
 
       <form id="timeBlockForm" onsubmit="handleSaveTimeBlock(event)" class="space-y-4">
         <input type="hidden" id="timeBlockEditId" value="">
+        <input type="hidden" id="timeBlockTaskId" value="">
+        <input type="hidden" id="timeBlockRoutineId" value="">
 
         <!-- Basic Plan Information -->
         <div>
@@ -1100,7 +1263,7 @@
 
       <div class="space-y-4">
         <p class="text-xs text-slate-400 leading-relaxed">
-          Paste your Google Apps Script Web App URL (`.../exec`). Data syncs smoothly without 3rd-party servers.
+          Paste your Google Apps Script Web App URL (`.../exec`). Data syncs routines, tasks, habits, planner blocks, and reflections smoothly without 3rd-party servers.
         </p>
 
         <div>
@@ -1241,10 +1404,30 @@
   </div>
 
   <script>
-    // ---------- Core State & Date Utilities ----------
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
     let selectedPlannerDate = getTodayKey();
+
+    const defaultRoutines = [
+      {
+        id: "ROUTINE_01",
+        title: "Morning Routine & Sunlight Mobility",
+        startTime: "07:00",
+        endTime: "08:00",
+        color: "amber",
+        repeat: "everyday",
+        notes: "500ml water, stretch, review top 3 goals"
+      },
+      {
+        id: "ROUTINE_02",
+        title: "Evening Digital Sunset & Wind-Down",
+        startTime: "21:30",
+        endTime: "22:30",
+        color: "amber",
+        repeat: "everyday",
+        notes: "Journal reflection, read 15 pages book"
+      }
+    ];
 
     const defaultState = {
       habits: [
@@ -1259,35 +1442,41 @@
         [`3_${getTodayKey()}`]: { value: "3", completed: true },
         [`4_${getTodayKey()}`]: { value: "true", completed: true }
       },
+      routines: defaultRoutines,
       timeBlocks: [
         { 
           id: 101, 
           date: getTodayKey(), 
-          title: "Morning Routine & Cardio", 
-          startTime: "07:00", 
-          endTime: "08:15", 
-          color: "emerald", 
-          notes: "Mobility, hydration, light run",
-          actualStartTime: "07:15",
-          actualEndTime: "08:15",
-          actualNotes: "Stretched and ran 4km outdoors",
-          status: "Completed"
-        },
-        { 
-          id: 102, 
-          date: getTodayKey(), 
           title: "Deep Work Sprint 1", 
           startTime: "09:00", 
-          endTime: "12:00", 
+          endTime: "11:30", 
           color: "indigo", 
           notes: "Core features & code review",
-          actualStartTime: "09:30",
-          actualEndTime: "12:00",
-          actualNotes: "Shipped core sync module, delayed 30m by urgent email",
-          status: "Partial / Deviated"
+          actualStartTime: "09:15",
+          actualEndTime: "11:30",
+          actualNotes: "Finished scheduled module on time",
+          status: "Completed",
+          taskId: null,
+          routineId: null
         }
       ],
-      tasks: [],
+      tasks: [
+        {
+          id: 201,
+          title: "Draft system architecture and sprint roadmap",
+          priority: "High",
+          type: "timebound",
+          status: "Need to Start",
+          plannedMins: 45,
+          actualMins: 0,
+          completed: false,
+          date: getTodayKey(),
+          createdAt: getTodayKey(),
+          pendingSince: "",
+          scheduledStartTime: "",
+          scheduledEndTime: ""
+        }
+      ],
       focusLogs: [],
       dailySummaries: [
         {
@@ -1304,20 +1493,21 @@
       apiUrl: ""
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v6')) || defaultState;
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v7')) || defaultState;
 
     if (!appData.habitLogs) appData.habitLogs = {};
+    if (!appData.routines) appData.routines = defaultRoutines;
     if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
+    if (!appData.tasks) appData.tasks = defaultState.tasks;
     if (!appData.dailySummaries) appData.dailySummaries = defaultState.dailySummaries || [];
     if (!appData.apiUrl) {
       appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
     }
 
     function saveState() {
-      localStorage.setItem('daily_flow_state_v6', JSON.stringify(appData));
+      localStorage.setItem('daily_flow_state_v7', JSON.stringify(appData));
     }
 
-    // ---------- Sync Status & Google Apps Script Sync ----------
     function setSyncStatus(state) {
       const dot = document.getElementById('syncDot');
       const txt = document.getElementById('syncText');
@@ -1348,6 +1538,7 @@
       setSyncStatus('syncing');
 
       try {
+        // Format Habit Logs
         const logsArray = Object.keys(appData.habitLogs).map(key => {
           const parts = key.split('_');
           const habitId = parts[0];
@@ -1362,6 +1553,53 @@
           };
         });
 
+        // Option B: Map Routines to (id | title | timeBlock | timeSlot | days)
+        const routinesPayload = (appData.routines || []).map(r => ({
+          id: r.id,
+          title: r.title || "Routine",
+          timeBlock: r.color || "amber",
+          timeSlot: `${r.startTime || "07:00"} - ${r.endTime || "08:00"}`,
+          days: r.repeat || "everyday"
+        }));
+
+        // Option B: Map Tasks to (id | title | priority | completed | scheduledDate | scheduledBlock | timeSlot)
+        const tasksPayload = (appData.tasks || []).map(t => {
+          let slotStr = "";
+          if (t.scheduledStartTime && t.scheduledEndTime) {
+            slotStr = `${t.scheduledStartTime} - ${t.scheduledEndTime}`;
+          } else if (t.plannedMins) {
+            slotStr = `${t.plannedMins}m`;
+          }
+
+          return {
+            id: t.id,
+            title: t.title || "Untitled Task",
+            priority: t.priority || "Med",
+            completed: t.completed ? "TRUE" : "FALSE",
+            scheduledDate: t.date || getTodayKey(),
+            scheduledBlock: t.status || (t.completed ? "Completed" : "Need to Start"),
+            timeSlot: slotStr
+          };
+        });
+
+        // Option B: Map Habits to (id | name | type | target | unit)
+        const habitsPayload = (appData.habits || []).map(h => ({
+          id: h.id,
+          name: h.name || "",
+          type: h.type || "boolean",
+          target: h.target || "",
+          unit: h.unit || ""
+        }));
+
+        // Option B: Map FocusLogs to (id | label | duration | timestamp | date)
+        const focusLogsPayload = (appData.focusLogs || []).map(f => ({
+          id: f.id,
+          label: f.label || "Focus Session",
+          duration: f.duration || "00:00:00",
+          timestamp: f.timestamp || "",
+          date: f.date || getTodayKey()
+        }));
+
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -1369,11 +1607,12 @@
           body: JSON.stringify({
             action: "syncAll",
             data: {
-              habits: appData.habits,
+              habits: habitsPayload,
               habitLogs: logsArray,
+              routines: routinesPayload,
               planner: appData.timeBlocks,
-              tasks: appData.tasks,
-              focusLogs: appData.focusLogs,
+              tasks: tasksPayload,
+              focusLogs: focusLogsPayload,
               dailySummaries: appData.dailySummaries
             }
           })
@@ -1406,16 +1645,18 @@
         if (!res.ok) throw new Error("Fetch failed");
         const json = await res.json();
 
+        // 1. Habits (id | name | type | target | unit)
         if (json.habits && Array.isArray(json.habits)) {
           appData.habits = json.habits.map(h => ({
             id: Number(h.id) || h.id,
             name: h.name || "Untitled",
             type: h.type || "boolean",
-            unit: h.unit || "",
-            target: h.target || ""
+            target: h.target || "",
+            unit: h.unit || ""
           }));
         }
 
+        // 2. Habit Logs
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
           appData.habitLogs = {};
           json.habitLogs.forEach(row => {
@@ -1427,6 +1668,44 @@
           });
         }
 
+        // 3. Routines: parse (id | title | timeBlock | timeSlot | days)
+        if (json.routines && Array.isArray(json.routines)) {
+          appData.routines = json.routines.map(r => {
+            let sTime = "07:00";
+            let eTime = "08:00";
+            const slot = String(r.timeSlot || '').trim();
+
+            if (slot.includes('-')) {
+              const parts = slot.split('-').map(s => s.trim());
+              if (parts[0]) sTime = parts[0];
+              if (parts[1]) eTime = parts[1];
+            }
+
+            let repeat = String(r.days || 'everyday').toLowerCase().trim();
+            if (repeat.includes('weekday') || repeat.includes('mon - fri') || repeat.includes('mon-fri')) {
+              repeat = 'weekdays';
+            } else if (repeat.includes('weekend') || repeat.includes('sat - sun') || repeat.includes('sat-sun')) {
+              repeat = 'weekends';
+            } else {
+              repeat = 'everyday';
+            }
+
+            const rawColor = String(r.timeBlock || '').toLowerCase().trim();
+            const color = ['amber', 'emerald', 'indigo', 'cyan', 'purple'].includes(rawColor) ? rawColor : 'amber';
+
+            return {
+              id: r.id || `ROUTINE_${Date.now()}`,
+              title: r.title || "Routine",
+              startTime: sTime,
+              endTime: eTime,
+              color: color,
+              repeat: repeat,
+              notes: "Recurring daily routine"
+            };
+          });
+        }
+
+        // 4. Planner Canvas Blocks
         if (json.planner && Array.isArray(json.planner)) {
           appData.timeBlocks = json.planner.map(p => ({
             id: Number(p.id) || Date.now() + Math.random(),
@@ -1439,30 +1718,70 @@
             actualStartTime: p.actualStartTime || "",
             actualEndTime: p.actualEndTime || "",
             actualNotes: p.actualNotes || "",
-            status: p.status || "Planned"
+            status: p.status || "Planned",
+            taskId: p.taskId ? Number(p.taskId) : null,
+            routineId: p.routineId || null
           }));
         }
 
+        // 5. Tasks: parse (id | title | priority | completed | scheduledDate | scheduledBlock | timeSlot)
         if (json.tasks && Array.isArray(json.tasks)) {
-          appData.tasks = json.tasks.map(t => ({
-            id: Number(t.id) || t.id,
-            title: t.title || "Untitled Task",
-            priority: t.priority || "Med",
-            type: t.type || (t.plannedMins ? "timebound" : "simple"),
-            status: t.status || (String(t.completed).toUpperCase() === 'TRUE' || t.completed === true ? "Completed" : "Need to Start"),
-            plannedMins: parseInt(t.plannedMins, 10) || 0,
-            actualMins: parseInt(t.actualMins, 10) || 0,
-            completed: String(t.completed).toUpperCase() === 'TRUE' || t.completed === true,
-            date: t.date ? String(t.date).split('T')[0] : selectedPlannerDate,
-            createdAt: t.createdAt ? String(t.createdAt).split('T')[0] : getTodayKey(),
-            pendingSince: t.pendingSince ? String(t.pendingSince).split('T')[0] : ""
+          appData.tasks = json.tasks.map(t => {
+            const isCompleted = String(t.completed).toUpperCase() === 'TRUE' || t.completed === true;
+            const slot = String(t.timeSlot || '').trim();
+
+            let sStart = "";
+            let sEnd = "";
+            let plannedMins = 30;
+
+            if (slot.includes('-')) {
+              const parts = slot.split('-').map(s => s.trim());
+              sStart = parts[0] || "";
+              sEnd = parts[1] || "";
+              if (sStart && sEnd) {
+                const diff = timeToMinutes(sEnd) - timeToMinutes(sStart);
+                if (diff > 0) plannedMins = diff;
+              }
+            } else if (slot.endsWith('m') || !isNaN(parseInt(slot, 10))) {
+              plannedMins = Math.max(1, parseInt(slot, 10) || 30);
+            }
+
+            const rawStatus = String(t.scheduledBlock || '').trim();
+            const validStatuses = ["Need to Start", "In Progress", "Pending", "In Future", "Completed"];
+            const status = isCompleted ? "Completed" : (validStatuses.includes(rawStatus) ? rawStatus : "Need to Start");
+
+            const taskDate = t.scheduledDate ? String(t.scheduledDate).split('T')[0] : (t.date ? String(t.date).split('T')[0] : selectedPlannerDate);
+
+            return {
+              id: Number(t.id) || t.id,
+              title: t.title || "Untitled Task",
+              priority: t.priority || "Med",
+              type: slot.length > 0 ? "timebound" : "simple",
+              status: status,
+              plannedMins: plannedMins,
+              actualMins: isCompleted ? plannedMins : 0,
+              completed: isCompleted,
+              date: taskDate,
+              createdAt: taskDate,
+              pendingSince: status === "Pending" ? taskDate : "",
+              scheduledStartTime: sStart,
+              scheduledEndTime: sEnd
+            };
+          });
+        }
+
+        // 6. Focus Logs (id | label | duration | timestamp | date)
+        if (json.focusLogs && Array.isArray(json.focusLogs)) {
+          appData.focusLogs = json.focusLogs.map(l => ({
+            id: Number(l.id) || l.id,
+            label: l.label || "Focus Session",
+            duration: l.duration || "00:00:00",
+            timestamp: l.timestamp || "",
+            date: l.date ? String(l.date).split('T')[0] : getTodayKey()
           }));
         }
 
-        if (json.focusLogs && Array.isArray(json.focusLogs)) {
-          appData.focusLogs = json.focusLogs;
-        }
-
+        // 7. Daily Summaries
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
           appData.dailySummaries = json.dailySummaries.map(s => ({
             date: String(s.date || '').split('T')[0],
@@ -1485,7 +1804,6 @@
       }
     }
 
-    // ---------- 24-Hour Calendar Day Planner Logic ----------
     function timeToMinutes(tStr) {
       if (!tStr) return 0;
       const parts = tStr.split(':');
@@ -1521,17 +1839,63 @@
       }
     }
 
+    // Check if routine applies to a given date (everyday, weekdays, weekends)
+    function doesRoutineOccurOnDate(routine, dateStr) {
+      if (!routine || !dateStr) return false;
+      const d = new Date(dateStr + "T00:00:00");
+      const dayOfWeek = d.getDay(); // 0 = Sun, 6 = Sat
+      if (routine.repeat === 'weekdays') {
+        return dayOfWeek >= 1 && dayOfWeek <= 5;
+      } else if (routine.repeat === 'weekends') {
+        return dayOfWeek === 0 || dayOfWeek === 6;
+      }
+      return true; // 'everyday' default
+    }
+
     function render24HourPlanner() {
       const datePicker = document.getElementById('plannerDatePicker');
       datePicker.value = selectedPlannerDate;
 
-      const daysBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
+      // 1. Get manual and task-linked time blocks for this specific date
+      const daysManualBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
+
+      // 2. Synthesize recurring routine blocks for this date
+      const recurringBlocks = [];
+      appData.routines.forEach(r => {
+        if (doesRoutineOccurOnDate(r, selectedPlannerDate)) {
+          // Check if there is an evaluation block already stored for this routine on this date
+          const existingEval = daysManualBlocks.find(b => b.routineId === r.id);
+          if (existingEval) {
+            existingEval.isRecurring = true;
+          } else {
+            recurringBlocks.push({
+              id: `ROUTINE_${r.id}_${selectedPlannerDate}`,
+              isVirtualRoutine: true,
+              routineId: r.id,
+              date: selectedPlannerDate,
+              title: r.title,
+              startTime: r.startTime,
+              endTime: r.endTime,
+              color: r.color || "amber",
+              notes: r.notes || "Recurring daily routine",
+              actualStartTime: "",
+              actualEndTime: "",
+              actualNotes: "",
+              status: "Planned",
+              taskId: null
+            });
+          }
+        }
+      });
+
+      const allActiveBlocks = [...daysManualBlocks, ...recurringBlocks];
+      document.getElementById('activeRoutineCountBadge').textContent = appData.routines.length;
 
       let totalPlannedMins = 0;
       let totalActualMins = 0;
       let completedOrPartialCount = 0;
 
-      daysBlocks.forEach(b => {
+      allActiveBlocks.forEach(b => {
         const pStart = timeToMinutes(b.startTime);
         const pEnd = timeToMinutes(b.endTime);
         if (pEnd > pStart) totalPlannedMins += (pEnd - pStart);
@@ -1553,11 +1917,11 @@
       const diffHours = (totalActualMins / 60) - (totalPlannedMins / 60);
 
       document.getElementById('scorePlannedHours').textContent = `${pHours}h`;
-      document.getElementById('scorePlannedCount').textContent = `${daysBlocks.length} planned`;
+      document.getElementById('scorePlannedCount').textContent = `${allActiveBlocks.length} blocks`;
       document.getElementById('scoreActualHours').textContent = `${aHours}h`;
-      document.getElementById('scoreActualCount').textContent = `${daysBlocks.filter(b => b.actualStartTime).length} logged`;
+      document.getElementById('scoreActualCount').textContent = `${allActiveBlocks.filter(b => b.actualStartTime).length} logged`;
       document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
-      document.getElementById('scoreStatusCount').textContent = `${completedOrPartialCount}/${daysBlocks.length} executed`;
+      document.getElementById('scoreStatusCount').textContent = `${completedOrPartialCount}/${allActiveBlocks.length} done`;
 
       const varianceEl = document.getElementById('scoreVarianceBadge');
       if (diffHours === 0) {
@@ -1575,11 +1939,11 @@
       container.innerHTML = '';
 
       const colorMap = {
-        indigo: { border: 'border-indigo-500/80', planBg: 'bg-indigo-950/70', actBg: 'bg-indigo-900/60', text: 'text-indigo-200' },
-        emerald: { border: 'border-emerald-500/80', planBg: 'bg-emerald-950/70', actBg: 'bg-emerald-900/60', text: 'text-emerald-200' },
-        amber: { border: 'border-amber-500/80', planBg: 'bg-amber-950/70', actBg: 'bg-amber-900/60', text: 'text-amber-200' },
-        cyan: { border: 'border-cyan-500/80', planBg: 'bg-cyan-950/70', actBg: 'bg-cyan-900/60', text: 'text-cyan-200' },
-        purple: { border: 'border-purple-500/80', planBg: 'bg-purple-950/70', actBg: 'bg-purple-900/60', text: 'text-purple-200' }
+        indigo: { border: 'border-indigo-500/80', planBg: 'bg-indigo-950/70', text: 'text-indigo-200' },
+        emerald: { border: 'border-emerald-500/80', planBg: 'bg-emerald-950/70', text: 'text-emerald-200' },
+        amber: { border: 'border-amber-500/80', planBg: 'bg-amber-950/70', text: 'text-amber-200' },
+        cyan: { border: 'border-cyan-500/80', planBg: 'bg-cyan-950/70', text: 'text-cyan-200' },
+        purple: { border: 'border-purple-500/80', planBg: 'bg-purple-950/70', text: 'text-purple-200' }
       };
 
       const statusBadges = {
@@ -1590,14 +1954,17 @@
         "Missed": "bg-rose-950 text-rose-300 border-rose-700"
       };
 
-      daysBlocks.forEach(block => {
+      allActiveBlocks.forEach(block => {
         const theme = colorMap[block.color] || colorMap.indigo;
 
-        // Planned Block
+        // Planned Block Card
         const pStartM = timeToMinutes(block.startTime);
         let pEndM = timeToMinutes(block.endTime);
         if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
         const pDur = pEndM - pStartM;
+
+        const isRoutine = Boolean(block.routineId || block.isVirtualRoutine);
+        const isTask = Boolean(block.taskId);
 
         const planCard = document.createElement('div');
         planCard.className = `absolute left-[1%] sm:left-[2%] w-[47%] rounded-xl border p-2 sm:p-2.5 shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden ${theme.planBg} ${theme.border}`;
@@ -1606,27 +1973,36 @@
 
         planCard.onclick = (e) => {
           e.stopPropagation();
-          editTimeBlock(block.id);
+          editTimeBlock(block);
         };
+
+        let badgeTypeHtml = `<span class="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Plan</span>`;
+        if (isRoutine) {
+          badgeTypeHtml = `<span class="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-0.5"><i data-lucide="repeat" class="w-2.5 h-2.5"></i> Routine</span>`;
+        } else if (isTask) {
+          badgeTypeHtml = `<span class="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-0.5"><i data-lucide="check-square" class="w-2.5 h-2.5"></i> Task</span>`;
+        }
 
         planCard.innerHTML = `
           <div class="flex items-start justify-between gap-1">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Plan</span>
+                ${badgeTypeHtml}
                 <span class="text-xs font-bold ${theme.text} truncate">${block.title}</span>
               </div>
               <div class="text-[10px] font-mono text-slate-400 mt-0.5">${block.startTime} - ${block.endTime} (${(pDur/60).toFixed(1)}h)</div>
               ${block.notes && pDur >= 60 ? `<p class="text-[11px] text-slate-300/80 truncate mt-1 italic">${block.notes}</p>` : ''}
             </div>
-            <button onclick="handleQuickDeleteTimeBlock(${block.id}, event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
+            ${!isRoutine ? `
+              <button onclick="handleQuickDeleteTimeBlock(${block.id}, event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            ` : `<span title="Recursive daily routine" class="text-amber-400 p-0.5"><i data-lucide="repeat" class="w-3.5 h-3.5"></i></span>`}
           </div>
         `;
         container.appendChild(planCard);
 
-        // Actual Block
+        // Actual Block Card
         const statusClass = statusBadges[block.status] || statusBadges["Planned"];
         let aStartM = block.actualStartTime ? timeToMinutes(block.actualStartTime) : pStartM;
         let aEndM = block.actualEndTime ? timeToMinutes(block.actualEndTime) : (block.actualStartTime ? aStartM + 45 : pEndM);
@@ -1642,7 +2018,7 @@
 
         actCard.onclick = (e) => {
           e.stopPropagation();
-          editTimeBlock(block.id);
+          editTimeBlock(block);
         };
 
         actCard.innerHTML = `
@@ -1744,29 +2120,38 @@
       document.getElementById('tbStatusSelect').value = "Completed";
     }
 
-    function openTimeBlockModal(editId = null, defaultStart = "09:00", defaultEnd = "10:00") {
+    function openTimeBlockModal(blockObj = null, defaultStart = "09:00", defaultEnd = "10:00") {
       const deleteBtn = document.getElementById('deleteTimeBlockBtn');
 
-      if (editId) {
-        const block = appData.timeBlocks.find(b => b.id === editId);
-        if (!block) return;
+      if (blockObj) {
         document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="pencil" class="w-5 h-5 text-indigo-400"></i> Evaluate Time Block`;
-        document.getElementById('timeBlockEditId').value = block.id;
-        document.getElementById('tbTitleInput').value = block.title;
-        document.getElementById('tbStartTimeInput').value = block.startTime;
-        document.getElementById('tbEndTimeInput').value = block.endTime;
-        document.getElementById('tbNotesInput').value = block.notes || "";
-        document.getElementById('tbActualStartTimeInput').value = block.actualStartTime || "";
-        document.getElementById('tbActualEndTimeInput').value = block.actualEndTime || "";
-        document.getElementById('tbActualNotesInput').value = block.actualNotes || "";
-        document.getElementById('tbStatusSelect').value = block.status || "Planned";
+        document.getElementById('timeBlockEditId').value = blockObj.isVirtualRoutine ? "" : (blockObj.id || "");
+        document.getElementById('timeBlockTaskId').value = blockObj.taskId || "";
+        document.getElementById('timeBlockRoutineId').value = blockObj.routineId || "";
 
-        const radio = document.querySelector(`input[name="tbColor"][value="${block.color || 'indigo'}"]`);
+        document.getElementById('tbTitleInput').value = blockObj.title;
+        document.getElementById('tbStartTimeInput').value = blockObj.startTime;
+        document.getElementById('tbEndTimeInput').value = blockObj.endTime;
+        document.getElementById('tbNotesInput').value = blockObj.notes || "";
+        document.getElementById('tbActualStartTimeInput').value = blockObj.actualStartTime || "";
+        document.getElementById('tbActualEndTimeInput').value = blockObj.actualEndTime || "";
+        document.getElementById('tbActualNotesInput').value = blockObj.actualNotes || "";
+        document.getElementById('tbStatusSelect').value = blockObj.status || "Planned";
+
+        const radio = document.querySelector(`input[name="tbColor"][value="${blockObj.color || 'indigo'}"]`);
         if (radio) radio.checked = true;
-        deleteBtn.classList.remove('hidden');
+
+        if (!blockObj.isVirtualRoutine) {
+          deleteBtn.classList.remove('hidden');
+        } else {
+          deleteBtn.classList.add('hidden');
+        }
       } else {
         document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i> Schedule Time Block`;
         document.getElementById('timeBlockEditId').value = "";
+        document.getElementById('timeBlockTaskId').value = "";
+        document.getElementById('timeBlockRoutineId').value = "";
+
         document.getElementById('tbTitleInput').value = "";
         document.getElementById('tbStartTimeInput').value = defaultStart;
         document.getElementById('tbEndTimeInput').value = defaultEnd;
@@ -1788,13 +2173,16 @@
       document.getElementById('timeBlockModal').classList.add('hidden');
     }
 
-    function editTimeBlock(id) {
-      openTimeBlockModal(id);
+    function editTimeBlock(block) {
+      openTimeBlockModal(block);
     }
 
     function handleSaveTimeBlock(e) {
       e.preventDefault();
       const editId = document.getElementById('timeBlockEditId').value;
+      const linkedTaskId = document.getElementById('timeBlockTaskId').value;
+      const linkedRoutineId = document.getElementById('timeBlockRoutineId').value;
+
       const title = document.getElementById('tbTitleInput').value.trim();
       const startTime = document.getElementById('tbStartTimeInput').value;
       const endTime = document.getElementById('tbEndTimeInput').value;
@@ -1821,7 +2209,8 @@
           block.status = status;
         }
       } else {
-        appData.timeBlocks.push({
+        // Save new block or materialize recurring routine evaluation
+        const newBlock = {
           id: Date.now(),
           date: selectedPlannerDate,
           title,
@@ -1832,28 +2221,66 @@
           actualStartTime,
           actualEndTime,
           actualNotes,
-          status
-        });
+          status,
+          taskId: linkedTaskId ? Number(linkedTaskId) : null,
+          routineId: linkedRoutineId || null
+        };
+        appData.timeBlocks.push(newBlock);
+      }
+
+      // Cross-Sync: If this timeblock is linked to a task, update the task status & actuals
+      if (linkedTaskId) {
+        const task = appData.tasks.find(t => t.id == linkedTaskId);
+        if (task) {
+          task.status = status;
+          task.completed = (status === "Completed");
+          if (actualStartTime && actualEndTime) {
+            const aM = timeToMinutes(actualEndTime) - timeToMinutes(actualStartTime);
+            if (aM > 0) task.actualMins = aM;
+          }
+        }
       }
 
       closeTimeBlockModal();
       render24HourPlanner();
+      renderTasks();
       syncToRemote();
     }
 
     function handleDeleteCurrentTimeBlock() {
       const editId = document.getElementById('timeBlockEditId').value;
       if (!editId) return;
+
+      // Find if linked to task, and remove link
+      const block = appData.timeBlocks.find(b => b.id == editId);
+      if (block && block.taskId) {
+        const t = appData.tasks.find(x => x.id === block.taskId);
+        if (t) {
+          t.scheduledStartTime = "";
+          t.scheduledEndTime = "";
+        }
+      }
+
       appData.timeBlocks = appData.timeBlocks.filter(b => b.id != editId);
       closeTimeBlockModal();
       render24HourPlanner();
+      renderTasks();
       syncToRemote();
     }
 
     function handleQuickDeleteTimeBlock(id, event) {
       event.stopPropagation();
+      const block = appData.timeBlocks.find(b => b.id === id);
+      if (block && block.taskId) {
+        const t = appData.tasks.find(x => x.id === block.taskId);
+        if (t) {
+          t.scheduledStartTime = "";
+          t.scheduledEndTime = "";
+        }
+      }
       appData.timeBlocks = appData.timeBlocks.filter(b => b.id !== id);
       render24HourPlanner();
+      renderTasks();
       syncToRemote();
     }
 
@@ -1869,19 +2296,185 @@
         actualStartTime: "",
         actualEndTime: "",
         actualNotes: "",
-        status: "Planned"
+        status: "Planned",
+        taskId: null,
+        routineId: null
       });
       render24HourPlanner();
       syncToRemote();
     }
 
     function clearDayPlanner() {
-      appData.timeBlocks = appData.timeBlocks.filter(b => b.date !== selectedPlannerDate);
+      appData.timeBlocks = appData.timeBlocks.filter(b => b.date !== selectedPlannerDate || b.routineId);
       render24HourPlanner();
       syncToRemote();
     }
 
-    // ---------- Habits & Metrics Engine ----------
+    function openRoutineManagerModal() {
+      renderRoutineList();
+      document.getElementById('routineManagerModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeRoutineManagerModal() {
+      document.getElementById('routineManagerModal').classList.add('hidden');
+    }
+
+    function renderRoutineList() {
+      const container = document.getElementById('routineListContainer');
+      container.innerHTML = '';
+
+      if (!appData.routines.length) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">No recurring routines configured yet.</div>`;
+        return;
+      }
+
+      appData.routines.forEach(r => {
+        const card = document.createElement('div');
+        card.className = "flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs";
+        card.innerHTML = `
+          <div class="min-w-0 pr-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-white">${r.title}</span>
+              <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-800/60 text-amber-300">
+                ${r.repeat}
+              </span>
+            </div>
+            <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+              ${r.startTime} - ${r.endTime} • ${r.color}
+            </div>
+          </div>
+          <button onclick="deleteRoutine('${r.id}')" title="Delete Routine" class="text-slate-500 hover:text-rose-400 p-1 rounded transition">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function handleSaveRoutine(e) {
+      e.preventDefault();
+      const title = document.getElementById('routineTitleInput').value.trim();
+      const startTime = document.getElementById('routineStartTimeInput').value;
+      const endTime = document.getElementById('routineEndTimeInput').value;
+      const repeat = document.getElementById('routineRepeatSelect').value;
+      const color = document.getElementById('routineColorSelect').value;
+
+      if (!title || timeToMinutes(endTime) <= timeToMinutes(startTime)) return;
+
+      appData.routines.push({
+        id: `ROUTINE_${Date.now()}`,
+        title,
+        startTime,
+        endTime,
+        repeat,
+        color,
+        notes: "Automated recurring routine"
+      });
+
+      document.getElementById('routineTitleInput').value = "";
+      renderRoutineList();
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    function deleteRoutine(id) {
+      appData.routines = appData.routines.filter(r => r.id !== id);
+      renderRoutineList();
+      render24HourPlanner();
+      syncToRemote();
+    }
+
+    // Modal: Task Merge to Planner
+    let currentTaskToMerge = null;
+
+    function openMergeTaskModal(taskId) {
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      currentTaskToMerge = task;
+      document.getElementById('mergeTaskId').value = task.id;
+      document.getElementById('mergeTaskTitleDisplay').textContent = task.title;
+      document.getElementById('mergeTaskDateInput').value = task.date || selectedPlannerDate;
+
+      // Suggest start time: current hour + 1 or 10:00
+      const now = new Date();
+      const currentH = now.getHours();
+      const startH = Math.min(22, Math.max(8, currentH + 1));
+      const startStr = `${String(startH).padStart(2, '0')}:00`;
+      document.getElementById('mergeTaskStartTimeInput').value = startStr;
+
+      // Calculate end time based on planned minutes
+      const durMins = task.plannedMins && task.plannedMins > 0 ? task.plannedMins : 30;
+      const endMins = timeToMinutes(startStr) + durMins;
+      document.getElementById('mergeTaskEndTimeInput').value = minutesToTime(endMins);
+
+      document.getElementById('mergeTaskModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeMergeTaskModal() {
+      document.getElementById('mergeTaskModal').classList.add('hidden');
+      currentTaskToMerge = null;
+    }
+
+    function autoAdjustMergeEndTime() {
+      if (!currentTaskToMerge) return;
+      const startStr = document.getElementById('mergeTaskStartTimeInput').value;
+      const durMins = currentTaskToMerge.plannedMins > 0 ? currentTaskToMerge.plannedMins : 30;
+      const endMins = timeToMinutes(startStr) + durMins;
+      document.getElementById('mergeTaskEndTimeInput').value = minutesToTime(endMins);
+    }
+
+    function handleConfirmMergeTask(e) {
+      e.preventDefault();
+      const taskId = Number(document.getElementById('mergeTaskId').value);
+      const targetDate = document.getElementById('mergeTaskDateInput').value;
+      const startTime = document.getElementById('mergeTaskStartTimeInput').value;
+      const endTime = document.getElementById('mergeTaskEndTimeInput').value;
+      const color = document.getElementById('mergeTaskColorSelect').value;
+
+      if (!taskId || !targetDate) return;
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      // Check if this task already has an existing time block
+      let existingBlock = appData.timeBlocks.find(b => b.taskId === taskId);
+
+      if (existingBlock) {
+        existingBlock.date = targetDate;
+        existingBlock.startTime = startTime;
+        existingBlock.endTime = endTime;
+        existingBlock.color = color;
+      } else {
+        appData.timeBlocks.push({
+          id: Date.now(),
+          date: targetDate,
+          title: `[Task] ${task.title}`,
+          startTime,
+          endTime,
+          color,
+          notes: `Merged from Task List`,
+          actualStartTime: "",
+          actualEndTime: "",
+          actualNotes: "",
+          status: task.status || "Planned",
+          taskId: task.id,
+          routineId: null
+        });
+      }
+
+      task.date = targetDate;
+      task.scheduledStartTime = startTime;
+      task.scheduledEndTime = endTime;
+
+      closeMergeTaskModal();
+      render24HourPlanner();
+      renderTasks();
+      syncToRemote();
+    }
+
     function computeStreak(habitId) {
       let streak = 0;
       let checkDate = new Date();
@@ -2373,9 +2966,8 @@
       }
     }
 
-    // ---------- Priority Tasks Logic with Planned vs Actual Duration ----------
     let currentTaskFilter = 'all';
-    let newTaskScheduleTarget = 'today'; // 'today' | 'tomorrow' | 'future'
+    let newTaskScheduleTarget = 'today';
 
     function getTomorrowKey() {
       const d = new Date();
@@ -2392,7 +2984,6 @@
       const futureDateWrapper = document.getElementById('taskFutureDateWrapper');
       const dateInput = document.getElementById('taskScheduleDateInput');
 
-      // Reset button styles
       [
         { el: btnToday, key: 'today' },
         { el: btnTomorrow, key: 'tomorrow' },
@@ -2410,7 +3001,6 @@
         futureDateWrapper.classList.remove('hidden');
         futureDateWrapper.classList.add('flex');
         
-        // Default future date input to day after tomorrow if empty or past
         const dayAfterTomorrow = new Date();
         dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
         const dayAfterKey = dayAfterTomorrow.toISOString().split('T')[0];
@@ -2479,10 +3069,9 @@
       const dateInput = document.getElementById('taskScheduleDateInput');
       const taskType = document.querySelector('input[name="newTaskType"]:checked')?.value || 'timebound';
 
-      const plannedMins = taskType === 'timebound' ? Math.max(1, parseInt(plannedMinsInput.value, 10) || 25) : 0;
+      const plannedMins = taskType === 'timebound' ? Math.max(1, parseInt(plannedMinsInput.value, 10) || 30) : 0;
       const today = getTodayKey();
       
-      // Determine target date based on the active schedule target button
       let targetDate = today;
       if (newTaskScheduleTarget === 'today') {
         targetDate = today;
@@ -2494,7 +3083,6 @@
           : getTomorrowKey();
       }
 
-      // Automatically determine status: if target date is in the future, set to 'In Future'
       const isFuture = targetDate > today;
       const initialStatus = isFuture ? "In Future" : "Need to Start";
 
@@ -2502,20 +3090,20 @@
         id: Date.now(),
         title: titleInput.value.trim(),
         priority: priorityInput.value,
-        type: taskType, // 'timebound' | 'simple'
-        status: initialStatus, // 'Need to Start' | 'In Progress' | 'Pending' | 'In Future' | 'Completed'
+        type: taskType,
+        status: initialStatus,
         plannedMins: plannedMins,
         actualMins: 0,
         completed: false,
         date: targetDate,
         createdAt: today,
-        pendingSince: ""
+        pendingSince: "",
+        scheduledStartTime: "",
+        scheduledEndTime: ""
       });
 
       titleInput.value = '';
-      plannedMinsInput.value = '25';
-      
-      // Reset back to 'Today' button for rapid entry
+      plannedMinsInput.value = '30';
       setTaskScheduleTarget('today');
 
       renderTasks();
@@ -2535,19 +3123,28 @@
         t.pendingSince = "";
       }
 
-      // If marked as In Future and the date is in the past/today, adjust date to tomorrow
       if (newStatus === "In Future" && t.date <= today) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         t.date = tomorrow.toISOString().split('T')[0];
       }
 
-      // If completed a timebound task and actual time was 0, auto-fill with planned
       if (t.completed && t.type === 'timebound' && (!t.actualMins || t.actualMins === 0)) {
         t.actualMins = t.plannedMins;
       }
 
+      // Cross-Sync: If this task is merged onto the Planner, update the planner block status & actuals
+      const linkedBlock = appData.timeBlocks.find(b => b.taskId === id);
+      if (linkedBlock) {
+        linkedBlock.status = newStatus;
+        if (t.completed && !linkedBlock.actualStartTime) {
+          linkedBlock.actualStartTime = linkedBlock.startTime;
+          linkedBlock.actualEndTime = linkedBlock.endTime;
+        }
+      }
+
       renderTasks();
+      render24HourPlanner();
       syncToRemote();
     }
 
@@ -2569,7 +3166,18 @@
         if (t.actualMins > 0 && t.status === "Need to Start") {
           t.status = "In Progress";
         }
+
+        // Cross-sync to planner block if linked
+        const linkedBlock = appData.timeBlocks.find(b => b.taskId === id);
+        if (linkedBlock) {
+          linkedBlock.status = t.status;
+          if (!linkedBlock.actualStartTime) linkedBlock.actualStartTime = linkedBlock.startTime;
+          const aMins = timeToMinutes(linkedBlock.actualStartTime) + t.actualMins;
+          linkedBlock.actualEndTime = minutesToTime(aMins);
+        }
+
         renderTasks();
+        render24HourPlanner();
         syncToRemote();
       }
     }
@@ -2612,8 +3220,11 @@
     }
 
     function deleteTask(id) {
+      // Also remove any linked planner block
+      appData.timeBlocks = appData.timeBlocks.filter(b => b.taskId !== id);
       appData.tasks = appData.tasks.filter(x => x.id !== id);
       renderTasks();
+      render24HourPlanner();
       syncToRemote();
     }
 
@@ -2622,13 +3233,11 @@
       listEl.innerHTML = '';
       const today = getTodayKey();
 
-      // Ensure date input defaults to the currently viewed planner date
       const dateInput = document.getElementById('taskScheduleDateInput');
       if (dateInput && !dateInput.value) {
         dateInput.value = selectedPlannerDate;
       }
 
-      // 1. Auto-promote any 'In Future' tasks whose scheduled date has arrived (today or earlier)
       let autoPromotedAny = false;
       appData.tasks.forEach(t => {
         if (t.status === "In Future" && t.date && t.date <= today) {
@@ -2640,7 +3249,6 @@
         saveState();
       }
 
-      // Normalize task properties for legacy tasks
       appData.tasks.forEach(t => {
         if (!t.status) {
           t.status = t.completed ? "Completed" : "Need to Start";
@@ -2653,11 +3261,7 @@
         }
       });
 
-      // Filter tasks for selected date with smart rollover:
-      // When viewing Today, automatically carry forward unfinished tasks from past dates.
-      // If filtering explicitly by 'In Future', display all future scheduled tasks!
       const isViewingToday = (selectedPlannerDate === today);
-      const isViewingFutureDate = (selectedPlannerDate > today);
 
       let dayTasks = [];
       if (currentTaskFilter === 'In Future') {
@@ -2665,9 +3269,7 @@
       } else {
         dayTasks = appData.tasks.filter(t => {
           if (!t.date) return true;
-          // Direct match for the selected date
           if (t.date === selectedPlannerDate) return true;
-          // Rollover: If viewing Today, include incomplete past tasks (skip future ones)
           if (isViewingToday && t.date < selectedPlannerDate && t.status !== "Completed" && t.status !== "In Future") {
             return true;
           }
@@ -2675,7 +3277,6 @@
         });
       }
 
-      // Status counters
       const totalDayTasks = dayTasks.length;
       const countStart = dayTasks.filter(t => t.status === "Need to Start").length;
       const countProgress = dayTasks.filter(t => t.status === "In Progress").length;
@@ -2694,14 +3295,12 @@
       document.getElementById('taskStats').textContent = `${pendingAndOpen} open`;
       document.getElementById('taskDateLabel').textContent = selectedPlannerDate === today ? 'Today' : selectedPlannerDate;
 
-      // Filter based on active tab
       const visibleTasks = dayTasks.filter(t => {
         if (currentTaskFilter === 'all') return true;
         if (currentTaskFilter === 'In Future') return t.status === 'In Future' || (t.date && t.date > today);
         return t.status === currentTaskFilter;
       });
 
-      // Compute time metrics (only for timebound tasks)
       let totalPlanned = 0;
       let totalActual = 0;
       dayTasks.forEach(t => {
@@ -2755,10 +3354,12 @@
         const actual = parseInt(task.actualMins, 10) || 0;
         const diff = actual - planned;
 
-        // Calculate task aging
         const daysOpen = computeDaysDifference(task.createdAt);
         const daysPending = task.status === 'Pending' ? (computeDaysDifference(task.pendingSince || task.createdAt)) : 0;
         const isRolledOver = (task.date && task.date < selectedPlannerDate && task.status !== "Completed" && task.status !== "In Future");
+
+        // Check if task is already merged to the Planner
+        const linkedBlock = appData.timeBlocks.find(b => b.taskId === task.id);
 
         let rolloverBadgeHtml = "";
         if (isRolledOver) {
@@ -2774,7 +3375,6 @@
           agingBadgeHtml = `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400" title="Created ${task.createdAt}">Open ${daysOpen}d</span>`;
         }
 
-        // Duration Badge (for timebound)
         let diffBadgeHtml = "";
         if (isTimebound) {
           if (actual === 0) {
@@ -2786,6 +3386,24 @@
           } else {
             diffBadgeHtml = `<span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-300">${formatDurationMinutes(actual)} (-${formatDurationMinutes(Math.abs(diff))})</span>`;
           }
+        }
+
+        // Merge to Planner Button / Link Badge
+        let plannerMergeButtonHtml = "";
+        if (linkedBlock) {
+          plannerMergeButtonHtml = `
+            <button onclick="onPlannerDateSelected('${linkedBlock.date}'); switchMobileTab('planner');" title="View on 24H Planner" class="flex items-center gap-1 px-2 py-0.8 rounded-lg bg-indigo-950/80 border border-indigo-700/60 text-indigo-300 text-[10px] font-mono font-semibold transition hover:bg-indigo-900">
+              <i data-lucide="calendar" class="w-3 h-3 text-indigo-400"></i>
+              <span>${linkedBlock.startTime} - ${linkedBlock.endTime}</span>
+            </button>
+          `;
+        } else {
+          plannerMergeButtonHtml = `
+            <button onclick="openMergeTaskModal(${task.id})" title="Schedule block on 24H Calendar" class="flex items-center gap-1 px-2 py-0.8 rounded-lg bg-slate-900 hover:bg-indigo-950 border border-slate-800 hover:border-indigo-700 text-slate-300 hover:text-indigo-300 text-[10px] font-medium transition active:scale-95">
+              <i data-lucide="calendar-plus" class="w-3 h-3 text-indigo-400"></i>
+              <span>Merge to Plan</span>
+            </button>
+          `;
         }
 
         const item = document.createElement('div');
@@ -2806,7 +3424,7 @@
             </div>
 
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <!-- Status Dropdown Selector with In Future Option -->
+              <!-- Status Dropdown Selector -->
               <select onchange="updateTaskStatus(${task.id}, this.value)" class="text-[10px] font-mono font-semibold px-2 py-0.8 rounded-lg border focus:outline-none cursor-pointer ${statusBadgeStyles[task.status] || statusBadgeStyles['Need to Start']}">
                 <option value="Need to Start" ${task.status === "Need to Start" ? 'selected' : ''}>Start</option>
                 <option value="In Progress" ${task.status === "In Progress" ? 'selected' : ''}>In Progress</option>
@@ -2826,8 +3444,9 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-1 border-t border-slate-900/90 text-xs">
+          <div class="flex items-center justify-between pt-1 border-t border-slate-900/90 text-xs flex-wrap gap-2">
             <div class="flex items-center gap-1.5 flex-wrap">
+              ${plannerMergeButtonHtml}
               ${isTimebound ? diffBadgeHtml : `<span class="text-[10px] text-slate-400 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3 text-emerald-400"></i> ${task.completed ? 'Checked Off' : 'Pending Check-off'}</span>`}
               ${rolloverBadgeHtml}
               ${agingBadgeHtml}
@@ -2835,14 +3454,14 @@
 
             <!-- Quick Adjustments for Timebound Tasks -->
             ${isTimebound ? `
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-1 ml-auto">
                 <button onclick="adjustTaskActualMins(${task.id}, 5)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-300 transition active:scale-95" title="Add 5 minutes actual">+5m</button>
                 <button onclick="adjustTaskActualMins(${task.id}, 15)" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-slate-300 transition active:scale-95" title="Add 15 minutes actual">+15m</button>
                 <button onclick="matchPlannedToActual(${task.id})" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] text-emerald-400 transition active:scale-95" title="Set Actual = Planned">Match</button>
                 <button onclick="promptCustomActualMins(${task.id})" class="px-1.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-mono text-indigo-300 transition active:scale-95" title="Edit Actual Minutes">Edit</button>
               </div>
             ` : `
-              <button onclick="toggleTask(${task.id})" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-semibold text-slate-300 transition active:scale-95">
+              <button onclick="toggleTask(${task.id})" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-semibold text-slate-300 transition active:scale-95 ml-auto">
                 ${task.completed ? 'Reopen' : 'Mark Done'}
               </button>
             `}
@@ -2853,7 +3472,6 @@
       lucide.createIcons();
     }
 
-    // ---------- Task Status & Aging Analytics Engine ----------
     let taskChartInstance = null;
 
     function openTaskAnalyticsModal() {
@@ -2892,7 +3510,6 @@
       const simpleCount = allTasks.filter(t => t.type === 'simple').length;
       document.getElementById('taskKpiTypeRatio').textContent = `${timeboundCount} Time / ${simpleCount} Simple`;
 
-      // Status Counts
       const startCount = allTasks.filter(t => t.status === "Need to Start").length;
       const progressCount = allTasks.filter(t => t.status === "In Progress").length;
       const pendingCount = allTasks.filter(t => t.status === "Pending").length;
@@ -2903,7 +3520,6 @@
       document.getElementById('taskKpiRate').textContent = `${completionRate}%`;
       document.getElementById('taskKpiCompletedCount').textContent = `${completedCount} of ${total} finished`;
 
-      // Pending aging calculation
       const pendingTasks = allTasks.filter(t => t.status === "Pending");
       document.getElementById('taskKpiPending').textContent = pendingCount;
 
@@ -2914,7 +3530,6 @@
       const avgPendingDays = pendingCount > 0 ? (totalPendingDays / pendingCount).toFixed(1) : "0";
       document.getElementById('taskKpiPendingAvg').textContent = `Avg ${avgPendingDays}d stuck`;
 
-      // Time variance calculation
       let totalPlan = 0;
       let totalAct = 0;
       allTasks.forEach(t => {
@@ -2929,14 +3544,12 @@
       document.getElementById('taskKpiVariance').textContent = varPrefix;
       document.getElementById('taskKpiPlanVsAct').textContent = `${formatDurationMinutes(totalPlan)} plan / ${formatDurationMinutes(totalAct)} act`;
 
-      // Breakdown text
       document.getElementById('breakdownStart').textContent = `${startCount} tasks (${Math.round((startCount/total)*100)}%)`;
       document.getElementById('breakdownProgress').textContent = `${progressCount} tasks (${Math.round((progressCount/total)*100)}%)`;
       document.getElementById('breakdownPending').textContent = `${pendingCount} tasks (${Math.round((pendingCount/total)*100)}%)`;
       document.getElementById('breakdownFuture').textContent = `${futureCount} tasks (${Math.round((futureCount/total)*100)}%)`;
       document.getElementById('breakdownCompleted').textContent = `${completedCount} tasks (${Math.round((completedCount/total)*100)}%)`;
 
-      // Status Chart
       const ctx = document.getElementById('taskStatusChart').getContext('2d');
       if (taskChartInstance) taskChartInstance.destroy();
 
@@ -2964,11 +3577,9 @@
         }
       });
 
-      // Longest Pending & Open Tasks List
       const agingContainer = document.getElementById('pendingAgingList');
       agingContainer.innerHTML = '';
 
-      // Unfinished tasks sorted by days open / pending
       const unfinishedTasks = allTasks
         .filter(t => t.status !== "Completed")
         .map(t => ({
@@ -3009,7 +3620,6 @@
       }
     }
 
-    // ---------- Focus Stopwatch Engine ----------
     let timerInterval = null, timerSeconds = 0, isRunning = false;
 
     function formatTime(s) {
@@ -3063,7 +3673,7 @@
       const duration = formatTime(timerSeconds);
       const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      appData.focusLogs.unshift({ id: Date.now(), label, duration, timestamp });
+      appData.focusLogs.unshift({ id: Date.now(), label, duration, timestamp, date: selectedPlannerDate });
       resetTimer();
       document.getElementById('timerLabelInput').value = "";
       renderFocusLogs();
@@ -3094,7 +3704,7 @@
       syncToRemote();
     }
 
-    // ---------- Section 5: Summarise My Day Engine ----------
+    // Section 5: Summarise My Day Engine
     function loadDaySummaryForCurrentDate() {
       document.getElementById('summaryActiveDateBadge').textContent = selectedPlannerDate;
       const summary = appData.dailySummaries.find(s => s.date === selectedPlannerDate);
@@ -3170,7 +3780,6 @@
       }, 2000);
     }
 
-    // ---------- Past Reflections Archive & Mindset Analytics Modal Engine ----------
     let emotionChartInstance = null;
 
     const emojiIconsMap = {
@@ -3238,7 +3847,6 @@
         return;
       }
 
-      // 1. Productivity Calculation
       const yesProd = summaries.filter(s => s.productive === "Yes").length;
       const partProd = summaries.filter(s => s.productive === "Partial").length;
       const prodScore = Math.round(((yesProd + (partProd * 0.5)) / totalDays) * 100);
@@ -3246,12 +3854,10 @@
       document.getElementById('kpiProductivityRate').textContent = `${prodScore}%`;
       document.getElementById('kpiProductiveCount').textContent = `${yesProd} Yes / ${partProd} Partial`;
 
-      // 2. Growth Trajectory
       const betterCount = summaries.filter(s => s.betterThanYesterday === "Yes").length;
       const betterRate = Math.round((betterCount / totalDays) * 100);
       document.getElementById('kpiBetterRate').textContent = `${betterRate}%`;
 
-      // 3. Emotion breakdown & average
       let emotionSum = 0;
       const distribution = { "5": 0, "4": 0, "3": 0, "2": 0, "1": 0 };
 
@@ -3268,7 +3874,6 @@
       const avgScore = (emotionSum / totalDays).toFixed(1);
       document.getElementById('kpiAvgEmotion').textContent = `${avgScore} / 5.0`;
 
-      // Dominant mood
       let dominantKey = "4";
       let dominantCount = -1;
       Object.keys(distribution).forEach(k => {
@@ -3279,13 +3884,11 @@
       });
       document.getElementById('kpiDominantMood').textContent = `Dominant: ${emojiIconsMap[dominantKey].label} (${emojiIconsMap[dominantKey].emoji})`;
 
-      // Breakdown numbers
       document.getElementById('breakdownEcstatic').textContent = `${distribution["5"]} days`;
       document.getElementById('breakdownGood').textContent = `${distribution["4"]} days`;
       document.getElementById('breakdownNeutral').textContent = `${distribution["3"]} days`;
       document.getElementById('breakdownLow').textContent = `${(distribution["2"] || 0) + (distribution["1"] || 0)} days`;
 
-      // Chart.js Emotion Doughnut Chart
       const ctx = document.getElementById('emotionDistributionChart').getContext('2d');
       if (emotionChartInstance) emotionChartInstance.destroy();
 
@@ -3408,7 +4011,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ---------- Settings & Data Backup/Restore ----------
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
       document.getElementById('configModal').classList.remove('hidden');
@@ -3450,7 +4052,6 @@
       if (event.target.files[0]) reader.readAsText(event.target.files[0]);
     }
 
-    // ---------- Mobile Navigation & Drawer Helpers ----------
     let activeMobileTab = 'planner';
 
     function switchMobileTab(tab) {
@@ -3462,7 +4063,6 @@
       const fMod = document.getElementById('module_focus');
       const rMod = document.getElementById('module_review');
 
-      // Update Top Switcher and Bottom Bar Buttons safely
       ['planner', 'tasks', 'focus', 'habits', 'review'].forEach(t => {
         const topBtn = document.getElementById(`tabBtn_${t}`);
         const btmBtn = document.getElementById(`bottomNav_${t}`);
@@ -3484,7 +4084,6 @@
         }
       });
 
-      // Filter visible modules on mobile screens (desktop shows all modules)
       const isMobile = window.innerWidth < 768;
       if (isMobile) {
         if (pMod) pMod.classList.toggle('hidden', tab !== 'planner');
@@ -3518,7 +4117,6 @@
       switchMobileTab(activeMobileTab);
     });
 
-    // ---------- Master App Render Loop ----------
     function renderAll() {
       const today = new Date();
       document.getElementById('currentLiveTimeDisplay').textContent = today.toLocaleDateString(undefined, {
