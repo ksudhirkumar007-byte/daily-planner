@@ -62,6 +62,12 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <!-- Quick Link to Daily Flow App -->
+        <a href="index.html" title="Go to Daily Flow" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-400 border border-slate-800 flex items-center gap-1.5 text-xs font-semibold transition">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Daily Flow</span>
+        </a>
+
         <!-- Sync Status Button -->
         <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -112,13 +118,13 @@
         <span id="kpiTxnCount" class="text-[10px] text-slate-500 font-mono mt-0.5 block">0 transactions</span>
       </div>
 
-      <!-- Total Income -->
+      <!-- Total Income (Default Baseline ₹1,44,000) -->
       <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-3.5 sm:p-4 rounded-2xl relative overflow-hidden">
         <div class="text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1.5">
           <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-emerald-400"></i> Monthly Income
         </div>
-        <div id="kpiTotalIncome" class="text-xl sm:text-2xl font-bold font-mono text-emerald-400">₹0</div>
-        <span id="kpiNetSavings" class="text-[10px] text-emerald-500/80 font-mono mt-0.5 block">Net: ₹0</span>
+        <div id="kpiTotalIncome" class="text-xl sm:text-2xl font-bold font-mono text-emerald-400">₹1,44,000</div>
+        <span id="kpiNetSavings" class="text-[10px] text-emerald-500/80 font-mono mt-0.5 block">Net: +₹1,44,000</span>
       </div>
 
       <!-- Budget Consumption Meter -->
@@ -139,7 +145,7 @@
       </div>
     </div>
 
-    <!-- Mobile Top Navigation Tabs -->
+    <!-- Primary Navigation Tabs -->
     <div class="flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-2xl gap-1 text-xs shadow-inner">
       <button id="viewTabBtn_txns" onclick="switchViewTab('txns')" class="flex-1 py-1.5 rounded-xl font-semibold text-center transition bg-emerald-600 text-white shadow">
         💸 Transactions
@@ -148,7 +154,7 @@
         🎯 Categories & Budgets
       </button>
       <button id="viewTabBtn_analytics" onclick="switchViewTab('analytics')" class="flex-1 py-1.5 rounded-xl font-medium text-slate-400 text-center transition hover:text-slate-200">
-        📊 Analytics
+        📊 Analytics & Sinking
       </button>
     </div>
 
@@ -169,10 +175,10 @@
             <option value="ALL">All Categories</option>
           </select>
 
-          <!-- Payment Mode Quick Filter -->
+          <!-- Payment Mode Quick Filter (Strictly UPI, Credit Card, Cash) -->
           <select id="filterPaymentMode" onchange="renderTransactions()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
-            <option value="ALL">All Payment Modes</option>
-            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+            <option value="ALL">All Modes</option>
+            <option value="UPI">UPI</option>
             <option value="Credit Card">Credit Card</option>
             <option value="Cash">Cash</option>
           </select>
@@ -213,39 +219,109 @@
       </div>
     </section>
 
-    <!-- TAB 3: Visual Analytics View -->
+    <!-- TAB 3: Visual Analytics & Sinking Funds View -->
     <section id="module_analytics" class="hidden space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Master Category Spend Donut -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Category Breakdown</span>
-            <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded text-emerald-400 border border-slate-800">This Month</span>
+      <!-- Sub Tabs: General vs Sinking Fund Details -->
+      <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl">
+        <button id="analyticsSubTab_general" onclick="switchAnalyticsSubTab('general')" class="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition">
+          📊 General Breakdown
+        </button>
+        <button id="analyticsSubTab_sinking" onclick="switchAnalyticsSubTab('sinking')" class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+          🏦 Sinking Fund Details
+        </button>
+      </div>
+
+      <!-- SUB-TAB A: General Analytics -->
+      <div id="analyticsView_general" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Master Category Spend Donut -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Category Breakdown</span>
+              <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded text-emerald-400 border border-slate-800">This Month</span>
+            </div>
+            <div class="relative h-56 w-full flex items-center justify-center">
+              <canvas id="categoryDonutChart"></canvas>
+            </div>
           </div>
-          <div class="relative h-56 w-full flex items-center justify-center">
-            <canvas id="categoryDonutChart"></canvas>
+
+          <!-- Payment Mode Breakdown Donut (UPI / Credit Card / Cash) -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Payment Modes (UPI / Card / Cash)</span>
+              <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded text-cyan-400 border border-slate-800">3 Modes</span>
+            </div>
+            <div class="relative h-56 w-full flex items-center justify-center">
+              <canvas id="paymentModeChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Daily Spending Velocity Bar Chart -->
+          <div class="col-span-1 md:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Daily Spending Velocity</span>
+              <span class="text-[10px] font-mono text-slate-500">Day 1 to 31</span>
+            </div>
+            <div class="relative h-60 w-full">
+              <canvas id="dailyVelocityChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB B: Sinking Fund Details -->
+      <div id="analyticsView_sinking" class="hidden space-y-4">
+        <!-- Sinking Funds KPI Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-slate-900/90 border border-indigo-900/50 p-4 rounded-2xl">
+            <span class="text-[11px] font-medium text-indigo-300 flex items-center gap-1.5 mb-1">
+              <i data-lucide="piggy-bank" class="w-4 h-4"></i> Monthly Sinking Allocation
+            </span>
+            <div id="sinkingKpiTarget" class="text-xl sm:text-2xl font-bold font-mono text-indigo-400">₹0</div>
+            <span class="text-[10px] text-slate-500 font-mono mt-0.5 block">Budgeted reserve target</span>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+            <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 mb-1">
+              <i data-lucide="arrow-down-circle" class="w-4 h-4 text-amber-400"></i> Utilized This Month
+            </span>
+            <div id="sinkingKpiSpent" class="text-xl sm:text-2xl font-bold font-mono text-amber-400">₹0</div>
+            <span id="sinkingKpiSpentPercent" class="text-[10px] text-slate-500 font-mono mt-0.5 block">0% of allocation</span>
+          </div>
+
+          <div class="bg-slate-900/90 border border-emerald-900/50 p-4 rounded-2xl">
+            <span class="text-[11px] font-medium text-emerald-300 flex items-center gap-1.5 mb-1">
+              <i data-lucide="shield-check" class="w-4 h-4"></i> Net Retained Reserve
+            </span>
+            <div id="sinkingKpiNet" class="text-xl sm:text-2xl font-bold font-mono text-emerald-400">₹0</div>
+            <span class="text-[10px] text-emerald-500/80 font-mono mt-0.5 block">Transferred to savings</span>
           </div>
         </div>
 
-        <!-- Payment Mode Breakdown Donut -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Payment Modes (UPI / Cards / Cash)</span>
-            <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded text-cyan-400 border border-slate-800">Distribution</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Sinking Fund Categories Allocation Donut -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Sinking Funds Allocation</span>
+              <span class="text-[10px] font-mono bg-indigo-950/60 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded">Targets</span>
+            </div>
+            <div class="relative h-56 w-full flex items-center justify-center">
+              <canvas id="sinkingDonutChart"></canvas>
+            </div>
           </div>
-          <div class="relative h-56 w-full flex items-center justify-center">
-            <canvas id="paymentModeChart"></canvas>
-          </div>
-        </div>
 
-        <!-- Daily Spending Velocity Bar Chart -->
-        <div class="col-span-1 md:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Daily Spending Velocity</span>
-            <span class="text-[10px] font-mono text-slate-500">Day 1 to 31</span>
-          </div>
-          <div class="relative h-60 w-full">
-            <canvas id="dailyVelocityChart"></canvas>
+          <!-- Sinking Fund Detailed List -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Sinking Categories Breakdown</span>
+                <span id="sinkingFundCountBadge" class="text-[10px] font-mono text-slate-400">0 categories</span>
+              </div>
+              <div id="sinkingDetailedList" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-3 pt-2 border-t border-slate-800">
+              💡 Sinking funds cushion periodic, non-monthly expenses (insurance, festivals, vehicle maintenance, travel).
+            </p>
           </div>
         </div>
       </div>
@@ -317,7 +393,7 @@
           </div>
         </div>
 
-        <!-- Date & Payment Mode -->
+        <!-- Date & Payment Mode (Strictly UPI, Credit Card, Cash, UPI by Default) -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Date</label>
@@ -328,11 +404,9 @@
             <label class="block text-xs font-medium text-slate-400 mb-1">Payment Mode</label>
             <select id="expPaymentModeSelect" required
                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-              <option value="UPI">UPI (GPay / PhonePe)</option>
+              <option value="UPI" selected>UPI (GPay / PhonePe / Paytm)</option>
               <option value="Credit Card">Credit Card</option>
-              <option value="Debit Card">Debit Card</option>
               <option value="Cash">Cash</option>
-              <option value="Net Banking">Net Banking</option>
             </select>
           </div>
         </div>
@@ -442,6 +516,8 @@
 
   <script>
     // ---------- Core State & Dates Engine ----------
+    const DEFAULT_INCOME_BASELINE = 144000; // Baseline monthly income
+
     const getTodayKey = () => new Date().toISOString().split('T')[0];
 
     // Helper: Formats Date into "Sep 2026" or Month Key "2026-09"
@@ -461,20 +537,35 @@
 
     let selectedMonthKey = getMonthKeyFromDate(getTodayKey());
 
-    // Default Seed Data matching the user's Google Sheet Schemas
+    // Default Categories matching Sheet 2 Schema
     const defaultCategories = [
       { subcategory: "Groceries", masterCategory: "Food & Dining", budget: 12000, sinkingFund: "No" },
       { subcategory: "Restaurants", masterCategory: "Food & Dining", budget: 4000, sinkingFund: "No" },
       { subcategory: "House Rent", masterCategory: "Housing", budget: 20000, sinkingFund: "No" },
       { subcategory: "Electricity & Gas", masterCategory: "Utilities", budget: 3500, sinkingFund: "No" },
       { subcategory: "Fuel & Metro", masterCategory: "Transportation", budget: 4500, sinkingFund: "No" },
-      { subcategory: "Medical & Health", masterCategory: "Healthcare", budget: 3000, sinkingFund: "Yes" },
+      { subcategory: "Medical & Health", masterCategory: "Healthcare", budget: 6000, sinkingFund: "Yes" },
+      { subcategory: "Vehicle Maintenance", masterCategory: "Transportation", budget: 3500, sinkingFund: "Yes" },
+      { subcategory: "Annual Insurance", masterCategory: "Protection", budget: 8000, sinkingFund: "Yes" },
       { subcategory: "Shopping & Clothes", masterCategory: "Personal", budget: 5000, sinkingFund: "No" },
       { subcategory: "Entertainment", masterCategory: "Leisure", budget: 2500, sinkingFund: "No" },
       { subcategory: "Salary", masterCategory: "Income", budget: 0, sinkingFund: "No" }
     ];
 
+    // Seeded transactions including default ₹1,44,000 monthly income
     const defaultTransactions = [
+      {
+        id: "INC_BASE_01",
+        date: getTodayKey(),
+        subcategory: "Salary",
+        masterCategory: "Income",
+        type: "Income",
+        description: "Monthly Salary / Professional Income",
+        amount: DEFAULT_INCOME_BASELINE,
+        notes: "Automated monthly baseline",
+        month: selectedMonthKey,
+        paymentMode: "UPI"
+      },
       {
         id: "EXP_101",
         date: getTodayKey(),
@@ -482,8 +573,8 @@
         masterCategory: "Food & Dining",
         type: "Expense",
         description: "Fresh Vegetables & Milk",
-        amount: 650,
-        notes: "DMart Quick Pay",
+        amount: 850,
+        notes: "Supermarket Pay",
         month: selectedMonthKey,
         paymentMode: "UPI"
       },
@@ -501,14 +592,14 @@
       }
     ];
 
-    let appData = JSON.parse(localStorage.getItem('flow_expense_state_v1')) || {
+    let appData = JSON.parse(localStorage.getItem('flow_expense_state_v2')) || {
       transactions: defaultTransactions,
       categories: defaultCategories,
       apiUrl: localStorage.getItem('flow_expense_api_url') || ""
     };
 
     function saveState() {
-      localStorage.setItem('flow_expense_state_v1', JSON.stringify(appData));
+      localStorage.setItem('flow_expense_state_v2', JSON.stringify(appData));
     }
 
     // ---------- Sync Engine (Google Apps Script) ----------
@@ -542,7 +633,6 @@
       setSyncStatus('syncing');
 
       try {
-        // Calculate Sheet 2 Category metrics dynamically prior to sync
         const calculatedCategories = computeCategorySummaries();
 
         const res = await fetch(appData.apiUrl, {
@@ -598,7 +688,7 @@
             amount: parseFloat(e.Amount || e.amount) || 0,
             notes: e.Notes || e.notes || "",
             month: e.Month || e.month || getMonthKeyFromDate(String(e.Date).split('T')[0]),
-            paymentMode: e["Payment Mode"] || e.paymentMode || "UPI"
+            paymentMode: normalizePaymentMode(e["Payment Mode"] || e.paymentMode)
           }));
         }
 
@@ -621,29 +711,33 @@
       }
     }
 
-    // Compute Sheet 2 Category Values: Budget, Total Spent, Current Month Spent, % of Budget Used
+    // Restricts payment mode to UPI, Credit Card, or Cash
+    function normalizePaymentMode(mode) {
+      if (!mode) return "UPI";
+      const m = String(mode).trim().toLowerCase();
+      if (m.includes('card') || m.includes('credit') || m.includes('debit')) return "Credit Card";
+      if (m.includes('cash')) return "Cash";
+      return "UPI"; // default
+    }
+
+    // Compute Sheet 2 Category Values
     function computeCategorySummaries() {
       const allTxns = appData.transactions || [];
       const currentMonthTxns = allTxns.filter(t => t.month === selectedMonthKey && t.type === 'Expense');
 
-      // Unique distinct months count for Average Monthly Spend
       const uniqueMonths = new Set(allTxns.filter(t => t.type === 'Expense').map(t => t.month));
       const monthDivisor = Math.max(1, uniqueMonths.size);
 
       return appData.categories.map(cat => {
-        // Total spent all time for this subcategory
         const catAllTimeTxns = allTxns.filter(t => t.subcategory.toLowerCase() === cat.subcategory.toLowerCase() && t.type === 'Expense');
         const totalSpent = catAllTimeTxns.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
-        // Average monthly spend
         const avgMonthlySpend = Math.round(totalSpent / monthDivisor);
 
-        // Current month spent
         const currentMonthSpent = currentMonthTxns
           .filter(t => t.subcategory.toLowerCase() === cat.subcategory.toLowerCase())
           .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
-        // % of budget used
         const budgetVal = parseFloat(cat.budget) || 0;
         const percentUsed = budgetVal > 0 ? Math.round((currentMonthSpent / budgetVal) * 100) : 0;
 
@@ -688,7 +782,7 @@
       const monthTxns = appData.transactions.filter(t => t.month === selectedMonthKey);
 
       let totalSpent = 0;
-      let totalIncome = 0;
+      let recordedIncome = 0;
       let expCount = 0;
 
       monthTxns.forEach(t => {
@@ -697,10 +791,12 @@
           totalSpent += amt;
           expCount++;
         } else if (t.type === 'Income') {
-          totalIncome += amt;
+          recordedIncome += amt;
         }
       });
 
+      // Default Income to ₹1,44,000 if no explicit income is recorded for the month
+      const totalIncome = recordedIncome > 0 ? recordedIncome : DEFAULT_INCOME_BASELINE;
       const netSavings = totalIncome - totalSpent;
 
       document.getElementById('kpiTotalSpent').textContent = `₹${totalSpent.toLocaleString('en-IN')}`;
@@ -782,6 +878,11 @@
         const card = document.createElement('div');
         card.className = "flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-slate-950 border border-slate-800/90 hover:border-slate-700/80 transition shadow-sm";
 
+        // Mode badge color
+        const modeBadgeClass = t.paymentMode === 'UPI' 
+          ? 'bg-cyan-950/60 border-cyan-800/50 text-cyan-300'
+          : (t.paymentMode === 'Credit Card' ? 'bg-amber-950/60 border-amber-800/50 text-amber-300' : 'bg-emerald-950/60 border-emerald-800/50 text-emerald-300');
+
         card.innerHTML = `
           <div class="flex items-center gap-3 min-w-0 flex-1 pr-2">
             <div class="w-9 h-9 rounded-xl ${isExp ? 'bg-rose-950/60 text-rose-400 border border-rose-800/40' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'} flex items-center justify-center flex-shrink-0 text-sm">
@@ -793,7 +894,7 @@
                 <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">
                   ${t.subcategory}
                 </span>
-                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 border-indigo-800/50 text-indigo-300">
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${modeBadgeClass}">
                   ${t.paymentMode}
                 </span>
               </div>
@@ -883,12 +984,37 @@
       lucide.createIcons();
     }
 
-    // ---------- Analytics & Charts Render ----------
+    // ---------- Analytics & Sinking Fund Sub-Tabs ----------
+    let currentAnalyticsSubTab = 'general';
+    function switchAnalyticsSubTab(tab) {
+      currentAnalyticsSubTab = tab;
+      const gView = document.getElementById('analyticsView_general');
+      const sView = document.getElementById('analyticsView_sinking');
+      const gBtn = document.getElementById('analyticsSubTab_general');
+      const sBtn = document.getElementById('analyticsSubTab_sinking');
+
+      if (tab === 'general') {
+        gView.classList.remove('hidden');
+        sView.classList.add('hidden');
+        gBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition";
+        sBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+        renderGeneralAnalytics();
+      } else {
+        gView.classList.add('hidden');
+        sView.classList.remove('hidden');
+        sBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition shadow";
+        gBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+        renderSinkingFundAnalytics();
+      }
+      lucide.createIcons();
+    }
+
     let categoryDonutInstance = null;
     let paymentModeInstance = null;
     let velocityChartInstance = null;
+    let sinkingDonutInstance = null;
 
-    function renderAnalytics() {
+    function renderGeneralAnalytics() {
       const monthTxns = appData.transactions.filter(t => t.month === selectedMonthKey && t.type === 'Expense');
 
       // 1. Group By Master Category
@@ -901,7 +1027,6 @@
       const catLabels = Object.keys(catTotals);
       const catValues = Object.values(catTotals);
 
-      // Donut 1: Categories
       const ctxCat = document.getElementById('categoryDonutChart').getContext('2d');
       if (categoryDonutInstance) categoryDonutInstance.destroy();
 
@@ -926,15 +1051,15 @@
         }
       });
 
-      // 2. Group By Payment Mode
-      const modeTotals = {};
+      // 2. Group By Strict 3 Payment Modes: UPI, Credit Card, Cash
+      const modeTotals = { "UPI": 0, "Credit Card": 0, "Cash": 0 };
       monthTxns.forEach(t => {
-        const mode = t.paymentMode || "UPI";
+        const mode = normalizePaymentMode(t.paymentMode);
         modeTotals[mode] = (modeTotals[mode] || 0) + (parseFloat(t.amount) || 0);
       });
 
-      const modeLabels = Object.keys(modeTotals);
-      const modeValues = Object.values(modeTotals);
+      const modeLabels = ["UPI", "Credit Card", "Cash"];
+      const modeValues = [modeTotals["UPI"], modeTotals["Credit Card"], modeTotals["Cash"]];
 
       const ctxMode = document.getElementById('paymentModeChart').getContext('2d');
       if (paymentModeInstance) paymentModeInstance.destroy();
@@ -942,10 +1067,10 @@
       paymentModeInstance = new Chart(ctxMode, {
         type: 'doughnut',
         data: {
-          labels: modeLabels.length ? modeLabels : ['No Expenses'],
+          labels: modeLabels,
           datasets: [{
-            data: modeValues.length ? modeValues : [1],
-            backgroundColor: ['#06b6d4', '#f59e0b', '#10b981', '#8b5cf6', '#64748b'],
+            data: modeValues.some(v => v > 0) ? modeValues : [1, 0, 0],
+            backgroundColor: ['#06b6d4', '#f59e0b', '#10b981'],
             borderColor: '#020617',
             borderWidth: 2
           }]
@@ -1005,6 +1130,81 @@
       });
     }
 
+    function renderSinkingFundAnalytics() {
+      const summaries = computeCategorySummaries();
+      const sinkingCategories = summaries.filter(c => String(c.sinkingFund).toLowerCase() === 'yes');
+
+      let totalTarget = 0;
+      let totalSpent = 0;
+
+      sinkingCategories.forEach(c => {
+        totalTarget += c.budget;
+        totalSpent += c.currentMonthSpent;
+      });
+
+      const retainedReserve = Math.max(0, totalTarget - totalSpent);
+      const spentPercent = totalTarget > 0 ? Math.round((totalSpent / totalTarget) * 100) : 0;
+
+      document.getElementById('sinkingKpiTarget').textContent = `₹${totalTarget.toLocaleString('en-IN')}`;
+      document.getElementById('sinkingKpiSpent').textContent = `₹${totalSpent.toLocaleString('en-IN')}`;
+      document.getElementById('sinkingKpiSpentPercent').textContent = `${spentPercent}% of monthly target`;
+      document.getElementById('sinkingKpiNet').textContent = `₹${retainedReserve.toLocaleString('en-IN')}`;
+      document.getElementById('sinkingFundCountBadge').textContent = `${sinkingCategories.length} categories`;
+
+      // Sinking Donut Chart
+      const sinkingLabels = sinkingCategories.map(c => c.subcategory);
+      const sinkingValues = sinkingCategories.map(c => c.budget);
+
+      const ctxSinking = document.getElementById('sinkingDonutChart').getContext('2d');
+      if (sinkingDonutInstance) sinkingDonutInstance.destroy();
+
+      sinkingDonutInstance = new Chart(ctxSinking, {
+        type: 'doughnut',
+        data: {
+          labels: sinkingLabels.length ? sinkingLabels : ['No Sinking Funds'],
+          datasets: [{
+            data: sinkingValues.length ? sinkingValues : [1],
+            backgroundColor: ['#6366f1', '#06b6d4', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6'],
+            borderColor: '#020617',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 10 } }
+          },
+          cutout: '60%'
+        }
+      });
+
+      // Detailed list
+      const listContainer = document.getElementById('sinkingDetailedList');
+      listContainer.innerHTML = '';
+
+      if (!sinkingCategories.length) {
+        listContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">No categories marked as Sinking Fund. Edit or add one with "Sinking Fund: Yes".</div>`;
+        return;
+      }
+
+      sinkingCategories.forEach(sc => {
+        const item = document.createElement('div');
+        item.className = "bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1.5";
+        item.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-200">${sc.subcategory}</span>
+            <span class="font-mono text-indigo-400 font-bold">₹${sc.currentMonthSpent.toLocaleString('en-IN')} <span class="text-slate-500 font-normal">/ ₹${sc.budget.toLocaleString('en-IN')}</span></span>
+          </div>
+          <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+            <div class="h-full bg-indigo-500 rounded-full" style="width: ${Math.min(100, sc.percentUsed)}%"></div>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
     // ---------- Modal & Form Handlers ----------
     function openAddExpenseModal() {
       document.getElementById('expenseModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i> Add New Expense`;
@@ -1015,7 +1215,9 @@
       document.getElementById('expDateInput').value = getTodayKey();
       document.querySelector('input[name="expType"][value="Expense"]').checked = true;
 
-      // Populate Master Categories
+      // Ensure UPI is strictly defaulted
+      document.getElementById('expPaymentModeSelect').value = "UPI";
+
       populateModalCategorySelects();
 
       document.getElementById('expenseModal').classList.remove('hidden');
@@ -1199,7 +1401,11 @@
       });
 
       if (tab === 'analytics') {
-        renderAnalytics();
+        if (currentAnalyticsSubTab === 'general') {
+          renderGeneralAnalytics();
+        } else {
+          renderSinkingFundAnalytics();
+        }
       }
       lucide.createIcons();
     }
@@ -1210,7 +1416,11 @@
       renderTransactions();
       renderCategories();
       if (activeTab === 'analytics') {
-        renderAnalytics();
+        if (currentAnalyticsSubTab === 'general') {
+          renderGeneralAnalytics();
+        } else {
+          renderSinkingFundAnalytics();
+        }
       }
       lucide.createIcons();
     }
