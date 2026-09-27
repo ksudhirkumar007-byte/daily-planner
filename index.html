@@ -1577,111 +1577,130 @@
       const taskSelect = document.getElementById('tbTaskSelect');
       const routineSelect = document.getElementById('tbRoutineSelect');
 
-      taskSelect.innerHTML = `<option value="">None (General Timeblock)</option>`;
-      appData.tasks.forEach(t => {
-        const isSel = (selectedTaskId && String(t.id) === String(selectedTaskId));
-        taskSelect.innerHTML += `<option value="${t.id}" ${isSel ? 'selected' : ''}>${t.title} (${t.priority})</option>`;
-      });
+      if (taskSelect) {
+        taskSelect.innerHTML = `<option value="">None (General Timeblock)</option>`;
+        (appData.tasks || []).forEach(t => {
+          const isSel = (selectedTaskId && String(t.id) === String(selectedTaskId));
+          taskSelect.innerHTML += `<option value="${t.id}" ${isSel ? 'selected' : ''}>${t.title} (${t.priority})</option>`;
+        });
+      }
 
-      routineSelect.innerHTML = `<option value="">None (Custom Block)</option>`;
-      appData.routines.forEach(r => {
-        const isSel = (selectedRoutineId && String(r.id) === String(selectedRoutineId));
-        routineSelect.innerHTML += `<option value="${r.id}" ${isSel ? 'selected' : ''}>${r.title} (${r.startTime}-${r.endTime})</option>`;
-      });
+      if (routineSelect) {
+        routineSelect.innerHTML = `<option value="">None (Custom Block)</option>`;
+        (appData.routines || []).forEach(r => {
+          const isSel = (selectedRoutineId && String(r.id) === String(selectedRoutineId));
+          routineSelect.innerHTML += `<option value="${r.id}" ${isSel ? 'selected' : ''}>${r.title} (${r.startTime}-${r.endTime})</option>`;
+        });
+      }
     }
 
     function onTimeBlockTaskSelectChange(val) {
-      document.getElementById('tbTaskId').value = val || "";
+      const tbTaskIdEl = document.getElementById('tbTaskId');
+      if (tbTaskIdEl) tbTaskIdEl.value = val || "";
       if (val) {
-        const task = appData.tasks.find(t => String(t.id) === String(val));
+        const task = (appData.tasks || []).find(t => String(t.id) === String(val));
         const titleInput = document.getElementById('tbTitle');
-        if (task && (!titleInput.value || titleInput.value.trim() === "")) {
+        if (task && titleInput && (!titleInput.value || titleInput.value.trim() === "")) {
           titleInput.value = task.title;
         }
       }
     }
 
     function onTimeBlockRoutineSelectChange(val) {
-      document.getElementById('tbRoutineId').value = val || "";
+      const tbRoutineIdEl = document.getElementById('tbRoutineId');
+      if (tbRoutineIdEl) tbRoutineIdEl.value = val || "";
       if (val) {
-        const routine = appData.routines.find(r => String(r.id) === String(val));
+        const routine = (appData.routines || []).find(r => String(r.id) === String(val));
         if (routine) {
           const titleInput = document.getElementById('tbTitle');
-          if (!titleInput.value || titleInput.value.trim() === "") {
+          if (titleInput && (!titleInput.value || titleInput.value.trim() === "")) {
             titleInput.value = routine.title;
           }
-          if (routine.startTime) document.getElementById('tbStartTime').value = routine.startTime;
-          if (routine.endTime) document.getElementById('tbEndTime').value = routine.endTime;
-          if (routine.color) document.getElementById('tbColor').value = routine.color;
+          if (routine.startTime && document.getElementById('tbStartTime')) document.getElementById('tbStartTime').value = routine.startTime;
+          if (routine.endTime && document.getElementById('tbEndTime')) document.getElementById('tbEndTime').value = routine.endTime;
+          if (routine.color && document.getElementById('tbColor')) document.getElementById('tbColor').value = routine.color;
         }
       }
     }
 
     function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
-      document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
-      document.getElementById('tbId').value = "";
-      document.getElementById('tbDate').value = selectedPlannerDate;
-      document.getElementById('tbRoutineId').value = "";
-      document.getElementById('tbTaskId').value = "";
-      document.getElementById('tbTitle').value = "";
-      document.getElementById('tbColor').value = "indigo";
-      document.getElementById('tbStartTime').value = presetStart;
-      document.getElementById('tbEndTime').value = presetEnd;
-      document.getElementById('tbNotes').value = "";
-      document.getElementById('tbStatus').value = "Planned";
-      document.getElementById('tbActualStartTime').value = "";
-      document.getElementById('tbActualEndTime').value = "";
-      document.getElementById('tbActualNotes').value = "";
-      document.getElementById('btnDeleteTimeBlock').classList.add('hidden');
+      const titleModal = document.getElementById('timeBlockModalTitle');
+      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
+      
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('tbId', '');
+      setVal('tbDate', selectedPlannerDate);
+      setVal('tbRoutineId', '');
+      setVal('tbTaskId', '');
+      setVal('tbTitle', '');
+      setVal('tbColor', 'indigo');
+      setVal('tbStartTime', presetStart);
+      setVal('tbEndTime', presetEnd);
+      setVal('tbNotes', '');
+      setVal('tbStatus', 'Planned');
+      setVal('tbActualStartTime', '');
+      setVal('tbActualEndTime', '');
+      setVal('tbActualNotes', '');
+      
+      const delBtn = document.getElementById('btnDeleteTimeBlock');
+      if (delBtn) delBtn.classList.add('hidden');
 
       populateTimeBlockModalSelects();
 
-      document.getElementById('timeBlockModal').classList.remove('hidden');
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.remove('hidden');
       lucide.createIcons();
     }
 
     function openEditTimeBlockModal(block) {
-      document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Edit Timeblock & Evaluate`;
-      document.getElementById('tbId').value = block.id || "";
-      document.getElementById('tbDate').value = block.date || selectedPlannerDate;
-      document.getElementById('tbRoutineId').value = block.routineId || "";
-      document.getElementById('tbTaskId').value = block.taskId || "";
-      document.getElementById('tbTitle').value = block.title || "";
-      document.getElementById('tbColor').value = block.color || "indigo";
-      document.getElementById('tbStartTime').value = block.startTime || "09:00";
-      document.getElementById('tbEndTime').value = block.endTime || "10:00";
-      document.getElementById('tbNotes').value = block.notes || "";
-      document.getElementById('tbStatus').value = block.status || "Planned";
-      document.getElementById('tbActualStartTime').value = block.actualStartTime || "";
-      document.getElementById('tbActualEndTime').value = block.actualEndTime || "";
-      document.getElementById('tbActualNotes').value = block.actualNotes || "";
-      document.getElementById('btnDeleteTimeBlock').classList.remove('hidden');
+      const titleModal = document.getElementById('timeBlockModalTitle');
+      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Edit Timeblock & Evaluate`;
+      
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('tbId', block.id || '');
+      setVal('tbDate', block.date || selectedPlannerDate);
+      setVal('tbRoutineId', block.routineId || '');
+      setVal('tbTaskId', block.taskId || '');
+      setVal('tbTitle', block.title || '');
+      setVal('tbColor', block.color || 'indigo');
+      setVal('tbStartTime', block.startTime || '09:00');
+      setVal('tbEndTime', block.endTime || '10:00');
+      setVal('tbNotes', block.notes || '');
+      setVal('tbStatus', block.status || 'Planned');
+      setVal('tbActualStartTime', block.actualStartTime || '');
+      setVal('tbActualEndTime', block.actualEndTime || '');
+      setVal('tbActualNotes', block.actualNotes || '');
+      
+      const delBtn = document.getElementById('btnDeleteTimeBlock');
+      if (delBtn) delBtn.classList.remove('hidden');
 
       populateTimeBlockModalSelects(block.taskId, block.routineId);
 
-      document.getElementById('timeBlockModal').classList.remove('hidden');
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.remove('hidden');
       lucide.createIcons();
     }
 
     function closeTimeBlockModal() {
-      document.getElementById('timeBlockModal').classList.add('hidden');
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.add('hidden');
     }
 
     function handleSaveTimeBlock(e) {
       e.preventDefault();
-      const rawId = document.getElementById('tbId').value;
-      const date = document.getElementById('tbDate').value || selectedPlannerDate;
-      const routineId = document.getElementById('tbRoutineId').value ? Number(document.getElementById('tbRoutineId').value) : null;
-      const taskId = document.getElementById('tbTaskId').value ? Number(document.getElementById('tbTaskId').value) : null;
-      const title = document.getElementById('tbTitle').value.trim();
-      const color = document.getElementById('tbColor').value;
-      let startTime = normalizeTimeString(document.getElementById('tbStartTime').value);
-      let endTime = normalizeTimeString(document.getElementById('tbEndTime').value);
-      const notes = document.getElementById('tbNotes').value.trim();
-      const status = document.getElementById('tbStatus').value;
-      const actualStartTime = normalizeTimeString(document.getElementById('tbActualStartTime').value);
-      const actualEndTime = normalizeTimeString(document.getElementById('tbActualEndTime').value);
-      const actualNotes = document.getElementById('tbActualNotes').value.trim();
+      const rawId = (document.getElementById('tbId') || {}).value || "";
+      const date = (document.getElementById('tbDate') || {}).value || selectedPlannerDate;
+      const routineId = (document.getElementById('tbRoutineId') || {}).value ? Number(document.getElementById('tbRoutineId').value) : null;
+      const taskId = (document.getElementById('tbTaskId') || {}).value ? Number(document.getElementById('tbTaskId').value) : null;
+      const title = (document.getElementById('tbTitle') || {}).value ? document.getElementById('tbTitle').value.trim() : "";
+      const color = (document.getElementById('tbColor') || {}).value || "indigo";
+      let startTime = normalizeTimeString((document.getElementById('tbStartTime') || {}).value);
+      let endTime = normalizeTimeString((document.getElementById('tbEndTime') || {}).value);
+      const notes = (document.getElementById('tbNotes') || {}).value ? document.getElementById('tbNotes').value.trim() : "";
+      const status = (document.getElementById('tbStatus') || {}).value || "Planned";
+      const actualStartTime = normalizeTimeString((document.getElementById('tbActualStartTime') || {}).value);
+      const actualEndTime = normalizeTimeString((document.getElementById('tbActualEndTime') || {}).value);
+      const actualNotes = (document.getElementById('tbActualNotes') || {}).value ? document.getElementById('tbActualNotes').value.trim() : "";
 
       if (!title || !startTime || !endTime) return;
 
