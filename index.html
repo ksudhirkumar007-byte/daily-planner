@@ -694,6 +694,8 @@
 
     let selectedPlannerDate = getTodayKey();
     let currentTaskFilter = 'ALL';
+    // SAFETY GUARD: Prevents a fresh/new browser with empty cache from overwriting Google Sheets
+    let isRemoteDataLoaded = false;
 
     const defaultState = {
       apiUrl: localStorage.getItem('daily_flow_api_url') || "",
@@ -883,6 +885,15 @@
         return;
       }
 
+      // CRITICAL DATA SAFEGUARD:
+      // If we haven't successfully loaded remote data yet on this device,
+      // DO NOT push local state, as it could wipe existing Google Sheets data.
+      if (!isRemoteDataLoaded) {
+        console.warn("Safety Lock: Remote data not verified yet. Fetching remote data first...");
+        await fetchRemoteData();
+        return;
+      }
+
       setSyncStatus('syncing');
 
       try {
@@ -1016,7 +1027,7 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Ingest Planner Blocks (Do not wipe local blocks if remote array is empty)
+        // 1. Ingest Planner Blocks
         if (json.planner && Array.isArray(json.planner)) {
           if (json.planner.length > 0) {
             appData.timeBlocks = json.planner.map(b => {
@@ -1041,13 +1052,10 @@
                 routineId: b.routineId ? Number(b.routineId) : null
               };
             });
-          } else if (appData.timeBlocks.length > 0) {
-            // Sheet was empty but local has items: sync local to sheet
-            syncToRemote();
           }
         }
 
-        // 2. Ingest Routines (Do not wipe local routines if remote array is empty)
+        // 2. Ingest Routines
         if (json.routines && Array.isArray(json.routines)) {
           if (json.routines.length > 0) {
             appData.routines = json.routines.map(r => {
@@ -1065,8 +1073,6 @@
                 days: r.days || "Everyday"
               };
             });
-          } else if (appData.routines.length > 0) {
-            syncToRemote();
           }
         }
 
@@ -1133,6 +1139,9 @@
           });
           appData.dailySummaries = sMap;
         }
+
+        // UNLOCK PUSHES: Remote data has been safely verified and downloaded
+        isRemoteDataLoaded = true;
 
         saveState();
         renderAll();
@@ -2421,6 +2430,8 @@
       const url = document.getElementById('apiUrlInput').value.trim();
       appData.apiUrl = url;
       localStorage.setItem('daily_flow_api_url', url);
+      // Reset verification lock so the new endpoint is fetched first
+      isRemoteDataLoaded = false;
       saveState();
       closeConfigModal();
       fetchRemoteData();
