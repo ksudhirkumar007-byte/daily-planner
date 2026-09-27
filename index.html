@@ -787,9 +787,9 @@
 
     // ---------- Helper Functions ----------
     function timeToMinutes(tStr) {
-      if (!tStr || !tStr.includes(':')) return 0;
-      const [h, m] = tStr.split(':').map(Number);
-      return (h * 60) + (m || 0);
+      if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return 0;
+      const parts = tStr.split(':').map(Number);
+      return ((parts[0] || 0) * 60) + (parts[1] || 0);
     }
 
     function minutesToTime(totalMins) {
@@ -798,14 +798,54 @@
       return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     }
 
+    function getTimeBlockName(timeStr) {
+      if (!timeStr) return "Morning";
+      const mins = timeToMinutes(normalizeTimeString(timeStr));
+      if (mins >= 300 && mins < 720) return "Morning";    // 05:00 - 12:00
+      if (mins >= 720 && mins < 1020) return "Afternoon"; // 12:00 - 17:00
+      if (mins >= 1020 && mins < 1320) return "Evening";  // 17:00 - 22:00
+      return "Night";                                     // 22:00 - 05:00
+    }
+
     function normalizeTimeString(val) {
       if (!val) return "";
       const s = String(val).trim();
-      if (/^\d{1,2}:\d{2}$/.test(s)) {
-        const [h, m] = s.split(':');
+
+      // Matches HH:mm or HH:mm:ss
+      const matchStandard = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+      if (matchStandard) {
+        const h = String(matchStandard[1]).padStart(2, '0');
+        const m = matchStandard[2];
+        return `${h}:${m}`;
+      }
+
+      // Matches 12-hour AM/PM format (e.g., "7:00 AM", "02:30 PM")
+      const matchAmpm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (matchAmpm) {
+        let h = parseInt(matchAmpm[1], 10);
+        const m = matchAmpm[2];
+        const isPM = matchAmpm[3].toUpperCase() === 'PM';
+        if (isPM && h < 12) h += 12;
+        if (!isPM && h === 12) h = 0;
         return `${String(h).padStart(2, '0')}:${m}`;
       }
+
       return s;
+    }
+
+    function extractTimesFromItem(item) {
+      let start = normalizeTimeString(item.startTime || item.scheduledStartTime || "");
+      let end = normalizeTimeString(item.endTime || item.scheduledEndTime || "");
+
+      // If separate start/end missing, attempt extraction from timeSlot (e.g., "07:00 - 08:00")
+      const slot = item.timeSlot || item.time_slot || item.timeslot;
+      if ((!start || !end) && slot && String(slot).includes('-')) {
+        const parts = String(slot).split('-').map(s => s.trim());
+        if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+        if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+      }
+
+      return { start, end };
     }
 
     function normalizeDateString(val) {
@@ -846,6 +886,70 @@
       setSyncStatus('syncing');
 
       try {
+        // 1. Structure Planner Payload with both separated times and concatenated timeSlot / timeBlock
+        const plannerPayload = appData.timeBlocks.map(b => {
+          const sTime = normalizeTimeString(b.startTime) || "09:00";
+          const eTime = normalizeTimeString(b.endTime) || "10:00";
+          return {
+            id: b.id,
+            date: normalizeDateString(b.date),
+            title: b.title || "Untitled Block",
+            startTime: sTime,
+            endTime: eTime,
+            timeSlot: `${sTime} - ${eTime}`,
+            timeBlock: getTimeBlockName(sTime),
+            color: b.color || "indigo",
+            notes: b.notes || "",
+            actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+            actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+            actualNotes: b.actualNotes || "",
+            status: b.status || "Planned",
+            taskId: b.taskId || "",
+            routineId: b.routineId || ""
+          };
+        });
+
+        // 2. Structure Routines Payload with explicit timeSlot and timeBlock
+        const routinesPayload = appData.routines.map(r => {
+          const sTime = normalizeTimeString(r.startTime) || "07:00";
+          const eTime = normalizeTimeString(r.endTime) || "08:00";
+          return {
+            id: r.id,
+            title: r.title || "Routine",
+            startTime: sTime,
+            endTime: eTime,
+            timeSlot: `${sTime} - ${eTime}`,
+            timeBlock: getTimeBlockName(sTime),
+            color: r.color || "amber",
+            days: r.days || "Everyday"
+          };
+        });
+
+        // 3. Structure Tasks Payload with scheduled timeSlot & scheduledBlock
+        const tasksPayload = appData.tasks.map(t => {
+          const sDate = normalizeDateString(t.date || t.scheduledDate || "");
+          const sTime = normalizeTimeString(t.scheduledStartTime || "");
+          const eTime = normalizeTimeString(t.scheduledEndTime || "");
+          const slotStr = (sTime && eTime) ? `${sTime} - ${eTime}` : "";
+          const blockStr = sTime ? getTimeBlockName(sTime) : "";
+          return {
+            id: t.id,
+            title: t.title || "Untitled Task",
+            priority: t.priority || "Med",
+            status: t.status || "Need to Start",
+            completed: t.completed ? "TRUE" : "FALSE",
+            date: sDate,
+            scheduledDate: sDate,
+            scheduledStartTime: sTime,
+            scheduledEndTime: eTime,
+            timeSlot: slotStr,
+            timeBlock: blockStr,
+            scheduledBlock: blockStr,
+            plannedMins: Number(t.plannedMins) || 30,
+            actualMins: Number(t.actualMins) || 0
+          };
+        });
+
         // Flatten habit logs into array for Sheets
         const habitLogsArray = Object.keys(appData.habitLogs).map(key => {
           const parts = key.split('_');
@@ -873,11 +977,11 @@
           body: JSON.stringify({
             action: "syncAll",
             data: {
-              planner: appData.timeBlocks,
-              routines: appData.routines,
+              planner: plannerPayload,
+              routines: routinesPayload,
               habits: appData.habits,
               habitLogs: habitLogsArray,
-              tasks: appData.tasks,
+              tasks: tasksPayload,
               focusLogs: appData.focusLogs,
               dailySummaries: summariesArray
             }
@@ -912,39 +1016,62 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Ingest Planner Blocks
+        // 1. Ingest Planner Blocks (Do not wipe local blocks if remote array is empty)
         if (json.planner && Array.isArray(json.planner)) {
-          appData.timeBlocks = json.planner.map(b => ({
-            id: Number(b.id) || Date.now() + Math.random(),
-            date: normalizeDateString(b.date),
-            title: b.title || "Untitled Block",
-            startTime: normalizeTimeString(b.startTime) || "09:00",
-            endTime: normalizeTimeString(b.endTime) || "10:00",
-            color: b.color || "indigo",
-            notes: b.notes || "",
-            actualStartTime: normalizeTimeString(b.actualStartTime) || "",
-            actualEndTime: normalizeTimeString(b.actualEndTime) || "",
-            actualNotes: b.actualNotes || "",
-            status: b.status || "Planned",
-            taskId: b.taskId ? Number(b.taskId) : null,
-            routineId: b.routineId ? Number(b.routineId) : null
-          }));
+          if (json.planner.length > 0) {
+            appData.timeBlocks = json.planner.map(b => {
+              const times = extractTimesFromItem(b);
+              const sTime = times.start || "09:00";
+              const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
+              return {
+                id: Number(b.id) || Date.now() + Math.random(),
+                date: normalizeDateString(b.date),
+                title: b.title || "Untitled Block",
+                startTime: sTime,
+                endTime: eTime,
+                timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
+                timeBlock: b.timeBlock || getTimeBlockName(sTime),
+                color: b.color || "indigo",
+                notes: b.notes || "",
+                actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+                actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+                actualNotes: b.actualNotes || "",
+                status: b.status || "Planned",
+                taskId: b.taskId ? Number(b.taskId) : null,
+                routineId: b.routineId ? Number(b.routineId) : null
+              };
+            });
+          } else if (appData.timeBlocks.length > 0) {
+            // Sheet was empty but local has items: sync local to sheet
+            syncToRemote();
+          }
         }
 
-        // 2. Ingest Routines
+        // 2. Ingest Routines (Do not wipe local routines if remote array is empty)
         if (json.routines && Array.isArray(json.routines)) {
-          appData.routines = json.routines.map(r => ({
-            id: Number(r.id) || Date.now() + Math.random(),
-            title: r.title || "Routine",
-            startTime: normalizeTimeString(r.startTime) || "07:00",
-            endTime: normalizeTimeString(r.endTime) || "08:00",
-            color: r.color || "amber",
-            days: r.days || "Everyday"
-          }));
+          if (json.routines.length > 0) {
+            appData.routines = json.routines.map(r => {
+              const times = extractTimesFromItem(r);
+              const sTime = times.start || "07:00";
+              const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
+              return {
+                id: Number(r.id) || Date.now() + Math.random(),
+                title: r.title || "Routine",
+                startTime: sTime,
+                endTime: eTime,
+                timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
+                timeBlock: r.timeBlock || getTimeBlockName(sTime),
+                color: r.color || "amber",
+                days: r.days || "Everyday"
+              };
+            });
+          } else if (appData.routines.length > 0) {
+            syncToRemote();
+          }
         }
 
         // 3. Ingest Habits
-        if (json.habits && Array.isArray(json.habits)) {
+        if (json.habits && Array.isArray(json.habits) && json.habits.length > 0) {
           appData.habits = json.habits.map(h => ({
             id: Number(h.id) || Date.now() + Math.random(),
             name: h.name || "Habit",
@@ -955,7 +1082,7 @@
         }
 
         // 4. Ingest Habit Logs
-        if (json.habitLogs && Array.isArray(json.habitLogs)) {
+        if (json.habitLogs && Array.isArray(json.habitLogs) && json.habitLogs.length > 0) {
           const map = {};
           json.habitLogs.forEach(l => {
             const key = `${l.habitId}_${normalizeDateString(l.date)}`;
@@ -968,23 +1095,26 @@
         }
 
         // 5. Ingest Tasks
-        if (json.tasks && Array.isArray(json.tasks)) {
-          appData.tasks = json.tasks.map(t => ({
-            id: Number(t.id) || Date.now() + Math.random(),
-            title: t.title || "Untitled Task",
-            priority: t.priority || "Med",
-            status: t.status || "Need to Start",
-            completed: String(t.completed).toUpperCase() === "TRUE",
-            date: normalizeDateString(t.date || t.scheduledDate || ""),
-            scheduledStartTime: normalizeTimeString(t.scheduledStartTime || ""),
-            scheduledEndTime: normalizeTimeString(t.scheduledEndTime || ""),
-            plannedMins: Number(t.plannedMins) || 30,
-            actualMins: Number(t.actualMins) || 0
-          }));
+        if (json.tasks && Array.isArray(json.tasks) && json.tasks.length > 0) {
+          appData.tasks = json.tasks.map(t => {
+            const times = extractTimesFromItem(t);
+            return {
+              id: Number(t.id) || Date.now() + Math.random(),
+              title: t.title || "Untitled Task",
+              priority: t.priority || "Med",
+              status: t.status || "Need to Start",
+              completed: String(t.completed).toUpperCase() === "TRUE",
+              date: normalizeDateString(t.date || t.scheduledDate || ""),
+              scheduledStartTime: times.start,
+              scheduledEndTime: times.end,
+              plannedMins: Number(t.plannedMins) || 30,
+              actualMins: Number(t.actualMins) || 0
+            };
+          });
         }
 
         // 6. Ingest Focus Logs
-        if (json.focusLogs && Array.isArray(json.focusLogs)) {
+        if (json.focusLogs && Array.isArray(json.focusLogs) && json.focusLogs.length > 0) {
           appData.focusLogs = json.focusLogs.map(fl => ({
             id: Number(fl.id) || Date.now() + Math.random(),
             label: fl.label || "Focus Session",
@@ -995,7 +1125,7 @@
         }
 
         // 7. Ingest Daily Summaries
-        if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
+        if (json.dailySummaries && Array.isArray(json.dailySummaries) && json.dailySummaries.length > 0) {
           const sMap = {};
           json.dailySummaries.forEach(s => {
             const d = normalizeDateString(s.date);
@@ -1419,12 +1549,16 @@
     }
 
     function addPresetBlock(title, start, end, color) {
+      const s = normalizeTimeString(start);
+      const e = normalizeTimeString(end);
       appData.timeBlocks.push({
         id: Date.now(),
         date: selectedPlannerDate,
         title,
-        startTime: start,
-        endTime: end,
+        startTime: s,
+        endTime: e,
+        timeSlot: `${s} - ${e}`,
+        timeBlock: getTimeBlockName(s),
         color: color || "indigo",
         notes: "",
         actualStartTime: "",
@@ -1490,15 +1624,26 @@
       const routineId = document.getElementById('tbRoutineId').value ? Number(document.getElementById('tbRoutineId').value) : null;
       const title = document.getElementById('tbTitle').value.trim();
       const color = document.getElementById('tbColor').value;
-      const startTime = document.getElementById('tbStartTime').value;
-      const endTime = document.getElementById('tbEndTime').value;
+      let startTime = normalizeTimeString(document.getElementById('tbStartTime').value);
+      let endTime = normalizeTimeString(document.getElementById('tbEndTime').value);
       const notes = document.getElementById('tbNotes').value.trim();
       const status = document.getElementById('tbStatus').value;
-      const actualStartTime = document.getElementById('tbActualStartTime').value;
-      const actualEndTime = document.getElementById('tbActualEndTime').value;
+      const actualStartTime = normalizeTimeString(document.getElementById('tbActualStartTime').value);
+      const actualEndTime = normalizeTimeString(document.getElementById('tbActualEndTime').value);
       const actualNotes = document.getElementById('tbActualNotes').value.trim();
 
       if (!title || !startTime || !endTime) return;
+
+      // Guard: Ensure end time is strictly greater than start time to prevent collapsed blocks
+      const sMins = timeToMinutes(startTime);
+      let eMins = timeToMinutes(endTime);
+      if (eMins <= sMins) {
+        eMins = Math.min(1440, sMins + 30);
+        endTime = minutesToTime(eMins);
+      }
+
+      const slotStr = `${startTime} - ${endTime}`;
+      const blockName = getTimeBlockName(startTime);
 
       if (rawId && !rawId.startsWith('ROUTINE_')) {
         const idNum = Number(rawId);
@@ -1506,7 +1651,8 @@
         if (idx >= 0) {
           appData.timeBlocks[idx] = {
             ...appData.timeBlocks[idx],
-            date, title, color, startTime, endTime, notes, status, actualStartTime, actualEndTime, actualNotes
+            date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
+            notes, status, actualStartTime, actualEndTime, actualNotes
           };
         }
       } else {
@@ -1519,6 +1665,8 @@
           color,
           startTime,
           endTime,
+          timeSlot: slotStr,
+          timeBlock: blockName,
           notes,
           status,
           actualStartTime,
@@ -1591,10 +1739,21 @@
       e.preventDefault();
       const title = document.getElementById('rtTitle').value.trim();
       const color = document.getElementById('rtColor').value;
-      const startTime = document.getElementById('rtStartTime').value;
-      const endTime = document.getElementById('rtEndTime').value;
+      let startTime = normalizeTimeString(document.getElementById('rtStartTime').value);
+      let endTime = normalizeTimeString(document.getElementById('rtEndTime').value);
 
       if (!title || !startTime || !endTime) return;
+
+      // Ensure valid routine time span
+      const sMins = timeToMinutes(startTime);
+      let eMins = timeToMinutes(endTime);
+      if (eMins <= sMins) {
+        eMins = Math.min(1440, sMins + 30);
+        endTime = minutesToTime(eMins);
+      }
+
+      const slotStr = `${startTime} - ${endTime}`;
+      const blockName = getTimeBlockName(startTime);
 
       appData.routines.push({
         id: Date.now(),
@@ -1602,6 +1761,8 @@
         color,
         startTime,
         endTime,
+        timeSlot: slotStr,
+        timeBlock: blockName,
         days: "Everyday"
       });
 
