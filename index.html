@@ -1707,21 +1707,27 @@
 
         // 4. Planner Canvas Blocks
         if (json.planner && Array.isArray(json.planner)) {
-          appData.timeBlocks = json.planner.map(p => ({
-            id: Number(p.id) || Date.now() + Math.random(),
-            date: String(p.date || '').split('T')[0],
-            title: p.title || "Block",
-            startTime: p.startTime || "09:00",
-            endTime: p.endTime || "10:00",
-            color: p.color || "indigo",
-            notes: p.notes || "",
-            actualStartTime: p.actualStartTime || "",
-            actualEndTime: p.actualEndTime || "",
-            actualNotes: p.actualNotes || "",
-            status: p.status || "Planned",
-            taskId: p.taskId ? Number(p.taskId) : null,
-            routineId: p.routineId || null
-          }));
+          const validRemoteBlocks = json.planner.filter(p => p && (p.title || p.startTime || p.id));
+          if (validRemoteBlocks.length > 0) {
+            appData.timeBlocks = validRemoteBlocks.map(p => ({
+              id: Number(p.id) || Date.now() + Math.random(),
+              date: normalizeDateString(p.date),
+              title: p.title || "Block",
+              startTime: normalizeTimeString(p.startTime, "09:00"),
+              endTime: normalizeTimeString(p.endTime, "10:00"),
+              color: p.color || "indigo",
+              notes: p.notes || "",
+              actualStartTime: p.actualStartTime ? normalizeTimeString(p.actualStartTime, "") : "",
+              actualEndTime: p.actualEndTime ? normalizeTimeString(p.actualEndTime, "") : "",
+              actualNotes: p.actualNotes || "",
+              status: p.status || "Planned",
+              taskId: p.taskId ? Number(p.taskId) : null,
+              routineId: p.routineId || null
+            }));
+          } else if (appData.timeBlocks && appData.timeBlocks.length > 0) {
+            // Sheet tab is new or empty: retain local blocks and push to sheet
+            syncToRemote();
+          }
         }
 
         // 5. Tasks: parse (id | title | priority | completed | scheduledDate | scheduledBlock | timeSlot)
@@ -1777,17 +1783,17 @@
             label: l.label || "Focus Session",
             duration: l.duration || "00:00:00",
             timestamp: l.timestamp || "",
-            date: l.date ? String(l.date).split('T')[0] : getTodayKey()
+            date: l.date ? String(l.date).split('T')[0] : selectedPlannerDate
           }));
         }
 
         // 7. Daily Summaries
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
           appData.dailySummaries = json.dailySummaries.map(s => ({
-            date: String(s.date || '').split('T')[0],
+            date: normalizeDateString(s.date),
             goodThing: s.goodThing || '',
             disliked: s.disliked || '',
-            productive: s.productive || 'Yes',
+            productive: s.productive || 'Partial',
             betterThanYesterday: s.betterThanYesterday || 'Yes',
             regrets: s.regrets || '',
             emotion: String(s.emotion || '4'),
@@ -1804,9 +1810,37 @@
       }
     }
 
+    function normalizeTimeString(val, defaultTime = "09:00") {
+      if (!val) return defaultTime;
+      const str = String(val).trim();
+      const match = str.match(/(\d{1,2}):(\d{2})/);
+      if (match) {
+        return `${match[1].padStart(2, '0')}:${match[2]}`;
+      }
+      return defaultTime;
+    }
+
+    function normalizeDateString(val, defaultDate = getTodayKey()) {
+      if (!val) return defaultDate;
+      const str = String(val).trim();
+      const match = str.match(/(\d{4}-\d{2}-\d{2})/);
+      if (match) {
+        return match[1];
+      }
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+      return defaultDate;
+    }
+
     function timeToMinutes(tStr) {
       if (!tStr) return 0;
-      const parts = tStr.split(':');
+      const clean = normalizeTimeString(tStr, "00:00");
+      const parts = clean.split(':');
       const h = parseInt(parts[0], 10) || 0;
       const m = parseInt(parts[1], 10) || 0;
       return h * 60 + m;
