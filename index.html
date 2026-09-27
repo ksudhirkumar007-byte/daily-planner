@@ -666,8 +666,8 @@
             </select>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <input type="time" id="rtStartTime" required class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 font-mono">
-            <input type="time" id="rtEndTime" required class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 font-mono">
+            <input type="time" id="rtStartTime" required class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono">
+            <input type="time" id="rtEndTime" required class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono">
           </div>
           <div class="flex items-center justify-between pt-1">
             <span class="text-[10px] text-slate-400">Days: Everyday</span>
@@ -728,8 +728,18 @@
 
     let selectedPlannerDate = getTodayKey();
     let currentTaskFilter = 'ALL';
-    // SAFETY GUARD: Prevents a fresh/new browser with empty cache from overwriting Google Sheets
     let isRemoteDataLoaded = false;
+    let syncDebounceTimer = null;
+    let isSyncInProgress = false;
+
+    function normalizeHabitType(val) {
+      if (!val) return 'yesno';
+      const s = String(val).toLowerCase().trim();
+      if (s === 'boolean' || s === 'bool' || s.includes('yes') || s.includes('check')) return 'yesno';
+      if (s === 'number' || s === 'numeric' || s === 'decimal' || s === 'integer' || s === 'int' || s.includes('hour') || s.includes('count')) return 'number';
+      if (s === 'text' || s === 'string' || s.includes('desc') || s.includes('note')) return 'descriptive';
+      return 'yesno';
+    }
 
     const defaultState = {
       apiUrl: localStorage.getItem('daily_flow_api_url') || "",
@@ -775,7 +785,7 @@
         { id: 3, name: "Reading", type: "number", unit: "pages", target: 20 },
         { id: 4, name: "Cold Shower", type: "yesno", unit: "", target: 1 }
       ],
-      habitLogs: {}, // Keyed by `${habitId}_${date}`: { value, completed }
+      habitLogs: {},
       tasks: [
         {
           id: 1001,
@@ -803,12 +813,11 @@
         }
       ],
       focusLogs: [],
-      dailySummaries: {} // Keyed by date: { goodThing, disliked, productive, ... }
+      dailySummaries: {}
     };
 
     let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
 
-    // Migrate any legacy data structure if needed
     if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
     if (!appData.routines) appData.routines = defaultState.routines;
     if (!appData.habits) appData.habits = defaultState.habits;
@@ -844,25 +853,21 @@
     function getTimeBlockName(timeStr) {
       if (!timeStr) return "Morning";
       const mins = timeToMinutes(normalizeTimeString(timeStr));
-      if (mins >= 300 && mins < 720) return "Morning";    // 05:00 - 12:00
-      if (mins >= 720 && mins < 1020) return "Afternoon"; // 12:00 - 17:00
-      if (mins >= 1020 && mins < 1320) return "Evening";  // 17:00 - 22:00
-      return "Night";                                     // 22:00 - 05:00
+      if (mins >= 300 && mins < 720) return "Morning";
+      if (mins >= 720 && mins < 1020) return "Afternoon";
+      if (mins >= 1020 && mins < 1320) return "Evening";
+      return "Night";
     }
 
     function normalizeTimeString(val) {
       if (!val) return "";
       const s = String(val).trim();
-
-      // Matches HH:mm or HH:mm:ss
       const matchStandard = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
       if (matchStandard) {
         const h = String(matchStandard[1]).padStart(2, '0');
         const m = matchStandard[2];
         return `${h}:${m}`;
       }
-
-      // Matches 12-hour AM/PM format (e.g., "7:00 AM", "02:30 PM")
       const matchAmpm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       if (matchAmpm) {
         let h = parseInt(matchAmpm[1], 10);
@@ -872,26 +877,21 @@
         if (!isPM && h === 12) h = 0;
         return `${String(h).padStart(2, '0')}:${m}`;
       }
-
       return s;
     }
 
     function extractTimesFromItem(item) {
       let start = normalizeTimeString(item.startTime || item.scheduledStartTime || "");
       let end = normalizeTimeString(item.endTime || item.scheduledEndTime || "");
-
-      // If separate start/end missing, attempt extraction from timeSlot (e.g., "07:00 - 08:00")
       const slot = item.timeSlot || item.time_slot || item.timeslot;
       if ((!start || !end) && slot && String(slot).includes('-')) {
         const parts = String(slot).split('-').map(s => s.trim());
         if (!start && parts[0]) start = normalizeTimeString(parts[0]);
         if (!end && parts[1]) end = normalizeTimeString(parts[1]);
       }
-
       return { start, end };
     }
 
-    // Comprehensive date parser handles ISO strings, DD/MM/YYYY, MM/DD/YYYY, and localized Sheets outputs
     function normalizeDateString(val) {
       if (!val) return "";
       const s = String(val).trim();
@@ -942,7 +942,7 @@
       }
     }
 
-    async function syncToRemote() {
+    function syncToRemote() {
       saveState();
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
@@ -950,11 +950,17 @@
       }
 
       if (!isRemoteDataLoaded) {
-        console.warn("Safety Lock: Remote data not verified yet. Fetching first...");
-        await fetchRemoteData();
+        fetchRemoteData();
         return;
       }
 
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+    }
+
+    async function executeSyncPayload() {
+      if (isSyncInProgress) return;
+      isSyncInProgress = true;
       setSyncStatus('syncing');
 
       try {
@@ -962,7 +968,7 @@
           const sTime = normalizeTimeString(b.startTime) || "09:00";
           const eTime = normalizeTimeString(b.endTime) || "10:00";
           return {
-            id: b.id,
+            id: String(b.id),
             date: normalizeDateString(b.date),
             title: b.title || "Untitled Block",
             startTime: sTime,
@@ -980,11 +986,17 @@
           };
         });
 
-        const routinesPayload = appData.routines.map(r => {
+        // Deduplicate routines by title before uploading
+        const seenRt = new Set();
+        const routinesPayload = [];
+        appData.routines.forEach(r => {
+          const normTitle = (r.title || "").trim().toLowerCase();
+          if (!normTitle || seenRt.has(normTitle)) return;
+          seenRt.add(normTitle);
           const sTime = normalizeTimeString(r.startTime) || "07:00";
           const eTime = normalizeTimeString(r.endTime) || "08:00";
-          return {
-            id: r.id,
+          routinesPayload.push({
+            id: String(r.id),
             title: r.title || "Routine",
             startTime: sTime,
             endTime: eTime,
@@ -992,7 +1004,7 @@
             timeBlock: getTimeBlockName(sTime),
             color: r.color || "amber",
             days: r.days || "Everyday"
-          };
+          });
         });
 
         const tasksPayload = appData.tasks.map(t => {
@@ -1002,7 +1014,7 @@
           const slotStr = (sTime && eTime) ? `${sTime} - ${eTime}` : "";
           const blockStr = sTime ? getTimeBlockName(sTime) : "";
           return {
-            id: t.id,
+            id: String(t.id),
             title: t.title || "Untitled Task",
             priority: t.priority || "Med",
             status: t.status || "Need to Start",
@@ -1034,7 +1046,7 @@
         });
 
         const summariesArray = Object.keys(appData.dailySummaries).map(date => ({
-          date,
+          date: normalizeDateString(date),
           ...(appData.dailySummaries[date] || {})
         }));
 
@@ -1064,6 +1076,8 @@
       } catch (err) {
         console.error("Sync error:", err);
         setSyncStatus('error');
+      } finally {
+        isSyncInProgress = false;
       }
     }
 
@@ -1084,13 +1098,19 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        if (json.planner && Array.isArray(json.planner) && json.planner.length > 0) {
-          appData.timeBlocks = json.planner.map(b => {
+        // 1. Planner Blocks
+        if (json.planner && Array.isArray(json.planner)) {
+          const seenPlan = new Set();
+          const cleanPlanner = [];
+          json.planner.forEach(b => {
+            const planId = String(b.id).trim();
+            if (!planId || seenPlan.has(planId)) return;
+            seenPlan.add(planId);
             const times = extractTimesFromItem(b);
             const sTime = times.start || "09:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
-            return {
-              id: Number(b.id) || Date.now() + Math.random(),
+            cleanPlanner.push({
+              id: isNaN(planId) ? planId : Number(planId),
               date: normalizeDateString(b.date),
               title: b.title || "Untitled Block",
               startTime: sTime,
@@ -1105,17 +1125,25 @@
               status: b.status || "Planned",
               taskId: b.taskId ? Number(b.taskId) : null,
               routineId: b.routineId ? Number(b.routineId) : null
-            };
+            });
           });
+          appData.timeBlocks = cleanPlanner;
         }
 
-        if (json.routines && Array.isArray(json.routines) && json.routines.length > 0) {
-          appData.routines = json.routines.map(r => {
+        // 2. Routines with strict deduplication by Title
+        if (json.routines && Array.isArray(json.routines)) {
+          const seenRt = new Set();
+          const cleanRoutines = [];
+          json.routines.forEach(r => {
+            const normTitle = (r.title || "").trim().toLowerCase();
+            if (!normTitle || seenRt.has(normTitle)) return;
+            seenRt.add(normTitle);
             const times = extractTimesFromItem(r);
             const sTime = times.start || "07:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
-            return {
-              id: Number(r.id) || Date.now() + Math.random(),
+            const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
+            cleanRoutines.push({
+              id: isNaN(rId) ? rId : Number(rId),
               title: r.title || "Routine",
               startTime: sTime,
               endTime: eTime,
@@ -1123,38 +1151,60 @@
               timeBlock: r.timeBlock || getTimeBlockName(sTime),
               color: r.color || "amber",
               days: r.days || "Everyday"
-            };
+            });
           });
+          appData.routines = cleanRoutines;
         }
 
-        if (json.habits && Array.isArray(json.habits) && json.habits.length > 0) {
-          appData.habits = json.habits.map(h => ({
-            id: Number(h.id) || Date.now() + Math.random(),
-            name: h.name || "Habit",
-            type: h.type || "yesno",
-            target: Number(h.target) || 0,
-            unit: h.unit || ""
-          }));
+        // 3. Habits with deduplication by Name
+        if (json.habits && Array.isArray(json.habits)) {
+          const seenHabit = new Set();
+          const cleanHabits = [];
+          json.habits.forEach(h => {
+            const hId = (h.id !== undefined && h.id !== null && String(h.id).trim() !== "") ? String(h.id).trim() : null;
+            const normName = (h.name || "").trim().toLowerCase();
+            if (!normName || seenHabit.has(normName)) return;
+            seenHabit.add(normName);
+            cleanHabits.push({
+              id: hId || "hb_" + normName.replace(/\s+/g, '_'),
+              name: h.name || "Habit",
+              type: normalizeHabitType(h.type),
+              target: Number(h.target) || 0,
+              unit: h.unit || ""
+            });
+          });
+          appData.habits = cleanHabits;
         }
 
-        if (json.habitLogs && Array.isArray(json.habitLogs) && json.habitLogs.length > 0) {
+        // 4. Habit Logs
+        if (json.habitLogs && Array.isArray(json.habitLogs)) {
           const map = {};
           json.habitLogs.forEach(l => {
             const dateStr = normalizeDateString(l.date);
-            const key = `${l.habitId}_${dateStr}`;
+            const key = `${String(l.habitId).trim()}_${dateStr}`;
+            const isCompleted = String(l.completed).trim().toUpperCase() === "TRUE" || 
+                                String(l.completed).trim().toLowerCase() === "yes" || 
+                                l.completed === true || 
+                                l.completed === 1;
             map[key] = {
               value: l.value !== undefined ? l.value : "",
-              completed: String(l.completed).toUpperCase() === "TRUE"
+              completed: isCompleted
             };
           });
           appData.habitLogs = map;
         }
 
-        if (json.tasks && Array.isArray(json.tasks) && json.tasks.length > 0) {
-          appData.tasks = json.tasks.map(t => {
+        // 5. Tasks with deduplication by ID
+        if (json.tasks && Array.isArray(json.tasks)) {
+          const seenTask = new Set();
+          const cleanTasks = [];
+          json.tasks.forEach(t => {
+            const tId = String(t.id).trim();
+            if (!tId || seenTask.has(tId)) return;
+            seenTask.add(tId);
             const times = extractTimesFromItem(t);
-            return {
-              id: Number(t.id) || Date.now() + Math.random(),
+            cleanTasks.push({
+              id: isNaN(tId) ? tId : Number(tId),
               title: t.title || "Untitled Task",
               priority: t.priority || "Med",
               status: t.status || "Need to Start",
@@ -1164,11 +1214,13 @@
               scheduledEndTime: times.end,
               plannedMins: Number(t.plannedMins) || 30,
               actualMins: Number(t.actualMins) || 0
-            };
+            });
           });
+          appData.tasks = cleanTasks;
         }
 
-        if (json.focusLogs && Array.isArray(json.focusLogs) && json.focusLogs.length > 0) {
+        // 6. Focus Logs
+        if (json.focusLogs && Array.isArray(json.focusLogs)) {
           appData.focusLogs = json.focusLogs.map(fl => ({
             id: Number(fl.id) || Date.now() + Math.random(),
             label: fl.label || "Focus Session",
@@ -1178,11 +1230,22 @@
           }));
         }
 
-        if (json.dailySummaries && Array.isArray(json.dailySummaries) && json.dailySummaries.length > 0) {
+        // 7. Daily Summaries strictly deduplicated by normalized Date
+        if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
           const sMap = {};
           json.dailySummaries.forEach(s => {
             const d = normalizeDateString(s.date);
-            if (d) sMap[d] = s;
+            if (d) {
+              sMap[d] = {
+                date: d,
+                goodThing: s.goodThing || "",
+                disliked: s.disliked || "",
+                productive: s.productive || "",
+                betterThanYesterday: s.betterThanYesterday || "",
+                regrets: s.regrets || "",
+                emotion: s.emotion || ""
+              };
+            }
           });
           appData.dailySummaries = sMap;
         }
@@ -1390,7 +1453,6 @@
         "Missed": "bg-rose-950 text-rose-300 border-rose-700"
       };
 
-      // LEFT TRACK: Planned Blocks & Routines
       allPlannedBlocks.forEach(block => {
         const theme = colorMap[block.color] || colorMap.indigo;
         const pStartM = timeToMinutes(block.startTime);
@@ -1451,7 +1513,7 @@
                 ${evalHtml}
               </div>
               ${!isRoutine ? `
-                <button onclick="handleQuickDeleteTimeBlock(${block.id}, event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
+                <button onclick="handleQuickDeleteTimeBlock('${block.id}', event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
                   <i data-lucide="trash-2" class="w-3 h-3"></i>
                 </button>
               ` : ''}
@@ -1462,7 +1524,6 @@
         container.appendChild(planCard);
       });
 
-      // RIGHT TRACK: Scheduled Tasks
       scheduledTasks.forEach(task => {
         const tStartM = timeToMinutes(task.scheduledStartTime);
         let tEndM = timeToMinutes(task.scheduledEndTime);
@@ -1495,7 +1556,7 @@
           taskCard.innerHTML = `
             <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
               <div class="flex items-center gap-1 min-w-0 flex-1">
-                <button onclick="event.stopPropagation(); toggleTaskCompletion(${task.id})" class="p-0.5 rounded text-emerald-400">
+                <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
                   <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
                 </button>
                 <span class="text-[10px] sm:text-[11px] font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
@@ -1507,7 +1568,7 @@
             <div class="flex items-start justify-between gap-1">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1">
-                  <button onclick="event.stopPropagation(); toggleTaskCompletion(${task.id})" class="p-0.5 rounded text-emerald-400">
+                  <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
                     <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
                   </button>
                   <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
@@ -1555,7 +1616,6 @@
       }
     }
 
-    // ---------- Timeline Slot Clicks & Presets ----------
     function handleHourSlotClick(hour, track) {
       const startStr = `${String(hour).padStart(2, '0')}:00`;
       const endStr = `${String(Math.min(23, hour + 1)).padStart(2, '0')}:00`;
@@ -1591,7 +1651,7 @@
       syncToRemote();
     }
 
-    // ---------- Bulletproof Mobile Habit Logic ----------
+    // ---------- Habit Tracker Matrix ----------
     function renderHabits() {
       const container = document.getElementById('habitCardsContainer');
       if (!container) return;
@@ -1599,26 +1659,28 @@
       let completedCount = 0;
 
       appData.habits.forEach(habit => {
-        const key = `${habit.id}_${selectedPlannerDate}`;
+        const hId = String(habit.id);
+        const normType = normalizeHabitType(habit.type);
+        const key = `${hId}_${selectedPlannerDate}`;
         const log = appData.habitLogs[key] || { value: "", completed: false };
-        if (log.completed) completedCount++;
+        
+        const isCompleted = Boolean(log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+        if (isCompleted) completedCount++;
 
-        // Accurate streak calculation: counts past consecutive completed days
         let streak = 0;
         let checkDate = new Date(selectedPlannerDate + "T00:00:00");
         
-        // If today is completed, count it
-        if (log.completed) streak++;
+        if (isCompleted) streak++;
 
-        // Check backwards day by day
         checkDate.setDate(checkDate.getDate() - 1);
         while (true) {
           const y = checkDate.getFullYear();
           const m = String(checkDate.getMonth() + 1).padStart(2, '0');
           const d = String(checkDate.getDate()).padStart(2, '0');
           const dStr = `${y}-${m}-${d}`;
-          const pastLog = appData.habitLogs[`${habit.id}_${dStr}`];
-          if (pastLog && pastLog.completed) {
+          const pastLog = appData.habitLogs[`${hId}_${dStr}`];
+          const pastDone = pastLog && (pastLog.completed || String(pastLog.value).toLowerCase() === 'yes');
+          if (pastDone) {
             streak++;
             checkDate.setDate(checkDate.getDate() - 1);
           } else {
@@ -1631,60 +1693,62 @@
 
         let controlHtml = "";
 
-        if (habit.type === 'yesno') {
+        if (normType === 'yesno') {
           controlHtml = `
-            <button onclick="toggleYesNoHabit(${habit.id})" class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[44px] ${log.completed ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
-              <i data-lucide="${log.completed ? 'check-circle-2' : 'circle'}" class="w-4 h-4 ${log.completed ? 'text-emerald-400' : 'text-slate-500'}"></i>
-              <span>${log.completed ? 'Done ✓' : 'Mark Done'}</span>
+            <button onclick="toggleYesNoHabit('${hId}')" class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[44px] ${isCompleted ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
+              <i data-lucide="${isCompleted ? 'check-circle-2' : 'circle'}" class="w-4 h-4 ${isCompleted ? 'text-emerald-400' : 'text-slate-500'}"></i>
+              <span>${isCompleted ? 'Done ✓' : 'Mark Done'}</span>
             </button>
           `;
-        } else if (habit.type === 'number') {
+        } else if (normType === 'number') {
           const currentVal = Number(log.value) || 0;
           const targetVal = habit.target || 1;
           const pct = Math.min(100, Math.round((currentVal / targetVal) * 100));
           controlHtml = `
             <div class="space-y-2 w-full sm:w-auto">
               <div class="flex items-center gap-2">
-                <button onclick="stepNumericHabit(${habit.id}, -1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
-                <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : 0}" oninput="setNumericHabit(${habit.id}, this.value)" class="w-16 bg-slate-900 border border-slate-800 rounded-xl py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
-                <button onclick="stepNumericHabit(${habit.id}, 1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
-                <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit}</span>
+                <button onclick="stepNumericHabit('${hId}', -1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
+                <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : 0}" oninput="setNumericHabit('${hId}', this.value)" class="w-16 bg-slate-900 border border-slate-800 rounded-xl py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
+                <button onclick="stepNumericHabit('${hId}', 1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
+                <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit || ''}</span>
               </div>
               <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
                 <div class="h-full bg-amber-500 rounded-full transition-all" style="width: ${pct}%"></div>
               </div>
             </div>
           `;
-        } else if (habit.type === 'descriptive') {
+        } else {
           controlHtml = `
             <div class="flex items-center gap-2 w-full sm:w-80">
-              <input type="text" id="desc_input_${habit.id}" value="${log.value || ''}" 
-                     onchange="saveDescriptiveHabit(${habit.id}, this.value)"
-                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit(${habit.id}, this.value)"
+              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
+                     onchange="saveDescriptiveHabit('${hId}', this.value)"
+                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)"
                      placeholder="Notes / routine details..." 
                      class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
-              <button onclick="saveDescriptiveFromInput(${habit.id})" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${log.completed ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
-                ${log.completed ? 'Done ✓' : 'Save'}
+              <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
+                ${isCompleted ? 'Done ✓' : 'Save'}
               </button>
             </div>
           `;
         }
+
+        const typeLabel = normType === 'yesno' ? 'Yes / No' : (normType === 'number' ? 'Numeric' : 'Notes');
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
               <div class="flex items-center gap-2">
                 <h4 class="text-xs sm:text-sm font-bold text-white">${habit.name}</h4>
-                <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">${habit.type}</span>
+                <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">${typeLabel}</span>
               </div>
               <span class="text-[10px] font-mono text-amber-400 mt-0.5 block font-semibold">
-                🔥 ${streak} day streak ${!log.completed && streak > 0 ? '<span class="text-slate-500 font-normal">(due today)</span>' : ''}
+                🔥 ${streak} day streak ${!isCompleted && streak > 0 ? '<span class="text-slate-500 font-normal">(due today)</span>' : ''}
               </span>
             </div>
 
             <div class="flex items-center gap-2 justify-between sm:justify-end">
               ${controlHtml}
-              <button onclick="deleteHabit(${habit.id})" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
+              <button onclick="deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
@@ -1700,9 +1764,11 @@
     }
 
     function toggleYesNoHabit(id) {
-      const key = `${id}_${selectedPlannerDate}`;
+      const hId = String(id);
+      const key = `${hId}_${selectedPlannerDate}`;
       const log = appData.habitLogs[key] || { value: "", completed: false };
-      log.completed = !log.completed;
+      const currentlyDone = Boolean(log.completed || String(log.value).toLowerCase() === 'yes');
+      log.completed = !currentlyDone;
       log.value = log.completed ? "Yes" : "No";
       appData.habitLogs[key] = log;
       renderHabits();
@@ -1710,10 +1776,11 @@
     }
 
     function setNumericHabit(id, val) {
-      const habit = appData.habits.find(h => h.id === id);
+      const hId = String(id);
+      const habit = appData.habits.find(h => String(h.id) === hId);
       if (!habit) return;
       const num = parseFloat(val) || 0;
-      const key = `${id}_${selectedPlannerDate}`;
+      const key = `${hId}_${selectedPlannerDate}`;
       appData.habitLogs[key] = {
         value: num,
         completed: (num >= (habit.target || 1))
@@ -1723,9 +1790,10 @@
     }
 
     function stepNumericHabit(id, step) {
-      const habit = appData.habits.find(h => h.id === id);
+      const hId = String(id);
+      const habit = appData.habits.find(h => String(h.id) === hId);
       if (!habit) return;
-      const key = `${id}_${selectedPlannerDate}`;
+      const key = `${hId}_${selectedPlannerDate}`;
       const log = appData.habitLogs[key] || { value: 0, completed: false };
       const currentVal = Number(log.value) || 0;
       const newNum = Math.max(0, currentVal + step);
@@ -1738,14 +1806,16 @@
     }
 
     function saveDescriptiveFromInput(id) {
-      const input = document.getElementById(`desc_input_${id}`);
+      const hId = String(id);
+      const input = document.getElementById(`desc_input_${hId}`);
       if (input) {
-        saveDescriptiveHabit(id, input.value);
+        saveDescriptiveHabit(hId, input.value);
       }
     }
 
     function saveDescriptiveHabit(id, text) {
-      const key = `${id}_${selectedPlannerDate}`;
+      const hId = String(id);
+      const key = `${hId}_${selectedPlannerDate}`;
       const log = appData.habitLogs[key] || { value: "", completed: false };
       log.value = text ? text.trim() : "";
       log.completed = Boolean(log.value);
@@ -1789,13 +1859,22 @@
 
       if (!name) return;
 
-      appData.habits.push({
-        id: Date.now(),
-        name,
-        type,
-        target,
-        unit
-      });
+      const normName = name.toLowerCase();
+      const existing = appData.habits.find(h => h.name.toLowerCase() === normName);
+      if (existing) {
+        existing.name = name;
+        existing.type = type;
+        existing.target = target;
+        existing.unit = unit;
+      } else {
+        appData.habits.push({
+          id: Date.now(),
+          name,
+          type,
+          target,
+          unit
+        });
+      }
 
       closeHabitModal();
       renderHabits();
@@ -1803,7 +1882,7 @@
     }
 
     function deleteHabit(id) {
-      appData.habits = appData.habits.filter(h => h.id !== id);
+      appData.habits = appData.habits.filter(h => String(h.id) !== String(id));
       renderHabits();
       syncToRemote();
     }
@@ -1851,7 +1930,7 @@
     }
 
     function toggleTaskCompletion(id) {
-      const task = appData.tasks.find(t => t.id === id);
+      const task = appData.tasks.find(t => String(t.id) === String(id));
       if (task) {
         task.completed = !task.completed;
         task.status = task.completed ? "Completed" : "Need to Start";
@@ -1891,7 +1970,7 @@
 
         card.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0 flex-1">
-            <button onclick="toggleTaskCompletion(${task.id})" class="p-1 rounded text-emerald-400 active:scale-90 transition flex-shrink-0">
+            <button onclick="toggleTaskCompletion('${task.id}')" class="p-1 rounded text-emerald-400 active:scale-90 transition flex-shrink-0">
               <i data-lucide="${task.completed ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
             </button>
             <div class="min-w-0">
@@ -1911,13 +1990,13 @@
           </div>
 
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button onclick="linkTaskToStopwatch(${task.id})" title="Focus on Task" class="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+            <button onclick="linkTaskToStopwatch('${task.id}')" title="Focus on Task" class="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
               <i data-lucide="timer" class="w-4 h-4"></i>
             </button>
-            <button onclick="openEditTaskModal(${task.id})" title="Plan & Schedule" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+            <button onclick="openEditTaskModal('${task.id}')" title="Plan & Schedule" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
               <i data-lucide="calendar" class="w-4 h-4"></i>
             </button>
-            <button onclick="deleteTask(${task.id})" title="Delete" class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+            <button onclick="deleteTask('${task.id}')" title="Delete" class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
           </div>
@@ -1929,7 +2008,7 @@
     }
 
     function openEditTaskModal(id) {
-      const task = appData.tasks.find(t => t.id === id);
+      const task = appData.tasks.find(t => String(t.id) === String(id));
       if (!task) return;
 
       document.getElementById('tmTaskId').value = task.id;
@@ -1980,7 +2059,7 @@
       if (!title) return;
 
       if (rawId) {
-        const t = appData.tasks.find(x => x.id === Number(rawId));
+        const t = appData.tasks.find(x => String(x.id) === String(rawId));
         if (t) {
           t.title = title;
           t.priority = priority;
@@ -2014,7 +2093,7 @@
     }
 
     function deleteTask(id) {
-      appData.tasks = appData.tasks.filter(t => t.id !== id);
+      appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
       renderTasks();
       render24HourPlanner();
       syncToRemote();
@@ -2074,7 +2153,7 @@
     }
 
     function linkTaskToStopwatch(taskId) {
-      const task = appData.tasks.find(t => t.id === taskId);
+      const task = appData.tasks.find(t => String(t.id) === String(taskId));
       if (!task) return;
       linkedTaskId = taskId;
       document.getElementById('focusSessionLabelInput').value = task.title;
@@ -2099,7 +2178,7 @@
       });
 
       if (linkedTaskId) {
-        const task = appData.tasks.find(t => t.id === linkedTaskId);
+        const task = appData.tasks.find(t => String(t.id) === String(linkedTaskId));
         if (task) {
           task.actualMins = (task.actualMins || 0) + Math.round(timerSeconds / 60);
         }
@@ -2256,8 +2335,7 @@
       const blockName = getTimeBlockName(startTime);
 
       if (rawId && !rawId.startsWith('ROUTINE_')) {
-        const idNum = Number(rawId);
-        const idx = appData.timeBlocks.findIndex(b => b.id === idNum);
+        const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
         if (idx >= 0) {
           appData.timeBlocks[idx] = {
             ...appData.timeBlocks[idx],
@@ -2295,7 +2373,7 @@
     function handleDeleteCurrentTimeBlock() {
       const rawId = document.getElementById('tbId').value;
       if (rawId && !rawId.startsWith('ROUTINE_')) {
-        appData.timeBlocks = appData.timeBlocks.filter(b => b.id !== Number(rawId));
+        appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(rawId));
       }
       closeTimeBlockModal();
       renderAll();
@@ -2304,7 +2382,7 @@
 
     function handleQuickDeleteTimeBlock(id, event) {
       event.stopPropagation();
-      appData.timeBlocks = appData.timeBlocks.filter(b => b.id !== Number(id));
+      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
       renderAll();
       syncToRemote();
     }
@@ -2338,7 +2416,7 @@
             <span class="font-bold text-slate-200">${r.title}</span>
             <span class="text-[10px] text-slate-500 font-mono block">${r.startTime} - ${r.endTime} (${r.days})</span>
           </div>
-          <button onclick="deleteRoutine(${r.id})" class="text-slate-500 hover:text-rose-400 p-2 min-h-[38px] min-w-[38px] flex items-center justify-center">
+          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 p-2 min-h-[38px] min-w-[38px] flex items-center justify-center">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         `;
@@ -2366,16 +2444,27 @@
       const slotStr = `${startTime} - ${endTime}`;
       const blockName = getTimeBlockName(startTime);
 
-      appData.routines.push({
-        id: Date.now(),
-        title,
-        color,
-        startTime,
-        endTime,
-        timeSlot: slotStr,
-        timeBlock: blockName,
-        days: "Everyday"
-      });
+      const normTitle = title.toLowerCase();
+      const existing = appData.routines.find(r => r.title.toLowerCase() === normTitle);
+      if (existing) {
+        existing.title = title;
+        existing.color = color;
+        existing.startTime = startTime;
+        existing.endTime = endTime;
+        existing.timeSlot = slotStr;
+        existing.timeBlock = blockName;
+      } else {
+        appData.routines.push({
+          id: Date.now(),
+          title,
+          color,
+          startTime,
+          endTime,
+          timeSlot: slotStr,
+          timeBlock: blockName,
+          days: "Everyday"
+        });
+      }
 
       document.getElementById('rtTitle').value = '';
       renderRoutinesList();
@@ -2384,7 +2473,7 @@
     }
 
     function deleteRoutine(id) {
-      appData.routines = appData.routines.filter(r => r.id !== id);
+      appData.routines = appData.routines.filter(r => String(r.id) !== String(id));
       renderRoutinesList();
       renderAll();
       syncToRemote();
