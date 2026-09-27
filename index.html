@@ -1573,11 +1573,56 @@
     }
 
     // ---------- Time Block Modal Handlers ----------
+    function populateTimeBlockModalSelects(selectedTaskId = null, selectedRoutineId = null) {
+      const taskSelect = document.getElementById('tbTaskSelect');
+      const routineSelect = document.getElementById('tbRoutineSelect');
+
+      taskSelect.innerHTML = `<option value="">None (General Timeblock)</option>`;
+      appData.tasks.forEach(t => {
+        const isSel = (selectedTaskId && String(t.id) === String(selectedTaskId));
+        taskSelect.innerHTML += `<option value="${t.id}" ${isSel ? 'selected' : ''}>${t.title} (${t.priority})</option>`;
+      });
+
+      routineSelect.innerHTML = `<option value="">None (Custom Block)</option>`;
+      appData.routines.forEach(r => {
+        const isSel = (selectedRoutineId && String(r.id) === String(selectedRoutineId));
+        routineSelect.innerHTML += `<option value="${r.id}" ${isSel ? 'selected' : ''}>${r.title} (${r.startTime}-${r.endTime})</option>`;
+      });
+    }
+
+    function onTimeBlockTaskSelectChange(val) {
+      document.getElementById('tbTaskId').value = val || "";
+      if (val) {
+        const task = appData.tasks.find(t => String(t.id) === String(val));
+        const titleInput = document.getElementById('tbTitle');
+        if (task && (!titleInput.value || titleInput.value.trim() === "")) {
+          titleInput.value = task.title;
+        }
+      }
+    }
+
+    function onTimeBlockRoutineSelectChange(val) {
+      document.getElementById('tbRoutineId').value = val || "";
+      if (val) {
+        const routine = appData.routines.find(r => String(r.id) === String(val));
+        if (routine) {
+          const titleInput = document.getElementById('tbTitle');
+          if (!titleInput.value || titleInput.value.trim() === "") {
+            titleInput.value = routine.title;
+          }
+          if (routine.startTime) document.getElementById('tbStartTime').value = routine.startTime;
+          if (routine.endTime) document.getElementById('tbEndTime').value = routine.endTime;
+          if (routine.color) document.getElementById('tbColor').value = routine.color;
+        }
+      }
+    }
+
     function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
       document.getElementById('timeBlockModalTitle').innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
       document.getElementById('tbId').value = "";
       document.getElementById('tbDate').value = selectedPlannerDate;
       document.getElementById('tbRoutineId').value = "";
+      document.getElementById('tbTaskId').value = "";
       document.getElementById('tbTitle').value = "";
       document.getElementById('tbColor').value = "indigo";
       document.getElementById('tbStartTime').value = presetStart;
@@ -1589,6 +1634,8 @@
       document.getElementById('tbActualNotes').value = "";
       document.getElementById('btnDeleteTimeBlock').classList.add('hidden');
 
+      populateTimeBlockModalSelects();
+
       document.getElementById('timeBlockModal').classList.remove('hidden');
       lucide.createIcons();
     }
@@ -1598,6 +1645,7 @@
       document.getElementById('tbId').value = block.id || "";
       document.getElementById('tbDate').value = block.date || selectedPlannerDate;
       document.getElementById('tbRoutineId').value = block.routineId || "";
+      document.getElementById('tbTaskId').value = block.taskId || "";
       document.getElementById('tbTitle').value = block.title || "";
       document.getElementById('tbColor').value = block.color || "indigo";
       document.getElementById('tbStartTime').value = block.startTime || "09:00";
@@ -1608,6 +1656,8 @@
       document.getElementById('tbActualEndTime').value = block.actualEndTime || "";
       document.getElementById('tbActualNotes').value = block.actualNotes || "";
       document.getElementById('btnDeleteTimeBlock').classList.remove('hidden');
+
+      populateTimeBlockModalSelects(block.taskId, block.routineId);
 
       document.getElementById('timeBlockModal').classList.remove('hidden');
       lucide.createIcons();
@@ -1622,6 +1672,7 @@
       const rawId = document.getElementById('tbId').value;
       const date = document.getElementById('tbDate').value || selectedPlannerDate;
       const routineId = document.getElementById('tbRoutineId').value ? Number(document.getElementById('tbRoutineId').value) : null;
+      const taskId = document.getElementById('tbTaskId').value ? Number(document.getElementById('tbTaskId').value) : null;
       const title = document.getElementById('tbTitle').value.trim();
       const color = document.getElementById('tbColor').value;
       let startTime = normalizeTimeString(document.getElementById('tbStartTime').value);
@@ -1652,7 +1703,9 @@
           appData.timeBlocks[idx] = {
             ...appData.timeBlocks[idx],
             date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
-            notes, status, actualStartTime, actualEndTime, actualNotes
+            notes, status, actualStartTime, actualEndTime, actualNotes,
+            routineId: routineId,
+            taskId: taskId
           };
         }
       } else {
@@ -1661,6 +1714,7 @@
           id: Date.now(),
           date,
           routineId,
+          taskId,
           title,
           color,
           startTime,
@@ -1671,8 +1725,7 @@
           status,
           actualStartTime,
           actualEndTime,
-          actualNotes,
-          taskId: null
+          actualNotes
         });
       }
 
