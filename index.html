@@ -1498,7 +1498,6 @@
             <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
               <div class="flex items-center gap-1 min-w-0 flex-1">
                 <span class="text-[10px] sm:text-[11px] font-bold ${theme.text} truncate">${block.title}</span>
-                <span class="text-[8px] sm:text-[9px] font-mono text-slate-400 whitespace-nowrap">${block.startTime}</span>
               </div>
             </div>
           `;
@@ -1507,9 +1506,7 @@
             <div class="flex items-start justify-between gap-1">
               <div class="min-w-0 flex-1">
                 <span class="text-[11px] sm:text-xs font-bold ${theme.text} truncate block">${block.title}</span>
-                <div class="text-[9px] sm:text-[10px] font-mono text-slate-300 mt-0.5 flex items-center gap-1">
-                  <span>${block.startTime} - ${block.endTime}</span>
-                </div>
+                ${block.notes ? `<p class="text-[9px] text-slate-300/80 truncate mt-0.5">${block.notes}</p>` : ''}
                 ${evalHtml}
               </div>
               ${!isRoutine ? `
@@ -1544,7 +1541,7 @@
 
         const taskCard = document.createElement('div');
         taskCard.className = `absolute right-[1%] sm:right-[1.5%] w-[40.5%] sm:w-[48%] rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
-        taskCard.style.top = `${taskTop}px`;
+        taskCard.style.top = `${cardTop => taskTop}px`;
         taskCard.style.height = `${taskHeight}px`;
 
         taskCard.onclick = (e) => {
@@ -1572,9 +1569,6 @@
                     <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
                   </button>
                   <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
-                </div>
-                <div class="text-[9px] sm:text-[10px] font-mono text-slate-300 mt-0.5">
-                  ⏱️ ${task.scheduledStartTime}-${task.scheduledEndTime}
                 </div>
               </div>
             </div>
