@@ -881,13 +881,24 @@
     }
 
     function extractTimesFromItem(item) {
-      let start = normalizeTimeString(item.startTime || item.scheduledStartTime || "");
-      let end = normalizeTimeString(item.endTime || item.scheduledEndTime || "");
-      const slot = item.timeSlot || item.time_slot || item.timeslot;
-      if ((!start || !end) && slot && String(slot).includes('-')) {
-        const parts = String(slot).split('-').map(s => s.trim());
-        if (!start && parts[0]) start = normalizeTimeString(parts[0]);
-        if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+      let start = normalizeTimeString(item.scheduledStartTime || item.startTime || "");
+      let end = normalizeTimeString(item.scheduledEndTime || item.endTime || "");
+      const slot = item.timeSlot || item.time_slot || item.timeslot || item.scheduledBlock || "";
+      if ((!start || !end) && slot) {
+        const slotClean = String(slot).replace(/–|—/g, '-');
+        if (slotClean.includes('-')) {
+          const parts = slotClean.split('-').map(s => s.trim());
+          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+        } else if (slotClean.toLowerCase().includes(' to ')) {
+          const parts = slotClean.toLowerCase().split(' to ').map(s => s.trim());
+          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+        }
+      }
+      if (start && !end) {
+        const dur = Number(item.plannedMins) || 30;
+        end = minutesToTime(timeToMinutes(start) + dur);
       }
       return { start, end };
     }
@@ -1371,7 +1382,10 @@
       const routineBadge = document.getElementById('activeRoutineCountBadge');
       if (routineBadge) routineBadge.textContent = appData.routines.length;
 
-      const scheduledTasks = appData.tasks.filter(t => t.date === selectedPlannerDate && t.scheduledStartTime && t.scheduledEndTime);
+      const scheduledTasks = appData.tasks.filter(t => {
+        const matchesDate = (t.date === selectedPlannerDate || t.scheduledDate === selectedPlannerDate);
+        return matchesDate && t.scheduledStartTime;
+      });
 
       let totalPlannedMins = 0;
       let totalActualMins = 0;
@@ -1524,7 +1538,7 @@
       scheduledTasks.forEach(task => {
         const tStartM = timeToMinutes(task.scheduledStartTime);
         let tEndM = timeToMinutes(task.scheduledEndTime);
-        if (tEndM <= tStartM) tEndM = tStartM + Math.max(15, task.plannedMins || 30);
+        if (!tEndM || tEndM <= tStartM) tEndM = tStartM + Math.max(15, task.plannedMins || 30);
 
         const tDur = Math.max(15, tEndM - tStartM);
         const taskHeight = Math.max(18, tDur - 2);
@@ -1541,7 +1555,7 @@
 
         const taskCard = document.createElement('div');
         taskCard.className = `absolute right-[1%] sm:right-[1.5%] w-[40.5%] sm:w-[48%] rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
-        taskCard.style.top = `${cardTop => taskTop}px`;
+        taskCard.style.top = `${taskTop}px`;
         taskCard.style.height = `${taskHeight}px`;
 
         taskCard.onclick = (e) => {
