@@ -47,6 +47,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-28 antialiased selection:bg-indigo-500 selection:text-white">
 
+  <!-- Header -->
   <header class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-3 py-2.5 sm:px-6">
     <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5">
@@ -61,8 +62,13 @@
         </div>
       </div>
 
-      <!-- Sync Status, Settings & Backup Actions -->
+      <!-- Sync Status, Analytics Link, Settings & Backup Actions -->
       <div class="flex items-center gap-1.5">
+        <button onclick="scrollToModule('module_analytics')" title="Jump to Analytics" class="px-2.5 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-700/60 text-indigo-300 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
+          <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Analytics</span>
+        </button>
+
         <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncText" class="font-mono text-[10px] hidden sm:inline">Synced</span>
@@ -204,6 +210,7 @@
       </div>
     </section>
 
+    <!-- Habits & Focus Stopwatch Row -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
       <!-- Habits Tracker -->
       <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
@@ -275,7 +282,7 @@
       </section>
     </div>
 
-    <!-- Priority & Timebound Tasks (Configurable Frequency, Pending Default, Smart Sorting) -->
+    <!-- Priority & Timebound Tasks -->
     <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-2 border-b border-slate-800/80">
         <div>
@@ -285,7 +292,6 @@
           <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Timebound, priority-ranked, and recurring focus tasks.</p>
         </div>
 
-        <!-- Task Filters (Default: ACTIVE / Pending) -->
         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
           <button id="taskFilterBtn_ACTIVE" onclick="setTaskFilter('ACTIVE')" class="px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">Pending</button>
           <button id="taskFilterBtn_ALL" onclick="setTaskFilter('ALL')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All</button>
@@ -305,7 +311,6 @@
             <option value="Low">🌱 Low</option>
           </select>
 
-          <!-- Quick Frequency Dropdown -->
           <select id="quickTaskFrequencySelect" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-300 focus:outline-none">
             <option value="once" selected>Once</option>
             <option value="daily">Daily</option>
@@ -320,7 +325,6 @@
         </div>
       </form>
 
-      <!-- Task Items List Container -->
       <div id="masterTaskList" class="space-y-2"></div>
     </section>
 
@@ -371,27 +375,176 @@
       </div>
     </section>
 
+    <!-- ========================================== -->
+    <!-- DEDICATED ANALYTICS SECTION -->
+    <!-- ========================================== -->
+    <section id="module_analytics" class="bg-slate-900/90 border border-indigo-900/50 rounded-2xl p-4 sm:p-6 shadow-2xl scroll-mt-14">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-800/80">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-white flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-400"></i> Performance Analytics & Insights
+          </h2>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Execution adherence, habit discipline, task throughput, and mood trends.</p>
+        </div>
+
+        <!-- Time Window Filter Toggle -->
+        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <button id="anWindow_7" onclick="setAnalyticsWindow(7)" class="px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">7 Days</button>
+          <button id="anWindow_30" onclick="setAnalyticsWindow(30)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">30 Days</button>
+          <button id="anWindow_ALL" onclick="setAnalyticsWindow(999)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All Time</button>
+        </div>
+      </div>
+
+      <!-- Top Metric Cards Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+        
+        <!-- Planner Adherence -->
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Plan Fidelity</span>
+              <span id="anPlanFidelityRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-indigo-950/80 border border-indigo-800/60">0%</span>
+            </div>
+            <div id="anPlanHoursStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0.0h / 0.0h</div>
+            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Actual vs Planned Hours</span>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Completed Blocks: <b id="anPlanCompletedCount" class="text-emerald-400">0</b></span>
+            <span>Missed: <b id="anPlanMissedCount" class="text-rose-400">0</b></span>
+          </div>
+        </div>
+
+        <!-- Habits Consistency -->
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="flex items-center justify-between text-amber-400 text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Habit Success</span>
+              <span id="anHabitSuccessRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-800/60">0%</span>
+            </div>
+            <div id="anHabitCompletedStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
+            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Logged vs Target Goals</span>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Missed Logs: <b id="anHabitMissedTotal" class="text-rose-400">0</b></span>
+            <span>Top Streak: <b id="anHabitTopStreak" class="text-amber-300">0d 🔥</b></span>
+          </div>
+        </div>
+
+        <!-- Tasks Throughput -->
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="flex items-center justify-between text-emerald-400 text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Task Velocity</span>
+              <span id="anTasksRateBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-800/60">0%</span>
+            </div>
+            <div id="anTasksCountStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
+            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Tasks Cleared vs Total</span>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Pending: <b id="anTasksPendingCount" class="text-amber-400">0</b></span>
+            <span>High Done: <b id="anTasksHighRate" class="text-sky-300">0%</b></span>
+          </div>
+        </div>
+
+        <!-- Mood & Productivity -->
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="flex items-center justify-between text-purple-400 text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Productivity</span>
+              <span id="anAvgProductivityBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-purple-950/80 border border-purple-800/60">--/10</span>
+            </div>
+            <div id="anDominantMoodStat" class="text-sm sm:text-base font-bold font-mono text-white truncate mt-1">Steady</div>
+            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Dominant Mood State</span>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Reflections: <b id="anReflectionDaysCount" class="text-purple-300">0d</b></span>
+            <span>Focus: <b id="anTotalFocusHours" class="text-indigo-300">0h</b></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Detailed Breakdown Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+        
+        <!-- Habits Friction Breakdown -->
+        <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i> Habit Friction Points
+            </span>
+            <span class="text-[10px] text-slate-500 font-mono">Most Missed</span>
+          </div>
+          <div id="anHabitsFrictionList" class="space-y-2 mt-3 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Task Priority Completion Bars -->
+        <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400"></i> Priority Completion
+            </span>
+            <span class="text-[10px] text-slate-500 font-mono">Cleared / Total</span>
+          </div>
+          <div id="anTaskPriorityBars" class="space-y-3 mt-3"></div>
+        </div>
+
+        <!-- Evening Review Summary & Sentiment -->
+        <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> Review Highlights
+              </span>
+              <span class="text-[10px] text-slate-500 font-mono">Gratitude vs Friction</span>
+            </div>
+            
+            <div class="mt-3 space-y-2.5">
+              <div>
+                <span class="text-[10px] font-mono font-bold text-emerald-400 block mb-1">Key Wins & Gratitude:</span>
+                <ul id="anReviewHappyList" class="list-disc list-inside text-slate-300 space-y-1 text-[11px] max-h-20 overflow-y-auto">
+                  <li class="text-slate-500 italic">No notes recorded in this timeframe.</li>
+                </ul>
+              </div>
+
+              <div>
+                <span class="text-[10px] font-mono font-bold text-rose-400 block mb-1">Friction Points & Regrets:</span>
+                <ul id="anReviewFrictionList" class="list-disc list-inside text-slate-400 space-y-1 text-[11px] max-h-20 overflow-y-auto">
+                  <li class="text-slate-500 italic">No blockers logged in this timeframe.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
-  <!-- Mobile Bottom Dock -->
+  <!-- Mobile Bottom Dock (With Analytics Nav Tab) -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 safe-bottom px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl">
-    <button onclick="scrollToModule('module_planner')" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
+    <button onclick="scrollToModule('module_planner')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
       <i data-lucide="calendar" class="w-4 h-4"></i>
       <span class="text-[9px] font-mono mt-0.5">Planner</span>
     </button>
-    <button onclick="scrollToModule('module_habits')" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400 hover:text-amber-400 active:scale-95 transition">
+    <button onclick="scrollToModule('module_habits')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-amber-400 active:scale-95 transition">
       <i data-lucide="flame" class="w-4 h-4"></i>
       <span class="text-[9px] font-mono mt-0.5">Habits</span>
     </button>
-    <button onclick="scrollToModule('module_timer')" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
+    <button onclick="scrollToModule('module_timer')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
       <i data-lucide="timer" class="w-4 h-4"></i>
       <span class="text-[9px] font-mono mt-0.5">Timer</span>
     </button>
-    <button onclick="scrollToModule('module_tasks')" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400 hover:text-emerald-400 active:scale-95 transition">
+    <button onclick="scrollToModule('module_tasks')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-emerald-400 active:scale-95 transition">
       <i data-lucide="check-square" class="w-4 h-4"></i>
       <span class="text-[9px] font-mono mt-0.5">Tasks</span>
     </button>
-    <button onclick="scrollToModule('module_review')" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400 hover:text-purple-400 active:scale-95 transition">
+    <button onclick="scrollToModule('module_analytics')" class="flex flex-col items-center py-1 px-2 rounded-xl text-indigo-400 active:scale-95 transition">
+      <i data-lucide="pie-chart" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Insights</span>
+    </button>
+    <button onclick="scrollToModule('module_review')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-purple-400 active:scale-95 transition">
       <i data-lucide="moon" class="w-4 h-4"></i>
       <span class="text-[9px] font-mono mt-0.5">Review</span>
     </button>
@@ -491,7 +644,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Create / Edit / Schedule Task (With Frequency Support) -->
+  <!-- MODAL: Task Detail -->
   <div id="taskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -542,7 +695,6 @@
           </div>
         </div>
 
-        <!-- 24-Hour Calendar Slot Assignment -->
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
           <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1">
             <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 24H Calendar Slot Assignment
@@ -719,7 +871,8 @@
     };
 
     let selectedPlannerDate = getTodayKey();
-    let currentTaskFilter = 'ACTIVE'; // DEFAULT TO PENDING
+    let currentTaskFilter = 'ACTIVE'; // Default to Pending
+    let currentAnalyticsWindow = 7;   // Default to 7 Days
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
@@ -816,7 +969,7 @@
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ---------- Recurrence Matcher for Frequency ----------
+    // ---------- Frequency Recurrence Matcher ----------
     function isTaskActiveForDate(task, dateStr) {
       const freq = (task.frequency || 'once').toLowerCase();
       const taskDate = normalizeDateString(task.scheduledDate || task.date);
@@ -840,7 +993,7 @@
       return taskDate === activeDate;
     }
 
-    // ---------- Time and String Normalizers ----------
+    // ---------- Normalizers ----------
     function timeToMinutes(tStr) {
       if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return 0;
       const parts = tStr.split(':').map(Number);
@@ -1100,7 +1253,7 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // Planner
+        // 1. Planner
         if (json.planner && Array.isArray(json.planner)) {
           const seenPlan = new Set();
           const cleanPlanner = [];
@@ -1132,7 +1285,7 @@
           appData.timeBlocks = cleanPlanner;
         }
 
-        // Routines
+        // 2. Routines
         if (json.routines && Array.isArray(json.routines)) {
           const seenRt = new Set();
           const cleanRoutines = [];
@@ -1158,7 +1311,7 @@
           appData.routines = cleanRoutines;
         }
 
-        // Habits
+        // 3. Habits
         if (json.habits && Array.isArray(json.habits)) {
           const seenHabit = new Set();
           const cleanHabits = [];
@@ -1178,7 +1331,7 @@
           appData.habits = cleanHabits;
         }
 
-        // Habit Logs
+        // 4. Habit Logs
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
           const map = {};
           json.habitLogs.forEach(l => {
@@ -1196,7 +1349,7 @@
           appData.habitLogs = map;
         }
 
-        // Tasks (With Frequency)
+        // 5. Tasks
         if (json.tasks && Array.isArray(json.tasks)) {
           const seenTask = new Set();
           const cleanTasks = [];
@@ -1222,7 +1375,7 @@
           appData.tasks = cleanTasks;
         }
 
-        // Focus Logs
+        // 6. Focus Logs
         if (json.focusLogs && Array.isArray(json.focusLogs)) {
           appData.focusLogs = json.focusLogs.map(fl => ({
             id: Number(fl.id) || Date.now() + Math.random(),
@@ -1233,7 +1386,7 @@
           }));
         }
 
-        // Daily Summaries
+        // 7. Daily Summaries
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
           const sMap = {};
           json.dailySummaries.forEach(s => {
@@ -1374,7 +1527,6 @@
       const routineBadge = document.getElementById('activeRoutineCountBadge');
       if (routineBadge) routineBadge.textContent = appData.routines.length;
 
-      // Scheduled tasks filtered by recurrence frequency for the selected date
       const scheduledTasks = appData.tasks.filter(t => {
         return isTaskActiveForDate(t, selectedPlannerDate) && t.scheduledStartTime;
       });
@@ -1667,26 +1819,7 @@
         const isCompleted = Boolean(log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
         if (isCompleted) completedCount++;
 
-        let streak = 0;
-        let checkDate = new Date(selectedPlannerDate + "T00:00:00");
-        
-        if (isCompleted) streak++;
-
-        checkDate.setDate(checkDate.getDate() - 1);
-        while (true) {
-          const y = checkDate.getFullYear();
-          const m = String(checkDate.getMonth() + 1).padStart(2, '0');
-          const d = String(checkDate.getDate()).padStart(2, '0');
-          const dStr = `${y}-${m}-${d}`;
-          const pastLog = appData.habitLogs[`${hId}_${dStr}`];
-          const pastDone = pastLog && (pastLog.completed || String(pastLog.value).toLowerCase() === 'yes');
-          if (pastDone) {
-            streak++;
-            checkDate.setDate(checkDate.getDate() - 1);
-          } else {
-            break;
-          }
-        }
+        let streak = calculateStreak(hId);
 
         const card = document.createElement('div');
         card.className = "p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 shadow-sm";
@@ -1763,6 +1896,36 @@
       lucide.createIcons();
     }
 
+    function calculateStreak(habitId) {
+      let streak = 0;
+      let checkDate = new Date(selectedPlannerDate + "T00:00:00");
+      const normHabit = appData.habits.find(h => String(h.id) === String(habitId));
+      const normType = normHabit ? normalizeHabitType(normHabit.type) : 'yesno';
+
+      const keyToday = `${habitId}_${selectedPlannerDate}`;
+      const logToday = appData.habitLogs[keyToday];
+      const todayDone = logToday && (logToday.completed || (normType === 'yesno' && String(logToday.value).toLowerCase() === 'yes'));
+      
+      if (todayDone) streak++;
+
+      checkDate.setDate(checkDate.getDate() - 1);
+      for (let i = 0; i < 90; i++) {
+        const y = checkDate.getFullYear();
+        const m = String(checkDate.getMonth() + 1).padStart(2, '0');
+        const d = String(checkDate.getDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${d}`;
+        const pastLog = appData.habitLogs[`${habitId}_${dStr}`];
+        const pastDone = pastLog && (pastLog.completed || (normType === 'yesno' && String(pastLog.value).toLowerCase() === 'yes'));
+        if (pastDone) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
     function toggleYesNoHabit(id) {
       const hId = String(id);
       const key = `${hId}_${selectedPlannerDate}`;
@@ -1772,6 +1935,7 @@
       log.value = log.completed ? "Yes" : "No";
       appData.habitLogs[key] = log;
       renderHabits();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -1786,6 +1950,7 @@
         completed: (num >= (habit.target || 1))
       };
       renderHabits();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -1802,6 +1967,7 @@
         completed: (newNum >= (habit.target || 1))
       };
       renderHabits();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -1819,6 +1985,7 @@
       log.completed = Boolean(log.value);
       appData.habitLogs[key] = log;
       renderHabits();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -1867,16 +2034,18 @@
 
       closeHabitModal();
       renderHabits();
+      renderAnalytics();
       syncToRemote();
     }
 
     function deleteHabit(id) {
       appData.habits = appData.habits.filter(h => String(h.id) !== String(id));
       renderHabits();
+      renderAnalytics();
       syncToRemote();
     }
 
-    // ---------- Tasks Manager (Frequency, Default Pending, Smart Sorting) ----------
+    // ---------- Tasks Manager ----------
     function setTaskFilter(filter) {
       currentTaskFilter = filter;
       ['ALL', 'ACTIVE', 'SCHEDULED'].forEach(f => {
@@ -1917,6 +2086,7 @@
       titleInput.value = '';
       renderTasks();
       render24HourPlanner();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -1927,6 +2097,7 @@
         task.status = task.completed ? "Completed" : "Need to Start";
         renderTasks();
         render24HourPlanner();
+        renderAnalytics();
         syncToRemote();
       }
     }
@@ -1936,7 +2107,6 @@
       if (!container) return;
       container.innerHTML = '';
 
-      // 1. FILTERING
       let list = [...appData.tasks];
       if (currentTaskFilter === 'ACTIVE') {
         list = list.filter(t => !t.completed && t.status !== "Completed");
@@ -1944,22 +2114,16 @@
         list = list.filter(t => Boolean(t.scheduledStartTime && t.scheduledEndTime));
       }
 
-      // 2. MULTI-TIER SMART SORTING:
-      // Current Day Active First -> Priority Rank (High -> Med -> Low) -> Start Time
       list.sort((a, b) => {
         const aToday = isTaskActiveForDate(a, selectedPlannerDate);
         const bToday = isTaskActiveForDate(b, selectedPlannerDate);
-
-        // Tier 1: Today's tasks first
         if (aToday && !bToday) return -1;
         if (!aToday && bToday) return 1;
 
-        // Tier 2: Priority (High = 1, Med = 2, Low = 3)
         const aPri = PRIORITY_ORDER[a.priority] || 2;
         const bPri = PRIORITY_ORDER[b.priority] || 2;
         if (aPri !== bPri) return aPri - bPri;
 
-        // Tier 3: Start Time ordering
         if (a.scheduledStartTime && b.scheduledStartTime) {
           return timeToMinutes(a.scheduledStartTime) - timeToMinutes(b.scheduledStartTime);
         }
@@ -2115,6 +2279,7 @@
       closeTaskModal();
       renderTasks();
       render24HourPlanner();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -2122,6 +2287,7 @@
       appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
       renderTasks();
       render24HourPlanner();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -2215,6 +2381,7 @@
       renderFocusLogs();
       renderTasks();
       render24HourPlanner();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -2244,6 +2411,7 @@
     function clearFocusLogs() {
       appData.focusLogs = [];
       renderFocusLogs();
+      renderAnalytics();
       syncToRemote();
     }
 
@@ -2269,7 +2437,290 @@
         regrets: document.getElementById('rev_regrets').value.trim(),
         emotion: document.getElementById('rev_emotion').value.trim()
       };
+      renderAnalytics();
       syncToRemote();
+    }
+
+    // ==========================================
+    // ANALYTICS COMPUTATION ENGINE
+    // ==========================================
+    function setAnalyticsWindow(days) {
+      currentAnalyticsWindow = days;
+      const b7 = document.getElementById('anWindow_7');
+      const b30 = document.getElementById('anWindow_30');
+      const bAll = document.getElementById('anWindow_ALL');
+
+      if (b7 && b30 && bAll) {
+        b7.className = days === 7 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
+        b30.className = days === 30 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
+        bAll.className = days === 999 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
+      }
+
+      renderAnalytics();
+    }
+
+    function getAnalyticsDateSet(days) {
+      if (days >= 900) return null; // All Time
+      const set = new Set();
+      const ref = new Date();
+      for (let i = 0; i < days; i++) {
+        const d = new Date(ref);
+        d.setDate(d.getDate() - i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        set.add(`${y}-${m}-${day}`);
+      }
+      return set;
+    }
+
+    function renderAnalytics() {
+      const windowSet = getAnalyticsDateSet(currentAnalyticsWindow);
+      const isDateInScope = (dateStr) => {
+        if (!windowSet) return true;
+        const norm = normalizeDateString(dateStr);
+        return windowSet.has(norm);
+      };
+
+      // 1. Planner Execution Analytics
+      const scopedPlans = appData.timeBlocks.filter(b => isDateInScope(b.date));
+      let plannedMinutes = 0;
+      let actualMinutes = 0;
+      let completedBlocks = 0;
+      let missedBlocks = 0;
+
+      scopedPlans.forEach(p => {
+        const s = timeToMinutes(p.startTime);
+        const e = timeToMinutes(p.endTime);
+        const dur = Math.max(0, e - s);
+        plannedMinutes += dur;
+
+        if (p.status === 'Completed') {
+          completedBlocks++;
+          const as = p.actualStartTime ? timeToMinutes(p.actualStartTime) : s;
+          const ae = p.actualEndTime ? timeToMinutes(p.actualEndTime) : e;
+          actualMinutes += Math.max(0, ae - as);
+        } else if (p.status === 'Partial / Deviated') {
+          completedBlocks += 0.5;
+          actualMinutes += (dur * 0.5);
+        } else if (p.status === 'Missed') {
+          missedBlocks++;
+        }
+      });
+
+      const pHours = (plannedMinutes / 60).toFixed(1);
+      const aHours = (actualMinutes / 60).toFixed(1);
+      const planFidelity = plannedMinutes > 0 ? Math.round((actualMinutes / plannedMinutes) * 100) : 0;
+
+      const elPlanStat = document.getElementById('anPlanHoursStat');
+      const elPlanFidelity = document.getElementById('anPlanFidelityRate');
+      const elPlanComp = document.getElementById('anPlanCompletedCount');
+      const elPlanMiss = document.getElementById('anPlanMissedCount');
+
+      if (elPlanStat) elPlanStat.textContent = `${aHours}h / ${pHours}h`;
+      if (elPlanFidelity) elPlanFidelity.textContent = `${planFidelity}%`;
+      if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
+      if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
+
+      // 2. Habits Consistency & Friction Analytics
+      const totalHabits = appData.habits.length;
+      let totalExpectedLogs = 0;
+      let totalCompletedLogs = 0;
+      const missedCounts = {};
+      let topStreak = 0;
+
+      appData.habits.forEach(h => {
+        const hId = String(h.id);
+        missedCounts[hId] = 0;
+        const curStreak = calculateStreak(hId);
+        if (curStreak > topStreak) topStreak = curStreak;
+      });
+
+      // Filter habit logs within time scope
+      Object.keys(appData.habitLogs).forEach(key => {
+        const parts = key.split('_');
+        const hId = parts[0];
+        const dateStr = parts.slice(1).join('_');
+        if (isDateInScope(dateStr)) {
+          const l = appData.habitLogs[key];
+          const isDone = l && (l.completed || String(l.value).toLowerCase() === 'yes');
+          if (isDone) totalCompletedLogs++;
+          else if (missedCounts.hasOwnProperty(hId)) {
+            missedCounts[hId]++;
+          }
+        }
+      });
+
+      const daysCount = currentAnalyticsWindow >= 900 ? 30 : currentAnalyticsWindow;
+      totalExpectedLogs = totalHabits * daysCount;
+      const habitSuccessRate = totalExpectedLogs > 0 ? Math.min(100, Math.round((totalCompletedLogs / totalExpectedLogs) * 100)) : 0;
+      const totalMissedCount = Object.values(missedCounts).reduce((a, b) => a + b, 0);
+
+      const elHabitStat = document.getElementById('anHabitCompletedStat');
+      const elHabitRate = document.getElementById('anHabitSuccessRate');
+      const elHabitMiss = document.getElementById('anHabitMissedTotal');
+      const elHabitStreak = document.getElementById('anHabitTopStreak');
+
+      if (elHabitStat) elHabitStat.textContent = `${totalCompletedLogs} / ${totalExpectedLogs}`;
+      if (elHabitRate) elHabitRate.textContent = `${habitSuccessRate}%`;
+      if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
+      if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
+
+      // Render Habits Friction List
+      const frictionContainer = document.getElementById('anHabitsFrictionList');
+      if (frictionContainer) {
+        if (!appData.habits.length) {
+          frictionContainer.innerHTML = `<span class="text-slate-500 italic text-[11px]">No habits configured.</span>`;
+        } else {
+          const sorted = [...appData.habits].sort((a, b) => (missedCounts[String(b.id)] || 0) - (missedCounts[String(a.id)] || 0));
+          frictionContainer.innerHTML = sorted.map(h => {
+            const mCount = missedCounts[String(h.id)] || 0;
+            return `
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+                <span class="font-medium text-slate-200 truncate pr-2">${h.name}</span>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded ${mCount > 0 ? 'bg-rose-950/80 text-rose-300 border border-rose-800/60' : 'bg-slate-800 text-slate-400'}">${mCount} missed</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 3. Tasks Throughput & Priority Breakdown
+      const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
+      const totalTasks = scopedTasks.length;
+      let completedTasksCount = 0;
+      let pendingTasksCount = 0;
+      const priTotal = { High: 0, Med: 0, Low: 0 };
+      const priCompleted = { High: 0, Med: 0, Low: 0 };
+
+      scopedTasks.forEach(t => {
+        const isDone = Boolean(t.completed || t.status === "Completed");
+        const pri = t.priority || 'Med';
+        if (priTotal.hasOwnProperty(pri)) priTotal[pri]++;
+        else priTotal['Med']++;
+
+        if (isDone) {
+          completedTasksCount++;
+          if (priCompleted.hasOwnProperty(pri)) priCompleted[pri]++;
+          else priCompleted['Med']++;
+        } else {
+          pendingTasksCount++;
+        }
+      });
+
+      const tasksRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+      const highRate = priTotal.High > 0 ? Math.round((priCompleted.High / priTotal.High) * 100) : 0;
+
+      const elTasksStat = document.getElementById('anTasksCountStat');
+      const elTasksRate = document.getElementById('anTasksRateBadge');
+      const elTasksPend = document.getElementById('anTasksPendingCount');
+      const elTasksHigh = document.getElementById('anTasksHighRate');
+
+      if (elTasksStat) elTasksStat.textContent = `${completedTasksCount} / ${totalTasks}`;
+      if (elTasksRate) elTasksRate.textContent = `${tasksRate}%`;
+      if (elTasksPend) elTasksPend.textContent = pendingTasksCount;
+      if (elTasksHigh) elTasksHigh.textContent = `${highRate}% (${priCompleted.High}/${priTotal.High})`;
+
+      // Render Task Priority Bars
+      const priBarsContainer = document.getElementById('anTaskPriorityBars');
+      if (priBarsContainer) {
+        const renderPriBar = (label, colorClass, done, total) => {
+          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+          return `
+            <div>
+              <div class="flex justify-between text-[11px] mb-1 font-mono">
+                <span class="text-slate-300 font-semibold">${label}</span>
+                <span class="text-slate-400">${done}/${total} (${pct}%)</span>
+              </div>
+              <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <div class="h-full ${colorClass} rounded-full transition-all" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        };
+
+        priBarsContainer.innerHTML = `
+          ${renderPriBar('🔥 High Priority', 'bg-rose-500', priCompleted.High, priTotal.High)}
+          ${renderPriBar('⚡ Medium Priority', 'bg-amber-500', priCompleted.Med, priTotal.Med)}
+          ${renderPriBar('🌱 Low Priority', 'bg-emerald-500', priCompleted.Low, priTotal.Low)}
+        `;
+      }
+
+      // 4. Daily Review & Reflection Highlights
+      let totalProdScore = 0;
+      let prodScoreCount = 0;
+      const moodCounts = {};
+      const happyList = [];
+      const frictionList = [];
+      let reflectedCount = 0;
+
+      Object.keys(appData.dailySummaries).forEach(d => {
+        if (isDateInScope(d)) {
+          reflectedCount++;
+          const s = appData.dailySummaries[d];
+          if (s.productive) {
+            const m = String(s.productive).match(/^(\d+(?:\.\d+)?)/);
+            if (m) {
+              totalProdScore += Number(m[1]);
+              prodScoreCount++;
+            }
+          }
+          const emo = s.emotion ? s.emotion.trim() : 'Steady';
+          if (emo) moodCounts[emo] = (moodCounts[emo] || 0) + 1;
+
+          if (s.goodThing && s.goodThing.trim()) happyList.push(s.goodThing.trim());
+          if (s.disliked && s.disliked.trim()) frictionList.push(s.disliked.trim());
+        }
+      });
+
+      const avgProd = prodScoreCount > 0 ? (totalProdScore / prodScoreCount).toFixed(1) : '--';
+      
+      let dominantMood = 'Steady';
+      let maxCnt = 0;
+      Object.entries(moodCounts).forEach(([emo, cnt]) => {
+        if (cnt > maxCnt) {
+          maxCnt = cnt;
+          dominantMood = emo;
+        }
+      });
+
+      // Focus Logs in scope
+      const scopedFocus = appData.focusLogs.filter(fl => isDateInScope(fl.date));
+      let totalFocusSecs = 0;
+      scopedFocus.forEach(fl => {
+        const parts = String(fl.duration).split(':').map(Number);
+        if (parts.length === 3) {
+          totalFocusSecs += (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        }
+      });
+      const focusHoursTotal = (totalFocusSecs / 3600).toFixed(1);
+
+      const elAvgProd = document.getElementById('anAvgProductivityBadge');
+      const elDomMood = document.getElementById('anDominantMoodStat');
+      const elRefDays = document.getElementById('anReflectionDaysCount');
+      const elFocHours = document.getElementById('anTotalFocusHours');
+
+      if (elAvgProd) elAvgProd.textContent = `${avgProd}/10`;
+      if (elDomMood) elDomMood.textContent = dominantMood;
+      if (elRefDays) elRefDays.textContent = `${reflectedCount}d`;
+      if (elFocHours) elFocHours.textContent = `${focusHoursTotal}h`;
+
+      const happyUl = document.getElementById('anReviewHappyList');
+      const frictionUl = document.getElementById('anReviewFrictionList');
+
+      if (happyUl) {
+        happyUl.innerHTML = happyList.length > 0 
+          ? happyList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
+          : `<li class="text-slate-500 italic">No notes recorded in this timeframe.</li>`;
+      }
+
+      if (frictionUl) {
+        frictionUl.innerHTML = frictionList.length > 0 
+          ? frictionList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
+          : `<li class="text-slate-500 italic">No blockers logged in this timeframe.</li>`;
+      }
+
+      lucide.createIcons();
     }
 
     // ---------- Time Block Modal Handlers ----------
@@ -2548,12 +2999,14 @@
       renderTasks();
       renderFocusLogs();
       renderDailyReview();
+      renderAnalytics();
       lucide.createIcons();
     }
 
     window.onload = () => {
       buildHourlyBackgroundGrid();
-      setTaskFilter('ACTIVE'); // Ensure default filter is Pending
+      setTaskFilter('ACTIVE');
+      setAnalyticsWindow(7);
       renderAll();
       scrollToCurrentTimeOrStart();
 
