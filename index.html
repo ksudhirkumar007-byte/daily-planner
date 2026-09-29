@@ -43,6 +43,15 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+    /* FEATURE #2: Current time indicator animation */
+    @keyframes timeIndicatorPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(244, 63, 94, 0.8); }
+      50% { box-shadow: 0 0 16px rgba(244, 63, 94, 1); }
+    }
+    #currentTimeIndicator .flex-1 {
+      animation: timeIndicatorPulse 2s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-28 antialiased selection:bg-indigo-500 selection:text-white">
@@ -152,7 +161,44 @@
         </div>
       </div>
 
-      <!-- Quick Fill Presets Bar -->
+      <!-- FEATURE #10: Progress Bars Row -->
+      <div class="px-3 sm:px-4 py-2.5 bg-slate-950/60 border-b border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Tasks Progress -->
+        <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-mono font-semibold text-slate-300">📋 Tasks</span>
+            <span id="taskProgressPercent" class="text-[9px] font-mono font-bold text-emerald-400">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+            <div id="taskProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="taskProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 completed</span>
+        </div>
+
+        <!-- Habits Progress -->
+        <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-mono font-semibold text-slate-300">🔥 Habits</span>
+            <span id="habitProgressPercent" class="text-[9px] font-mono font-bold text-amber-400">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+            <div id="habitProgressBar" class="h-full bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="habitProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 logged</span>
+        </div>
+
+        <!-- Planner Progress -->
+        <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-mono font-semibold text-slate-300">⏱️ Planner</span>
+            <span id="plannerProgressPercent" class="text-[9px] font-mono font-bold text-cyan-400">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+            <div id="plannerProgressBar" class="h-full bg-cyan-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="plannerProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 blocks</span>
+        </div>
+      </div>
       <div class="px-3 py-2 bg-slate-900/60 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
         <span class="text-slate-500 text-[10px] font-mono whitespace-nowrap flex items-center gap-1 mr-1">
           <i data-lucide="sparkles" class="w-3 h-3 text-indigo-400"></i> Presets:
@@ -329,15 +375,21 @@
     </section>
 
     <!-- Evening Reflection -->
-    <section id="module_review" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
-      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
-        <div>
-          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <i data-lucide="moon" class="w-4 h-4 text-purple-400"></i> Evening Reflection
-          </h2>
-          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Evaluate your day and capture learnings.</p>
+    <section id="module_review" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-lg overflow-hidden scroll-mt-14">
+      <button onclick="toggleReviewSection()" class="w-full px-4 sm:px-6 py-3.5 flex items-center justify-between hover:bg-slate-900 transition group border-b border-slate-800/80">
+        <div class="flex items-center gap-2">
+          <i data-lucide="moon" class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400"></i>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Evening Reflection</h2>
+            <p class="text-[10px] text-slate-500 mt-0">Click to expand and evaluate your day</p>
+          </div>
         </div>
-        <button onclick="saveDailyReview()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-purple-600/30">
+        <i id="reviewToggleIcon" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-white transition flex-shrink-0"></i>
+      </button>
+
+      <div id="reviewContent" class="hidden px-4 sm:px-6 py-4 sm:py-5 space-y-3.5">
+        <div class="flex items-center justify-end mb-2">
+          <button onclick="saveDailyReview()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-purple-600/30">
           <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
         </button>
       </div>
@@ -372,14 +424,26 @@
           <label class="block text-[11px] font-semibold text-purple-400 mb-1">🧠 Overall Emotion & Mood</label>
           <input type="text" id="rev_emotion" placeholder="Energized, peaceful..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
         </div>
+        </div>
       </div>
     </section>
 
     <!-- ========================================== -->
     <!-- DEDICATED ANALYTICS SECTION -->
     <!-- ========================================== -->
-    <section id="module_analytics" class="bg-slate-900/90 border border-indigo-900/50 rounded-2xl p-4 sm:p-6 shadow-2xl scroll-mt-14">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-800/80">
+    <section id="module_analytics" class="bg-slate-900/90 border border-indigo-900/50 rounded-2xl shadow-2xl scroll-mt-14 overflow-hidden">
+      <button onclick="toggleAnalyticsSection()" class="w-full px-4 sm:px-6 py-3.5 flex items-center justify-between hover:bg-slate-900/50 transition group border-b border-indigo-900/30">
+        <div class="flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400"></i>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Performance Analytics & Insights</h2>
+            <p class="text-[10px] text-slate-500 mt-0">Execution adherence, habits, tasks & mood trends</p>
+          </div>
+        </div>
+        <i id="analyticsToggleIcon" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-white transition flex-shrink-0"></i>
+      </button>
+
+      <div id="analyticsContent" class="hidden p-4 sm:p-6 space-y-5">
         <div>
           <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-white flex items-center gap-2">
             <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-400"></i> Performance Analytics & Insights
@@ -518,6 +582,7 @@
         </div>
 
       </div>
+      </div>
     </section>
 
   </main>
@@ -634,6 +699,9 @@
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
           </button>
           <div class="flex items-center gap-2">
+            <button type="button" onclick="wentAsPlanned()" title="Copy planned times to actual" class="px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/60 text-xs font-semibold text-emerald-300 border border-emerald-700/60 transition active:scale-95 min-h-[40px] flex items-center gap-1.5">
+              <i data-lucide="check-check" class="w-4 h-4"></i> Went Planned
+            </button>
             <button type="button" onclick="closeTimeBlockModal()" class="px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
             <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md shadow-indigo-600/30 min-h-[40px]">
               Save Timeblock
@@ -1577,6 +1645,52 @@
       document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
       document.getElementById('scoreStatusCount').textContent = `${completedCount}/${totalItems} done`;
 
+      // FEATURE #10: Update progress bars
+      // Tasks Progress
+      const totalTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate)).length;
+      const completedTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate) && t.completed).length;
+      const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      const taskPBar = document.getElementById('taskProgressBar');
+      const taskPPercent = document.getElementById('taskProgressPercent');
+      const taskPLabel = document.getElementById('taskProgressLabel');
+      if (taskPBar && taskPPercent && taskPLabel) {
+        taskPBar.style.width = `${taskProgress}%`;
+        taskPPercent.textContent = `${taskProgress}%`;
+        taskPLabel.textContent = `${completedTasks}/${totalTasks} completed`;
+      }
+
+      // Habits Progress
+      const totalHabits = appData.habits.length;
+      const completedHabits = appData.habits.filter(h => {
+        const hId = String(h.id);
+        const normType = normalizeHabitType(h.type);
+        const key = `${hId}_${selectedPlannerDate}`;
+        const log = appData.habitLogs[key];
+        return log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+      }).length;
+      const habitProgress = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
+      const habitPBar = document.getElementById('habitProgressBar');
+      const habitPPercent = document.getElementById('habitProgressPercent');
+      const habitPLabel = document.getElementById('habitProgressLabel');
+      if (habitPBar && habitPPercent && habitPLabel) {
+        habitPBar.style.width = `${habitProgress}%`;
+        habitPPercent.textContent = `${habitProgress}%`;
+        habitPLabel.textContent = `${completedHabits}/${totalHabits} logged`;
+      }
+
+      // Planner Progress
+      const totalPlannerBlocks = allPlannedBlocks.length;
+      const completedPlannerBlocks = allPlannedBlocks.filter(b => b.status === 'Completed' || b.status === 'Partial / Deviated').length;
+      const plannerProgress = totalPlannerBlocks > 0 ? Math.round((completedPlannerBlocks / totalPlannerBlocks) * 100) : 0;
+      const planPBar = document.getElementById('plannerProgressBar');
+      const planPPercent = document.getElementById('plannerProgressPercent');
+      const planPLabel = document.getElementById('plannerProgressLabel');
+      if (planPBar && planPPercent && planPLabel) {
+        planPBar.style.width = `${plannerProgress}%`;
+        planPPercent.textContent = `${plannerProgress}%`;
+        planPLabel.textContent = `${completedPlannerBlocks}/${totalPlannerBlocks} blocks`;
+      }
+
       const varBadge = document.getElementById('scoreVarianceBadge');
       if (varBadge) {
         if (diffHours === 0) {
@@ -1766,6 +1880,12 @@
         return;
       }
 
+      // FEATURE #2: Update current time indicator position
+      indicator.classList.remove('hidden');
+      const now = new Date();
+      const totalMins = now.getHours() * 60 + now.getMinutes();
+      indicator.style.top = totalMins + 'px';
+
       indicator.classList.remove('hidden');
       const now = new Date();
       const currentMins = (now.getHours() * 60) + now.getMinutes();
@@ -1915,29 +2035,41 @@
 
     function calculateStreak(habitId) {
       let streak = 0;
-      let checkDate = new Date(selectedPlannerDate + "T00:00:00");
       const normHabit = appData.habits.find(h => String(h.id) === String(habitId));
       const normType = normHabit ? normalizeHabitType(normHabit.type) : 'yesno';
 
+      // BUGFIX: Use UTC date parsing to avoid timezone issues
+      const parseDate = (dateStr) => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(Date.UTC(y, m - 1, d));
+      };
+
+      // Check today
+      const todayDate = parseDate(selectedPlannerDate);
       const keyToday = `${habitId}_${selectedPlannerDate}`;
       const logToday = appData.habitLogs[keyToday];
       const todayDone = logToday && (logToday.completed || (normType === 'yesno' && String(logToday.value).toLowerCase() === 'yes'));
       
       if (todayDone) streak++;
 
-      checkDate.setDate(checkDate.getDate() - 1);
-      for (let i = 0; i < 90; i++) {
-        const y = checkDate.getFullYear();
-        const m = String(checkDate.getMonth() + 1).padStart(2, '0');
-        const d = String(checkDate.getDate()).padStart(2, '0');
+      // Check backwards through history
+      let checkDate = new Date(todayDate);
+      checkDate.setUTCDate(checkDate.getUTCDate() - 1); // Go to yesterday in UTC
+
+      for (let i = 0; i < 365; i++) {
+        const y = checkDate.getUTCFullYear();
+        const m = String(checkDate.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(checkDate.getUTCDate()).padStart(2, '0');
         const dStr = `${y}-${m}-${d}`;
+
         const pastLog = appData.habitLogs[`${habitId}_${dStr}`];
         const pastDone = pastLog && (pastLog.completed || (normType === 'yesno' && String(pastLog.value).toLowerCase() === 'yes'));
+
         if (pastDone) {
           streak++;
-          checkDate.setDate(checkDate.getDate() - 1);
+          checkDate.setUTCDate(checkDate.getUTCDate() - 1); // Move back one day in UTC
         } else {
-          break;
+          break; // Streak broken
         }
       }
       return streak;
@@ -2432,6 +2564,39 @@
       syncToRemote();
     }
 
+    // ---------- UI Toggle Functions ----------
+    function toggleReviewSection() {
+      const content = document.getElementById('reviewContent');
+      const icon = document.getElementById('reviewToggleIcon');
+      if (!content) return;
+
+      const isHidden = content.classList.contains('hidden');
+      if (isHidden) {
+        content.classList.remove('hidden');
+        icon.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        content.classList.add('hidden');
+        icon.setAttribute('data-lucide', 'chevron-down');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleAnalyticsSection() {
+      const content = document.getElementById('analyticsContent');
+      const icon = document.getElementById('analyticsToggleIcon');
+      if (!content) return;
+
+      const isHidden = content.classList.contains('hidden');
+      if (isHidden) {
+        content.classList.remove('hidden');
+        icon.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        content.classList.add('hidden');
+        icon.setAttribute('data-lucide', 'chevron-down');
+      }
+      lucide.createIcons();
+    }
+
     // ---------- Daily Review ----------
     function renderDailyReview() {
       const s = appData.dailySummaries[selectedPlannerDate] || {};
@@ -2800,6 +2965,26 @@
       if (modal) modal.classList.add('hidden');
     }
 
+    // FEATURE: Copy planned times to actual (went as planned)
+    function wentAsPlanned() {
+      const plannedStart = (document.getElementById('tbStartTime') || {}).value;
+      const plannedEnd = (document.getElementById('tbEndTime') || {}).value;
+
+      if (!plannedStart || !plannedEnd) {
+        alert("Please set planned times first");
+        return;
+      }
+
+      // Copy planned to actual
+      document.getElementById('tbActualStartTime').value = plannedStart;
+      document.getElementById('tbActualEndTime').value = plannedEnd;
+      document.getElementById('tbStatus').value = "Completed";
+
+      // Highlight the fields
+      document.getElementById('tbActualStartTime').classList.add('border-emerald-500', 'bg-emerald-950/20');
+      document.getElementById('tbActualEndTime').classList.add('border-emerald-500', 'bg-emerald-950/20');
+    }
+
     function handleSaveTimeBlock(e) {
       e.preventDefault();
       const rawId = (document.getElementById('tbId') || {}).value || "";
@@ -2823,6 +3008,26 @@
       if (eMins <= sMins) {
         eMins = Math.min(1440, sMins + 30);
         endTime = minutesToTime(eMins);
+      }
+
+      // FEATURE #8: Conflict detection - check for overlapping blocks on same date
+      const conflicts = [];
+      appData.timeBlocks.forEach(b => {
+        if (b.date === date && String(b.id) !== String(rawId)) {
+          const bStart = timeToMinutes(b.startTime);
+          const bEnd = timeToMinutes(b.endTime);
+
+          // Check if blocks overlap
+          if ((sMins < bEnd && eMins > bStart)) {
+            conflicts.push(b);
+          }
+        }
+      });
+
+      if (conflicts.length > 0) {
+        const conflictNames = conflicts.map(c => `"${c.title}"`).join(", ");
+        const proceed = confirm(`⚠️ Time conflict detected!\n\nThis block overlaps with: ${conflictNames}\n\nProceed anyway?`);
+        if (!proceed) return;
       }
 
       const slotStr = `${startTime} - ${endTime}`;
