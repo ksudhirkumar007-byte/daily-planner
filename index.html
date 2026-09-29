@@ -21,13 +21,11 @@
     }
   </script>
   <style>
-    /* Mobile-first touch improvements & scrollbar aesthetics */
     body {
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
-    /* Prevent iOS auto-zoom on inputs */
     @media screen and (max-width: 768px) {
       input, select, textarea {
         font-size: 16px !important;
@@ -86,10 +84,8 @@
 
     <!-- 24-Hour Calendar Day Planner Card -->
     <section id="module_planner" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden scroll-mt-14">
-      <!-- Calendar View Control Bar -->
       <div class="p-3 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
         
-        <!-- Date Navigator with Dynamic Active Date Label -->
         <div class="flex items-center gap-1.5 flex-wrap justify-between sm:justify-start">
           <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 shadow-inner">
             <button onclick="shiftPlannerDate(-1)" title="Previous Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition active:scale-90">
@@ -103,20 +99,17 @@
             </button>
           </div>
 
-          <!-- Active Day Dynamic Label Display -->
           <div id="plannerDateDynamicLabel" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono shadow-sm">
             <span id="plannerDateRelativeTag" class="px-1.5 py-0.2 rounded font-semibold text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Today</span>
             <span id="plannerDateFormattedText" class="text-slate-200 font-bold text-[11px] sm:text-xs"></span>
           </div>
 
-          <!-- Date Picker Native Input -->
           <div class="relative">
             <input type="date" id="plannerDatePicker" onchange="onPlannerDateSelected(this.value)" 
                    class="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500 cursor-pointer">
           </div>
         </div>
 
-        <!-- Quick Block Presets, Routines & Actions -->
         <div class="flex items-center gap-2">
           <button onclick="openRoutineManagerModal()" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
             <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400"></i>
@@ -189,21 +182,16 @@
 
       <!-- 24-Hour Scrollable Timeline Canvas -->
       <div id="plannerScrollContainer" class="relative max-h-[580px] sm:max-h-[640px] overflow-y-auto bg-slate-950 select-none">
-        
-        <!-- Live Current Time Horizontal Bar Indicator -->
         <div id="currentTimeIndicator" class="absolute left-0 right-0 z-20 pointer-events-none hidden flex items-center">
           <div class="w-10 sm:w-16 bg-rose-600 text-white font-mono text-[8px] sm:text-[9px] font-bold text-center py-0.5 rounded-r shadow-md">NOW</div>
           <div class="flex-1 h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
         </div>
 
-        <!-- 24 Hourly Background Grid Rows (Each hour = exactly 60px height) -->
         <div id="hourlyGridLines" class="relative divide-y divide-slate-900"></div>
-
-        <!-- Container for dynamically placed Planned Cards (Left Track) & Task Cards (Right Track) -->
         <div id="scheduledBlocksContainer" class="absolute inset-0 pointer-events-none"></div>
       </div>
 
-      <!-- Planner Footer Status & Action Hint -->
+      <!-- Planner Footer -->
       <div class="p-2.5 sm:p-3 bg-slate-950/80 border-t border-slate-800 text-[10px] sm:text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-1.5">
         <div class="flex items-center gap-2 flex-wrap text-[9px] sm:text-[10px]">
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-indigo-500/80"></span> Plan</span>
@@ -217,8 +205,7 @@
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-
-      <!-- Customizable Habit Tracker Matrix -->
+      <!-- Habits Tracker -->
       <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
         <div>
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -233,9 +220,7 @@
             </button>
           </div>
 
-          <div id="habitCardsContainer" class="space-y-2.5">
-            <!-- Injected dynamically via renderHabits() -->
-          </div>
+          <div id="habitCardsContainer" class="space-y-2.5"></div>
         </div>
 
         <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
@@ -244,7 +229,7 @@
         </div>
       </section>
 
-      <!-- Live Focus Stopwatch & Session Logger -->
+      <!-- Focus Stopwatch -->
       <section id="module_timer" class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
         <div>
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -256,7 +241,6 @@
             </span>
           </div>
 
-          <!-- Digital Stopwatch Display -->
           <div class="text-center py-4 bg-slate-950/80 rounded-2xl border border-slate-800/80 shadow-inner">
             <div id="stopwatchDigitalDisplay" class="text-3xl sm:text-5xl font-mono font-bold text-white tracking-widest">
               00:00:00
@@ -267,7 +251,6 @@
             </div>
           </div>
 
-          <!-- Timer Controls -->
           <div class="flex items-center justify-center gap-2 mt-3.5">
             <button id="btnToggleStopwatch" onclick="toggleStopwatch()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-indigo-600/30 min-h-[44px]">
               <i data-lucide="play" id="iconTimerPlay" class="w-4 h-4"></i>
@@ -282,7 +265,6 @@
           </div>
         </div>
 
-        <!-- Today's Focus History Log -->
         <div class="mt-4 pt-3 border-t border-slate-800/80">
           <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
             <span class="font-mono text-[10px] uppercase">Today's Sessions</span>
@@ -291,50 +273,58 @@
           <div id="focusHistoryLogList" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
         </div>
       </section>
-
     </div>
 
-    <!-- Priority & Timebound Tasks -->
+    <!-- Priority & Timebound Tasks (Configurable Frequency, Pending Default, Smart Sorting) -->
     <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-2 border-b border-slate-800/80">
         <div>
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
             <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Priority & Schedule Tasks
           </h2>
-          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap on time slots to schedule directly to 24H calendar.</p>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Timebound, priority-ranked, and recurring focus tasks.</p>
         </div>
 
-        <!-- Task Filters -->
+        <!-- Task Filters (Default: ACTIVE / Pending) -->
         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-          <button id="taskFilterBtn_ALL" onclick="setTaskFilter('ALL')" class="px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">All</button>
-          <button id="taskFilterBtn_ACTIVE" onclick="setTaskFilter('ACTIVE')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">Pending</button>
+          <button id="taskFilterBtn_ACTIVE" onclick="setTaskFilter('ACTIVE')" class="px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">Pending</button>
+          <button id="taskFilterBtn_ALL" onclick="setTaskFilter('ALL')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All</button>
           <button id="taskFilterBtn_SCHEDULED" onclick="setTaskFilter('SCHEDULED')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">Timebound</button>
         </div>
       </div>
 
-      <!-- Quick Add Task Bar -->
-      <form onsubmit="handleQuickAddTask(event)" class="flex flex-col sm:flex-row gap-2 mb-3.5">
-        <input type="text" id="quickTaskTitleInput" placeholder="Add a new task (e.g. Call accountant, Deploy build...)" required
+      <!-- Quick Add Task Bar with Frequency Selector -->
+      <form onsubmit="handleQuickAddTask(event)" class="flex flex-col md:flex-row gap-2 mb-3.5">
+        <input type="text" id="quickTaskTitleInput" placeholder="Add task (e.g. Prepare presentation, Review PR...)" required
                class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
         
         <div class="flex items-center gap-2">
-          <select id="quickTaskPrioritySelect" class="flex-1 sm:flex-none bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none">
-            <option value="High">High Priority</option>
-            <option value="Med" selected>Medium</option>
-            <option value="Low">Low</option>
+          <select id="quickTaskPrioritySelect" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-300 focus:outline-none">
+            <option value="High">🔥 High</option>
+            <option value="Med" selected>⚡ Medium</option>
+            <option value="Low">🌱 Low</option>
           </select>
 
-          <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 flex items-center justify-center gap-1 shadow-md shadow-indigo-600/30 min-h-[40px]">
+          <!-- Quick Frequency Dropdown -->
+          <select id="quickTaskFrequencySelect" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-300 focus:outline-none">
+            <option value="once" selected>Once</option>
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+            <option value="weekends">Weekends</option>
+            <option value="weekly">Weekly</option>
+          </select>
+
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 flex items-center justify-center gap-1 shadow-md shadow-indigo-600/30 min-h-[40px] whitespace-nowrap">
             <i data-lucide="plus" class="w-4 h-4"></i> Add
           </button>
         </div>
       </form>
 
-      <!-- Task Items List -->
+      <!-- Task Items List Container -->
       <div id="masterTaskList" class="space-y-2"></div>
     </section>
 
-    <!-- Evening Reflection & Daily Review -->
+    <!-- Evening Reflection -->
     <section id="module_review" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
         <div>
@@ -383,7 +373,7 @@
 
   </main>
 
-  <!-- FLOATING MOBILE BOTTOM NAVIGATION DOCK -->
+  <!-- Mobile Bottom Dock -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 safe-bottom px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl">
     <button onclick="scrollToModule('module_planner')" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
       <i data-lucide="calendar" class="w-4 h-4"></i>
@@ -407,7 +397,7 @@
     </button>
   </nav>
 
-  <!-- MODAL: Add / Edit Planned Block & Evaluate Actuals -->
+  <!-- MODAL: Add / Edit Planned Block -->
   <div id="timeBlockModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -425,7 +415,6 @@
         <input type="hidden" id="tbRoutineId" value="">
         <input type="hidden" id="tbTaskId" value="">
 
-        <!-- Title & Color Theme -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div class="sm:col-span-2">
             <label class="block text-xs font-medium text-slate-400 mb-1">Block Title</label>
@@ -444,7 +433,6 @@
           </div>
         </div>
 
-        <!-- Planned Time Window -->
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
           <span class="text-[11px] font-semibold text-indigo-300 font-mono flex items-center gap-1.5">
             <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 1. Planned Schedule
@@ -462,7 +450,6 @@
           <input type="text" id="tbNotes" placeholder="Planned objectives / notes..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none">
         </div>
 
-        <!-- Actual Execution Evaluation -->
         <div class="p-3 bg-slate-950 rounded-xl border border-emerald-900/50 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-300 font-mono flex items-center gap-1.5">
@@ -489,7 +476,6 @@
           <input type="text" id="tbActualNotes" placeholder="What actually happened? (Deviations, achievements...)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 placeholder-slate-600 focus:outline-none">
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex items-center justify-between pt-2 border-t border-slate-800">
           <button type="button" id="btnDeleteTimeBlock" onclick="handleDeleteCurrentTimeBlock()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1 min-h-[40px]">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
@@ -505,7 +491,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Create / Edit / Schedule Task -->
+  <!-- MODAL: Create / Edit / Schedule Task (With Frequency Support) -->
   <div id="taskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -526,23 +512,32 @@
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Priority</label>
-            <select id="tmPriority" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
-              <option value="High">High</option>
-              <option value="Med">Medium</option>
-              <option value="Low">Low</option>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Priority</label>
+            <select id="tmPriority" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none">
+              <option value="High">🔥 High</option>
+              <option value="Med" selected>⚡ Medium</option>
+              <option value="Low">🌱 Low</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Status</label>
-            <select id="tmStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Frequency</label>
+            <select id="tmFrequency" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none">
+              <option value="once" selected>Once</option>
+              <option value="daily">Daily</option>
+              <option value="weekdays">Weekdays</option>
+              <option value="weekends">Weekends</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Status</label>
+            <select id="tmStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-xs text-slate-200 focus:outline-none">
               <option value="Need to Start">Need to Start</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
               <option value="Pending">Pending</option>
-              <option value="In Future">In Future</option>
             </select>
           </div>
         </div>
@@ -588,7 +583,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Create / Edit Customizable Habit -->
+  <!-- MODAL: Habits -->
   <div id="habitModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -618,7 +613,6 @@
           </select>
         </div>
 
-        <!-- Numeric Target Fields (Visible only for 'number') -->
         <div id="hmNumberFields" class="hidden grid grid-cols-2 gap-2.5 p-3 bg-slate-950 rounded-xl border border-slate-800">
           <div>
             <label class="block text-[10px] text-slate-500 mb-1">Target Number</label>
@@ -640,7 +634,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Recurring Routines Manager -->
+  <!-- MODAL: Routines -->
   <div id="routineModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -653,7 +647,6 @@
       </div>
 
       <div class="space-y-3.5">
-        <!-- New Routine Form -->
         <form onsubmit="handleCreateRoutine(event)" class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
           <div class="grid grid-cols-3 gap-2">
             <input type="text" id="rtTitle" required placeholder="Routine Name" class="col-span-2 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
@@ -677,13 +670,12 @@
           </div>
         </form>
 
-        <!-- Existing Routines List -->
         <div id="routinesListContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Google Apps Script API Settings -->
+  <!-- MODAL: Settings -->
   <div id="configModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
       <div class="flex items-center justify-between mb-3">
@@ -727,10 +719,12 @@
     };
 
     let selectedPlannerDate = getTodayKey();
-    let currentTaskFilter = 'ALL';
+    let currentTaskFilter = 'ACTIVE'; // DEFAULT TO PENDING
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
+
+    const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
     function normalizeHabitType(val) {
       if (!val) return 'yesno';
@@ -758,21 +752,6 @@
           status: "Completed",
           taskId: null,
           routineId: null
-        },
-        {
-          id: 2,
-          date: getTodayKey(),
-          title: "Lunch & Walk",
-          startTime: "13:00",
-          endTime: "14:00",
-          color: "amber",
-          notes: "Nutritious meal and outdoor walk",
-          actualStartTime: "",
-          actualEndTime: "",
-          actualNotes: "",
-          status: "Planned",
-          taskId: null,
-          routineId: null
         }
       ],
       routines: [
@@ -791,6 +770,7 @@
           id: 1001,
           title: "Review Sprint Pull Requests",
           priority: "High",
+          frequency: "weekdays",
           status: "Need to Start",
           completed: false,
           date: getTodayKey(),
@@ -803,6 +783,7 @@
           id: 1002,
           title: "Respond to Client Inquiries",
           priority: "Med",
+          frequency: "daily",
           status: "Need to Start",
           completed: false,
           date: getTodayKey(),
@@ -832,12 +813,34 @@
 
     function scrollToModule(moduleId) {
       const el = document.getElementById(moduleId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ---------- Robust Helper Functions ----------
+    // ---------- Recurrence Matcher for Frequency ----------
+    function isTaskActiveForDate(task, dateStr) {
+      const freq = (task.frequency || 'once').toLowerCase();
+      const taskDate = normalizeDateString(task.scheduledDate || task.date);
+      const activeDate = normalizeDateString(dateStr);
+
+      if (freq === 'once') {
+        return taskDate === activeDate || (!taskDate && activeDate === selectedPlannerDate);
+      }
+      
+      const d = new Date(activeDate + 'T00:00:00');
+      const dayOfWeek = d.getDay(); // 0: Sun, 1: Mon ... 6: Sat
+
+      if (freq === 'daily') return true;
+      if (freq === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
+      if (freq === 'weekends') return dayOfWeek === 0 || dayOfWeek === 6;
+      if (freq === 'weekly') {
+        if (!taskDate) return dayOfWeek === 1;
+        const origD = new Date(taskDate + 'T00:00:00');
+        return origD.getDay() === dayOfWeek;
+      }
+      return taskDate === activeDate;
+    }
+
+    // ---------- Time and String Normalizers ----------
     function timeToMinutes(tStr) {
       if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return 0;
       const parts = tStr.split(':').map(Number);
@@ -930,12 +933,11 @@
       return s;
     }
 
-    // ---------- Sync Engine (Google Apps Script) ----------
+    // ---------- Sync Engine ----------
     function setSyncStatus(state) {
       const dot = document.getElementById('syncDot');
       const txt = document.getElementById('syncText');
       const icon = document.getElementById('syncIcon');
-
       if (!dot || !txt || !icon) return;
 
       if (state === 'syncing') {
@@ -959,12 +961,10 @@
         setSyncStatus('error');
         return;
       }
-
       if (!isRemoteDataLoaded) {
         fetchRemoteData();
         return;
       }
-
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       syncDebounceTimer = setTimeout(executeSyncPayload, 400);
     }
@@ -997,7 +997,6 @@
           };
         });
 
-        // Deduplicate routines by title before uploading
         const seenRt = new Set();
         const routinesPayload = [];
         appData.routines.forEach(r => {
@@ -1022,21 +1021,20 @@
           const sDate = normalizeDateString(t.date || t.scheduledDate || "");
           const sTime = normalizeTimeString(t.scheduledStartTime || "");
           const eTime = normalizeTimeString(t.scheduledEndTime || "");
-          const slotStr = (sTime && eTime) ? `${sTime} - ${eTime}` : "";
-          const blockStr = sTime ? getTimeBlockName(sTime) : "";
           return {
             id: String(t.id),
             title: t.title || "Untitled Task",
             priority: t.priority || "Med",
+            frequency: t.frequency || "once",
             status: t.status || "Need to Start",
             completed: t.completed ? "TRUE" : "FALSE",
             date: sDate,
             scheduledDate: sDate,
             scheduledStartTime: sTime,
             scheduledEndTime: eTime,
-            timeSlot: slotStr,
-            timeBlock: blockStr,
-            scheduledBlock: blockStr,
+            timeSlot: (sTime && eTime) ? `${sTime} - ${eTime}` : "",
+            timeBlock: sTime ? getTimeBlockName(sTime) : "",
+            scheduledBlock: sTime ? getTimeBlockName(sTime) : "",
             plannedMins: Number(t.plannedMins) || 30,
             actualMins: Number(t.actualMins) || 0
           };
@@ -1079,11 +1077,8 @@
           })
         });
 
-        if (res.ok) {
-          setSyncStatus('synced');
-        } else {
-          setSyncStatus('error');
-        }
+        if (res.ok) setSyncStatus('synced');
+        else setSyncStatus('error');
       } catch (err) {
         console.error("Sync error:", err);
         setSyncStatus('error');
@@ -1101,15 +1096,11 @@
       setSyncStatus('syncing');
 
       try {
-        const res = await fetch(appData.apiUrl, {
-          method: "GET",
-          redirect: "follow"
-        });
-
+        const res = await fetch(appData.apiUrl, { method: "GET", redirect: "follow" });
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Planner Blocks
+        // Planner
         if (json.planner && Array.isArray(json.planner)) {
           const seenPlan = new Set();
           const cleanPlanner = [];
@@ -1141,7 +1132,7 @@
           appData.timeBlocks = cleanPlanner;
         }
 
-        // 2. Routines with strict deduplication by Title
+        // Routines
         if (json.routines && Array.isArray(json.routines)) {
           const seenRt = new Set();
           const cleanRoutines = [];
@@ -1167,7 +1158,7 @@
           appData.routines = cleanRoutines;
         }
 
-        // 3. Habits with deduplication by Name
+        // Habits
         if (json.habits && Array.isArray(json.habits)) {
           const seenHabit = new Set();
           const cleanHabits = [];
@@ -1187,7 +1178,7 @@
           appData.habits = cleanHabits;
         }
 
-        // 4. Habit Logs
+        // Habit Logs
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
           const map = {};
           json.habitLogs.forEach(l => {
@@ -1205,7 +1196,7 @@
           appData.habitLogs = map;
         }
 
-        // 5. Tasks with deduplication by ID
+        // Tasks (With Frequency)
         if (json.tasks && Array.isArray(json.tasks)) {
           const seenTask = new Set();
           const cleanTasks = [];
@@ -1218,6 +1209,7 @@
               id: isNaN(tId) ? tId : Number(tId),
               title: t.title || "Untitled Task",
               priority: t.priority || "Med",
+              frequency: t.frequency || "once",
               status: t.status || "Need to Start",
               completed: String(t.completed).toUpperCase() === "TRUE",
               date: normalizeDateString(t.date || t.scheduledDate || ""),
@@ -1230,7 +1222,7 @@
           appData.tasks = cleanTasks;
         }
 
-        // 6. Focus Logs
+        // Focus Logs
         if (json.focusLogs && Array.isArray(json.focusLogs)) {
           appData.focusLogs = json.focusLogs.map(fl => ({
             id: Number(fl.id) || Date.now() + Math.random(),
@@ -1241,7 +1233,7 @@
           }));
         }
 
-        // 7. Daily Summaries strictly deduplicated by normalized Date
+        // Daily Summaries
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
           const sMap = {};
           json.dailySummaries.forEach(s => {
@@ -1271,7 +1263,7 @@
       }
     }
 
-    // ---------- Planner Navigation & 24H Timeline Render ----------
+    // ---------- Planner & Timeline Render ----------
     function shiftPlannerDate(delta) {
       const d = new Date(selectedPlannerDate + "T00:00:00");
       d.setDate(d.getDate() + delta);
@@ -1382,9 +1374,9 @@
       const routineBadge = document.getElementById('activeRoutineCountBadge');
       if (routineBadge) routineBadge.textContent = appData.routines.length;
 
+      // Scheduled tasks filtered by recurrence frequency for the selected date
       const scheduledTasks = appData.tasks.filter(t => {
-        const matchesDate = (t.date === selectedPlannerDate || t.scheduledDate === selectedPlannerDate);
-        return matchesDate && t.scheduledStartTime;
+        return isTaskActiveForDate(t, selectedPlannerDate) && t.scheduledStartTime;
       });
 
       let totalPlannedMins = 0;
@@ -1659,7 +1651,7 @@
       syncToRemote();
     }
 
-    // ---------- Habit Tracker Matrix ----------
+    // ---------- Habit Tracker ----------
     function renderHabits() {
       const container = document.getElementById('habitCardsContainer');
       if (!container) return;
@@ -1816,9 +1808,7 @@
     function saveDescriptiveFromInput(id) {
       const hId = String(id);
       const input = document.getElementById(`desc_input_${hId}`);
-      if (input) {
-        saveDescriptiveHabit(hId, input.value);
-      }
+      if (input) saveDescriptiveHabit(hId, input.value);
     }
 
     function saveDescriptiveHabit(id, text) {
@@ -1850,11 +1840,8 @@
     function onHabitTypeChange(val) {
       const numFields = document.getElementById('hmNumberFields');
       if (numFields) {
-        if (val === 'number') {
-          numFields.classList.remove('hidden');
-        } else {
-          numFields.classList.add('hidden');
-        }
+        if (val === 'number') numFields.classList.remove('hidden');
+        else numFields.classList.add('hidden');
       }
     }
 
@@ -1875,13 +1862,7 @@
         existing.target = target;
         existing.unit = unit;
       } else {
-        appData.habits.push({
-          id: Date.now(),
-          name,
-          type,
-          target,
-          unit
-        });
+        appData.habits.push({ id: Date.now(), name, type, target, unit });
       }
 
       closeHabitModal();
@@ -1895,7 +1876,7 @@
       syncToRemote();
     }
 
-    // ---------- Tasks Manager Logic ----------
+    // ---------- Tasks Manager (Frequency, Default Pending, Smart Sorting) ----------
     function setTaskFilter(filter) {
       currentTaskFilter = filter;
       ['ALL', 'ACTIVE', 'SCHEDULED'].forEach(f => {
@@ -1914,6 +1895,7 @@
       e.preventDefault();
       const titleInput = document.getElementById('quickTaskTitleInput');
       const prioritySelect = document.getElementById('quickTaskPrioritySelect');
+      const frequencySelect = document.getElementById('quickTaskFrequencySelect');
       const title = titleInput.value.trim();
 
       if (!title) return;
@@ -1922,6 +1904,7 @@
         id: Date.now(),
         title,
         priority: prioritySelect.value,
+        frequency: frequencySelect ? frequencySelect.value : 'once',
         status: "Need to Start",
         completed: false,
         date: selectedPlannerDate,
@@ -1953,15 +1936,39 @@
       if (!container) return;
       container.innerHTML = '';
 
-      let list = appData.tasks;
+      // 1. FILTERING
+      let list = [...appData.tasks];
       if (currentTaskFilter === 'ACTIVE') {
-        list = list.filter(t => !t.completed);
+        list = list.filter(t => !t.completed && t.status !== "Completed");
       } else if (currentTaskFilter === 'SCHEDULED') {
         list = list.filter(t => Boolean(t.scheduledStartTime && t.scheduledEndTime));
       }
 
+      // 2. MULTI-TIER SMART SORTING:
+      // Current Day Active First -> Priority Rank (High -> Med -> Low) -> Start Time
+      list.sort((a, b) => {
+        const aToday = isTaskActiveForDate(a, selectedPlannerDate);
+        const bToday = isTaskActiveForDate(b, selectedPlannerDate);
+
+        // Tier 1: Today's tasks first
+        if (aToday && !bToday) return -1;
+        if (!aToday && bToday) return 1;
+
+        // Tier 2: Priority (High = 1, Med = 2, Low = 3)
+        const aPri = PRIORITY_ORDER[a.priority] || 2;
+        const bPri = PRIORITY_ORDER[b.priority] || 2;
+        if (aPri !== bPri) return aPri - bPri;
+
+        // Tier 3: Start Time ordering
+        if (a.scheduledStartTime && b.scheduledStartTime) {
+          return timeToMinutes(a.scheduledStartTime) - timeToMinutes(b.scheduledStartTime);
+        }
+        return 0;
+      });
+
       if (!list.length) {
-        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">No tasks found. Add one above!</div>`;
+        const emptyLabel = currentTaskFilter === 'ACTIVE' ? 'pending' : (currentTaskFilter === 'SCHEDULED' ? 'scheduled' : '');
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">No ${emptyLabel} tasks found. Add one above!</div>`;
         return;
       }
 
@@ -1973,18 +1980,24 @@
 
       list.forEach(task => {
         const isScheduled = Boolean(task.scheduledStartTime && task.scheduledEndTime);
+        const isToday = isTaskActiveForDate(task, selectedPlannerDate);
+        const freq = (task.frequency || 'once').toLowerCase();
+        const freqLabel = freq === 'daily' ? 'Daily' : freq === 'weekdays' ? 'Weekdays' : freq === 'weekends' ? 'Weekends' : freq === 'weekly' ? 'Weekly' : '';
+
         const card = document.createElement('div');
-        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${task.completed ? 'opacity-60' : ''}`;
+        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${task.completed ? 'opacity-60' : (isToday ? 'ring-1 ring-indigo-500/20' : '')}`;
 
         card.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0 flex-1">
             <button onclick="toggleTaskCompletion('${task.id}')" class="p-1 rounded text-emerald-400 active:scale-90 transition flex-shrink-0">
               <i data-lucide="${task.completed ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
             </button>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1 cursor-pointer" onclick="openEditTaskModal('${task.id}')">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="text-xs sm:text-sm font-semibold ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
-                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${priorityClasses[task.priority]}">${task.priority}</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${priorityClasses[task.priority] || priorityClasses.Med}">${task.priority}</span>
+                ${freqLabel ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-sky-950/60 text-sky-300 border-sky-800/50">${freqLabel}</span>` : ''}
+                ${isToday ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 text-indigo-300 border-indigo-800/50">Today</span>` : ''}
                 ${isScheduled ? `
                   <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
                     ⏱️ ${task.scheduledStartTime}-${task.scheduledEndTime}
@@ -2022,6 +2035,7 @@
       document.getElementById('tmTaskId').value = task.id;
       document.getElementById('tmTitle').value = task.title || "";
       document.getElementById('tmPriority').value = task.priority || "Med";
+      document.getElementById('tmFrequency').value = (task.frequency || "once").toLowerCase();
       document.getElementById('tmStatus').value = task.status || "Need to Start";
       document.getElementById('tmDate').value = task.date || selectedPlannerDate;
       document.getElementById('tmStartTime').value = task.scheduledStartTime || "";
@@ -2037,6 +2051,7 @@
       document.getElementById('tmTaskId').value = "";
       document.getElementById('tmTitle').value = "";
       document.getElementById('tmPriority').value = "Med";
+      document.getElementById('tmFrequency').value = "once";
       document.getElementById('tmStatus').value = "Need to Start";
       document.getElementById('tmDate').value = selectedPlannerDate;
       document.getElementById('tmStartTime').value = startTime;
@@ -2057,6 +2072,7 @@
       const rawId = document.getElementById('tmTaskId').value;
       const title = document.getElementById('tmTitle').value.trim();
       const priority = document.getElementById('tmPriority').value;
+      const frequency = document.getElementById('tmFrequency').value;
       const status = document.getElementById('tmStatus').value;
       const date = document.getElementById('tmDate').value;
       const scheduledStartTime = document.getElementById('tmStartTime').value;
@@ -2071,6 +2087,7 @@
         if (t) {
           t.title = title;
           t.priority = priority;
+          t.frequency = frequency;
           t.status = status;
           t.completed = (status === "Completed");
           t.date = date;
@@ -2084,6 +2101,7 @@
           id: Date.now(),
           title,
           priority,
+          frequency,
           status,
           completed: (status === "Completed"),
           date,
@@ -2107,7 +2125,7 @@
       syncToRemote();
     }
 
-    // ---------- Focus Stopwatch Logic ----------
+    // ---------- Focus Stopwatch ----------
     let timerInterval = null;
     let timerSeconds = 0;
     let isStopwatchRunning = false;
@@ -2229,7 +2247,7 @@
       syncToRemote();
     }
 
-    // ---------- Daily Review & Reflection ----------
+    // ---------- Daily Review ----------
     function renderDailyReview() {
       const s = appData.dailySummaries[selectedPlannerDate] || {};
       const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
@@ -2487,7 +2505,7 @@
       syncToRemote();
     }
 
-    // ---------- Config & Backup Handlers ----------
+    // ---------- Settings & Backup ----------
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
       document.getElementById('configModal').classList.remove('hidden');
@@ -2535,6 +2553,7 @@
 
     window.onload = () => {
       buildHourlyBackgroundGrid();
+      setTaskFilter('ACTIVE'); // Ensure default filter is Pending
       renderAll();
       scrollToCurrentTimeOrStart();
 
