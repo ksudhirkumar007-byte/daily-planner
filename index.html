@@ -1132,7 +1132,7 @@
           const sTime = normalizeTimeString(b.startTime) || "09:00";
           const eTime = normalizeTimeString(b.endTime) || "10:00";
           return {
-            id: String(b.id),
+            id: String(b.id).trim(), // BUG FIX: Trim to ensure proper upsert matching
             date: normalizeDateString(b.date),
             title: b.title || "Untitled Block",
             startTime: sTime,
@@ -1145,8 +1145,8 @@
             actualEndTime: normalizeTimeString(b.actualEndTime) || "",
             actualNotes: b.actualNotes || "",
             status: b.status || "Planned",
-            taskId: b.taskId || "",
-            routineId: b.routineId || ""
+            taskId: b.taskId ? String(b.taskId).trim() : "",
+            routineId: b.routineId ? String(b.routineId).trim() : ""
           };
         });
 
@@ -1175,7 +1175,7 @@
           const sTime = normalizeTimeString(t.scheduledStartTime || "");
           const eTime = normalizeTimeString(t.scheduledEndTime || "");
           return {
-            id: String(t.id),
+            id: String(t.id).trim(), // BUG FIX: Trim to ensure proper upsert matching
             title: t.title || "Untitled Task",
             priority: t.priority || "Med",
             frequency: t.frequency || "once",
@@ -1679,6 +1679,7 @@
         container.appendChild(planCard);
       });
 
+      // BUG FIX #1: Render scheduled tasks as time blocks in the planner (not just in task list)
       scheduledTasks.forEach(task => {
         const tStartM = timeToMinutes(task.scheduledStartTime);
         let tEndM = timeToMinutes(task.scheduledEndTime);
@@ -1707,6 +1708,21 @@
           openEditTaskModal(task.id);
         };
 
+        let evalHtml = "";
+        if (task.actualMins > 0 || task.actualStartTime) {
+          const isDoneClass = isDone ? 'bg-emerald-950 text-emerald-300 border-emerald-600/50' : 'bg-slate-800 text-slate-300 border-slate-700';
+          evalHtml = `
+            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
+              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${isDoneClass}">
+                ${task.status || 'Done'}
+              </span>
+              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
+                ${task.actualMins > 0 ? task.actualMins + 'm act' : (task.actualStartTime ? task.actualStartTime : 'Logged')}
+              </span>
+            </div>
+          `;
+        }
+
         if (isCompact) {
           taskCard.innerHTML = `
             <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
@@ -1728,6 +1744,7 @@
                   </button>
                   <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
                 </div>
+                ${evalHtml}
               </div>
             </div>
           `;
@@ -2811,18 +2828,46 @@
       const slotStr = `${startTime} - ${endTime}`;
       const blockName = getTimeBlockName(startTime);
 
-      if (rawId && !rawId.startsWith('ROUTINE_')) {
-        const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
-        if (idx >= 0) {
-          appData.timeBlocks[idx] = {
-            ...appData.timeBlocks[idx],
-            date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
-            notes, status, actualStartTime, actualEndTime, actualNotes,
-            routineId: routineId,
-            taskId: taskId
-          };
+      // BUG FIX #2: Handle all ID types correctly - regular, routine virtual IDs, and new blocks
+      if (rawId) {
+        // Check if it's a virtual routine ID (format: ROUTINE_XXX_YYYY-MM-DD)
+        if (rawId.startsWith('ROUTINE_')) {
+          // Converting virtual routine to actual manual block - need to create new block
+          // But first remove any existing manual block for this routine on this date
+          appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
+
+          appData.timeBlocks.push({
+            id: Date.now(),
+            date,
+            routineId: null, // Remove routine ID since we're making it manual
+            taskId,
+            title,
+            color,
+            startTime,
+            endTime,
+            timeSlot: slotStr,
+            timeBlock: blockName,
+            notes,
+            status,
+            actualStartTime,
+            actualEndTime,
+            actualNotes
+          });
+        } else {
+          // Regular manual block - update in place
+          const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
+          if (idx >= 0) {
+            appData.timeBlocks[idx] = {
+              ...appData.timeBlocks[idx],
+              date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
+              notes, status, actualStartTime, actualEndTime, actualNotes,
+              routineId: routineId,
+              taskId: taskId
+            };
+          }
         }
       } else {
+        // New block - add to array
         appData.timeBlocks.push({
           id: Date.now(),
           date,
