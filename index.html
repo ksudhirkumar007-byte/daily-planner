@@ -1431,11 +1431,12 @@
 
         if (res.ok) {
           // Capture current state as last synced
+          // IMPORTANT: Deep copy habitLogs to prevent reference issues with delta detection
           lastSyncedState = {
             timeBlocks: allTimeBlocks,
             routines: allRoutines,
             habits: allHabits,
-            habitLogs: appData.habitLogs,
+            habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)), // Deep copy!
             tasks: allTasks,
             focusLogs: appData.focusLogs,
             dailySummaries: summariesArray
