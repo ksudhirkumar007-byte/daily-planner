@@ -948,6 +948,7 @@
     let isSyncInProgress = false;
     let lastSyncTimestamp = 0;
     let pendingSyncQueue = null; // Queue changes that come in during sync
+    let lastSyncedState = null;  // Track last synced state for delta sync
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1211,17 +1212,52 @@
       fetchRemoteData();
     }
 
+    // Delta Sync Helper Functions
+    function getChangedItems(current, previous, keyField = 'id') {
+      if (!previous) return current; // First sync, send all
+
+      const prevMap = {};
+      (previous || []).forEach(item => {
+        prevMap[item[keyField]] = item;
+      });
+
+      // Return only items that changed or are new
+      return current.filter(item => {
+        const key = item[keyField];
+        const prevItem = prevMap[key];
+        if (!prevItem) return true; // New item
+        // Check if any field changed
+        return JSON.stringify(item) !== JSON.stringify(prevItem);
+      });
+    }
+
+    function getChangedHabitLogs(current, previous) {
+      if (!previous) return current;
+
+      const prevKeys = Object.keys(previous || {});
+      const changedLogs = {};
+
+      Object.keys(current).forEach(key => {
+        if (!previous[key] || JSON.stringify(current[key]) !== JSON.stringify(previous[key])) {
+          changedLogs[key] = current[key];
+        }
+      });
+
+      return changedLogs;
+    }
+
     async function executeSyncPayload() {
       if (isSyncInProgress) return;
       isSyncInProgress = true;
       setSyncStatus('syncing');
 
       try {
-        const plannerPayload = appData.timeBlocks.map(b => {
+        // Build all payloads first
+        const allTimeBlocks = appData.timeBlocks.map(b => {
           const sTime = normalizeTimeString(b.startTime) || "09:00";
           const eTime = normalizeTimeString(b.endTime) || "10:00";
           return {
-            id: String(b.id).trim(), // BUG FIX: Trim to ensure proper upsert matching
+            id: String(b.id).trim(),
             date: normalizeDateString(b.date),
             title: b.title || "Untitled Block",
             startTime: sTime,
@@ -1240,14 +1276,14 @@
         });
 
         const seenRt = new Set();
-        const routinesPayload = [];
+        const allRoutines = [];
         appData.routines.forEach(r => {
           const normTitle = (r.title || "").trim().toLowerCase();
           if (!normTitle || seenRt.has(normTitle)) return;
           seenRt.add(normTitle);
           const sTime = normalizeTimeString(r.startTime) || "07:00";
           const eTime = normalizeTimeString(r.endTime) || "08:00";
-          routinesPayload.push({
+          allRoutines.push({
             id: String(r.id),
             title: r.title || "Routine",
             startTime: sTime,
@@ -1259,12 +1295,66 @@
           });
         });
 
-        const tasksPayload = appData.tasks.map(t => {
+        const allHabits = appData.habits.map(h => ({
+          id: String(h.id).trim(),
+          name: h.name || "Habit",
+          type: h.type || "yesno",
+          target: Number(h.target) || 0,
+          unit: h.unit || ""
+        }));
+
+        const allHabitLogsArray = Object.keys(appData.habitLogs).map(key => {
+          const parts = key.split('_');
+          const habitId = parts[0];
+          const date = parts.slice(1).join('_');
+          const entry = appData.habitLogs[key];
+          return {
+            id: key,
+            habitId: habitId,
+            date: date,
+            value: entry.value !== undefined ? String(entry.value) : "",
+            completed: entry.completed ? "TRUE" : "FALSE"
+          };
+        });
+
+        // Now apply delta sync - only send items that changed
+        const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
+        const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
+        const habitsPayload = getChangedItems(allHabits, lastSyncedState?.habits, 'id');
+        const habitLogsChanges = getChangedHabitLogs(appData.habitLogs, lastSyncedState?.habitLogs);
+        const habitLogsArray = Object.keys(habitLogsChanges).map(key => {
+          const parts = key.split('_');
+          const habitId = parts[0];
+          const date = parts.slice(1).join('_');
+          const entry = habitLogsChanges[key];
+          return {
+            id: key,
+            habitId: habitId,
+            date: date,
+            value: entry.value !== undefined ? String(entry.value) : "",
+            completed: entry.completed ? "TRUE" : "FALSE"
+          };
+        });
+
+        console.log("Sync Debug - Delta Summary:", {
+          plannerChanges: plannerPayload.length,
+          routinesChanges: routinesPayload.length,
+          habitChanges: habitsPayload.length,
+          habitLogChanges: Object.keys(habitLogsChanges).length,
+          totalAppData: {
+            planner: appData.timeBlocks.length,
+            routines: appData.routines.length,
+            habits: appData.habits.length,
+            habitLogs: Object.keys(appData.habitLogs).length
+          }
+        });
+
+        const allTasks = appData.tasks.map(t => {
           const sDate = normalizeDateString(t.date || t.scheduledDate || "");
           const sTime = normalizeTimeString(t.scheduledStartTime || "");
           const eTime = normalizeTimeString(t.scheduledEndTime || "");
           return {
-            id: String(t.id).trim(), // BUG FIX: Trim to ensure proper upsert matching
+            id: String(t.id).trim(),
             title: t.title || "Untitled Task",
             priority: t.priority || "Med",
             frequency: t.frequency || "once",
@@ -1282,25 +1372,29 @@
           };
         });
 
-        const habitLogsArray = Object.keys(appData.habitLogs).map(key => {
-          const parts = key.split('_');
-          const habitId = parts[0];
-          const date = parts.slice(1).join('_');
-          const entry = appData.habitLogs[key];
-          return {
-            id: key,
-            habitId: habitId,
-            date: date,
-            value: entry.value !== undefined ? String(entry.value) : "",
-            completed: entry.completed ? "TRUE" : "FALSE"
-          };
-        });
+        const tasksPayload = getChangedItems(allTasks, lastSyncedState?.tasks, 'id');
+        const focusLogsPayload = getChangedItems(appData.focusLogs, lastSyncedState?.focusLogs, 'id');
 
         const summariesArray = Object.keys(appData.dailySummaries).map(date => ({
           date: normalizeDateString(date),
           ...(appData.dailySummaries[date] || {})
         }));
+        const summariesPayload = getChangedItems(summariesArray, lastSyncedState?.dailySummaries, 'date');
 
+        // Only send if payload has changes
+        const hasChanges = plannerPayload.length > 0 || routinesPayload.length > 0 ||
+                          habitsPayload.length > 0 || habitLogsArray.length > 0 ||
+                          tasksPayload.length > 0 || focusLogsPayload.length > 0 ||
+                          summariesPayload.length > 0;
+
+        if (!hasChanges && lastSyncedState) {
+          console.log("No changes detected, skipping sync");
+          setSyncStatus('synced');
+          isSyncInProgress = false;
+          return;
+        }
+
+        const startTime = performance.now();
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -1310,16 +1404,39 @@
             data: {
               planner: plannerPayload,
               routines: routinesPayload,
-              habits: appData.habits,
+              habits: habitsPayload,
               habitLogs: habitLogsArray,
               tasks: tasksPayload,
-              focusLogs: appData.focusLogs,
-              dailySummaries: summariesArray
+              focusLogs: focusLogsPayload,
+              dailySummaries: summariesPayload
             }
           })
         });
 
-        if (res.ok) setSyncStatus('synced');
+        const syncDuration = performance.now() - startTime;
+        const totalChanges = plannerPayload.length + routinesPayload.length + habitsPayload.length +
+                            Object.keys(habitLogsChanges).length + tasksPayload.length +
+                            focusLogsPayload.length + summariesPayload.length;
+
+        console.log(`✅ DELTA SYNC OPTIMIZATION: Sent ${totalChanges} changes instead of ${
+          allTimeBlocks.length + allRoutines.length + allHabits.length +
+          Object.keys(appData.habitLogs).length + allTasks.length +
+          appData.focusLogs.length + summariesArray.length
+        } total items. Completed in ${syncDuration.toFixed(0)}ms`);
+
+        if (res.ok) {
+          // Capture current state as last synced
+          lastSyncedState = {
+            timeBlocks: allTimeBlocks,
+            routines: allRoutines,
+            habits: allHabits,
+            habitLogs: appData.habitLogs,
+            tasks: allTasks,
+            focusLogs: appData.focusLogs,
+            dailySummaries: summariesArray
+          };
+          setSyncStatus('synced');
+        }
         else setSyncStatus('error');
       } catch (err) {
         console.error("Sync error:", err);
@@ -1353,6 +1470,11 @@
         const res = await fetch(appData.apiUrl, { method: "GET", redirect: "follow" });
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
+
+        console.log("Fetch Debug - Remote data received:", {
+          habitCount: json.habits ? json.habits.length : 0,
+          habits: json.habits
+        });
 
         // 1. Planner
         if (json.planner && Array.isArray(json.planner)) {
@@ -1417,19 +1539,31 @@
           const seenHabit = new Set();
           const cleanHabits = [];
           json.habits.forEach(h => {
-            const hId = (h.id !== undefined && h.id !== null && String(h.id).trim() !== "") ? String(h.id).trim() : null;
             const normName = (h.name || "").trim().toLowerCase();
             if (!normName || seenHabit.has(normName)) return;
             seenHabit.add(normName);
+
+            // Parse ID: if it's numeric, convert to number; otherwise keep as string
+            let hId = h.id;
+            if (hId !== undefined && hId !== null) {
+              const strId = String(hId).trim();
+              hId = isNaN(strId) ? strId : Number(strId);
+            } else {
+              hId = "hb_" + normName.replace(/\s+/g, '_');
+            }
+
             cleanHabits.push({
-              id: hId || "hb_" + normName.replace(/\s+/g, '_'),
+              id: hId,
               name: h.name || "Habit",
               type: normalizeHabitType(h.type),
               target: Number(h.target) || 0,
               unit: h.unit || ""
             });
           });
-          appData.habits = cleanHabits;
+          // Only update if we actually received habits from remote
+          if (cleanHabits.length > 0) {
+            appData.habits = cleanHabits;
+          }
         }
 
         // 4. Habit Logs
@@ -1511,6 +1645,12 @@
         saveState();
         renderAll();
         setSyncStatus('synced');
+
+        // Trigger initial sync to push local data to Google Sheets
+        console.log("Initial sync triggered after loading remote data");
+        setTimeout(() => {
+          syncToRemote();
+        }, 500);
       } catch (err) {
         console.error("Fetch error:", err);
         setSyncStatus('error');
@@ -2116,6 +2256,14 @@
       log.completed = !currentlyDone;
       log.value = log.completed ? "Yes" : "No";
       appData.habitLogs[key] = log;
+
+      console.log("Habit Updated:", {
+        habitId: hId,
+        key: key,
+        completed: log.completed,
+        appDataHabitsLength: appData.habits.length
+      });
+
       // Use requestAnimationFrame to batch UI updates
       requestAnimationFrame(() => {
         renderHabits();
