@@ -1254,6 +1254,8 @@
       isSyncInProgress = true;
       setSyncStatus('syncing');
 
+      console.log("📤 ExecuteSyncPayload starting with URL:", appData.apiUrl.substring(0, 80));
+
       try {
         // Build all payloads first
         const allTimeBlocks = appData.timeBlocks.map(b => {
@@ -1474,11 +1476,13 @@
 
     async function fetchRemoteData() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        console.warn("❌ No API URL configured");
         setSyncStatus('error');
         return;
       }
 
       setSyncStatus('syncing');
+      console.log("🔄 FetchRemoteData starting with URL:", appData.apiUrl.substring(0, 80));
 
       try {
         const res = await fetch(appData.apiUrl, { method: "GET", redirect: "follow" });
