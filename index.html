@@ -239,8 +239,10 @@
           <div class="flex-1 h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
         </div>
 
-        <div id="hourlyGridLines" class="relative divide-y divide-slate-900"></div>
-        <div id="scheduledBlocksContainer" class="absolute inset-0 pointer-events-none"></div>
+        <div class="relative w-full" style="height: 1440px;">
+          <div id="hourlyGridLines" class="divide-y divide-slate-900 relative w-full h-full"></div>
+          <div id="scheduledBlocksContainer" class="absolute inset-0 z-10 w-full"></div>
+        </div>
       </div>
 
       <!-- Planner Footer -->
@@ -1740,7 +1742,9 @@
         const isCompact = pDur < 42;
 
         const planCard = document.createElement('div');
-        planCard.className = `absolute left-[17.5%] sm:left-[9.5%] w-[40.5%] sm:w-[41%] rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${theme.planBg} ${theme.border}`;
+        planCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${theme.planBg} ${theme.border}`;
+        planCard.style.left = 'calc(16.667% + 0.5px)';
+        planCard.style.width = 'calc(41.667% - 1px)';
         planCard.style.top = `${cardTop}px`;
         planCard.style.height = `${cardHeight}px`;
 
@@ -1813,7 +1817,9 @@
         }[task.priority] || 'border-indigo-500/70 bg-indigo-950/30';
 
         const taskCard = document.createElement('div');
-        taskCard.className = `absolute right-[1%] sm:right-[1.5%] w-[40.5%] sm:w-[48%] rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
+        taskCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
+        taskCard.style.left = 'calc(58.334% + 0.5px)';
+        taskCard.style.width = 'calc(41.667% - 1px)';
         taskCard.style.top = `${taskTop}px`;
         taskCard.style.height = `${taskHeight}px`;
 
@@ -1881,10 +1887,6 @@
       }
 
       // FEATURE #2: Update current time indicator position
-      indicator.classList.remove('hidden');
-      const now = new Date();
-      const totalMins = now.getHours() * 60 + now.getMinutes();
-      indicator.style.top = totalMins + 'px';
 
       indicator.classList.remove('hidden');
       const now = new Date();
@@ -3259,6 +3261,13 @@
       setAnalyticsWindow(7);
       renderAll();
       scrollToCurrentTimeOrStart();
+
+      // Ensure lucide icons are initialized
+      if (window.lucide && window.lucide.createIcons) {
+        setTimeout(() => {
+          window.lucide.createIcons();
+        }, 100);
+      }
 
       if (appData.apiUrl) {
         fetchRemoteData();
