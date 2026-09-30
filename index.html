@@ -78,7 +78,7 @@
           <span class="hidden sm:inline">Analytics</span>
         </button>
 
-        <button id="syncStatusBadge" onclick="fetchRemoteData()" class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
+        <button id="syncStatusBadge" onclick="requestManualSync()" class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncText" class="font-mono text-[10px] hidden sm:inline">Synced</span>
           <i data-lucide="refresh-cw" id="syncIcon" class="w-3 h-3 text-slate-400"></i>
@@ -946,6 +946,8 @@
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
+    let lastSyncTimestamp = 0;
+    let pendingSyncQueue = null; // Queue changes that come in during sync
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1188,8 +1190,25 @@
         fetchRemoteData();
         return;
       }
+
+      // If sync is already in progress, queue the changes
+      if (isSyncInProgress) {
+        pendingSyncQueue = JSON.parse(JSON.stringify(appData));
+        console.log("Sync in progress, queued pending changes");
+        return;
+      }
+
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+    }
+
+    function requestManualSync() {
+      // Prevent triggering sync while one is in progress
+      if (isSyncInProgress) {
+        console.log("Sync already in progress, please wait");
+        return;
+      }
+      fetchRemoteData();
     }
 
     async function executeSyncPayload() {
@@ -1307,6 +1326,18 @@
         setSyncStatus('error');
       } finally {
         isSyncInProgress = false;
+        lastSyncTimestamp = Date.now();
+
+        // Process any pending changes that came in during sync
+        if (pendingSyncQueue) {
+          console.log("Processing pending changes from queue");
+          appData = JSON.parse(JSON.stringify(pendingSyncQueue));
+          pendingSyncQueue = null;
+          saveState();
+          // Trigger another sync with the queued changes
+          if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+          syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+        }
       }
     }
 
@@ -2085,8 +2116,11 @@
       log.completed = !currentlyDone;
       log.value = log.completed ? "Yes" : "No";
       appData.habitLogs[key] = log;
-      renderHabits();
-      renderAnalytics();
+      // Use requestAnimationFrame to batch UI updates
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
       syncToRemote();
     }
 
@@ -2100,8 +2134,11 @@
         value: num,
         completed: (num >= (habit.target || 1))
       };
-      renderHabits();
-      renderAnalytics();
+      // Use requestAnimationFrame to batch UI updates
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
       syncToRemote();
     }
 
@@ -2117,8 +2154,11 @@
         value: newNum,
         completed: (newNum >= (habit.target || 1))
       };
-      renderHabits();
-      renderAnalytics();
+      // Use requestAnimationFrame to batch UI updates
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
       syncToRemote();
     }
 
@@ -2135,8 +2175,11 @@
       log.value = text ? text.trim() : "";
       log.completed = Boolean(log.value);
       appData.habitLogs[key] = log;
-      renderHabits();
-      renderAnalytics();
+      // Use requestAnimationFrame to batch UI updates
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
       syncToRemote();
     }
 
@@ -2184,15 +2227,21 @@
       }
 
       closeHabitModal();
-      renderHabits();
-      renderAnalytics();
+      // Use requestAnimationFrame to batch UI updates
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
       syncToRemote();
     }
 
     function deleteHabit(id) {
       appData.habits = appData.habits.filter(h => String(h.id) !== String(id));
-      renderHabits();
-      renderAnalytics();
+      // Use requestAnimationFrame to batch UI updates
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
       syncToRemote();
     }
 
