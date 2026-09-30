@@ -1033,6 +1033,9 @@
     if (!appData.focusLogs) appData.focusLogs = [];
     if (!appData.dailySummaries) appData.dailySummaries = {};
 
+    // Always reload API URL from dedicated storage (not from stale appData)
+    appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
+
     function saveState() {
       localStorage.setItem('daily_flow_state_v3', JSON.stringify(appData));
     }
@@ -1439,7 +1442,18 @@
         }
         else setSyncStatus('error');
       } catch (err) {
-        console.error("Sync error:", err);
+        console.error("❌ Sync error:", err);
+
+        if (err.name === 'AbortError') {
+          console.error("❌ TIMEOUT - Sync took too long (10+ seconds). API URL may be unreachable.");
+        } else if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+          console.error("❌ NETWORK ERROR - Could not reach Google Apps Script URL.");
+          console.error("API URL: " + appData.apiUrl);
+          console.error("Fix: Check your API URL in settings (⚙️ icon)");
+        } else {
+          console.error("❌ Unexpected sync error. Check console for details.");
+        }
+
         setSyncStatus('error');
       } finally {
         isSyncInProgress = false;
@@ -3417,12 +3431,19 @@
 
     function saveApiUrlConfig() {
       const url = document.getElementById('apiUrlInput').value.trim();
+      console.log("Saving API URL:", url);
       appData.apiUrl = url;
       localStorage.setItem('daily_flow_api_url', url);
-      isRemoteDataLoaded = false;
-      saveState();
+      saveState();  // This saves appData to daily_flow_state_v3
       closeConfigModal();
-      fetchRemoteData();
+      console.log("API URL saved. Reloading with new URL...");
+      // Clear cache and reload to ensure new URL is used
+      setTimeout(() => {
+        isRemoteDataLoaded = false;
+        pendingSyncQueue = null;
+        lastSyncedState = null;
+        fetchRemoteData();
+      }, 100);
     }
 
     function exportBackupData() {
@@ -3453,6 +3474,9 @@
     }
 
     window.onload = () => {
+      console.log("🚀 App Started");
+      console.log("Configured API URL:", appData.apiUrl ? appData.apiUrl.substring(0, 60) + "..." : "NOT SET");
+
       buildHourlyBackgroundGrid();
       setTaskFilter('ACTIVE');
       setAnalyticsWindow(7);
