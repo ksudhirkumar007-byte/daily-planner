@@ -2157,7 +2157,7 @@
         const normType = normalizeHabitType(habit.type);
         const key = `${hId}_${selectedPlannerDate}`;
         const log = appData.habitLogs[key] || { value: "", completed: false };
-        
+
         const isCompleted = Boolean(log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
         if (isCompleted) completedCount++;
 
@@ -2195,10 +2195,10 @@
         } else {
           controlHtml = `
             <div class="flex items-center gap-2 w-full sm:w-80">
-              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
+              <input type="text" id="desc_input_${hId}" value="${log.value || ''}"
                      onchange="saveDescriptiveHabit('${hId}', this.value)"
                      onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)"
-                     placeholder="Notes / routine details..." 
+                     placeholder="Notes / routine details..."
                      class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
               <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
                 ${isCompleted ? 'Done ✓' : 'Save'}
@@ -3713,6 +3713,15 @@
               recommendationColor = 'sky';
             }
 
+            // Color mapping for dynamic styles
+            const colorMap = {
+              emerald: { bg: 'rgba(5, 150, 105, 0.3)', border: 'rgba(16, 185, 129, 0.5)', text: 'rgb(110, 231, 183)', gradient: 'linear-gradient(to right, rgb(16, 185, 129), rgb(5, 150, 105))' },
+              rose: { bg: 'rgba(190, 24, 93, 0.3)', border: 'rgba(244, 63, 94, 0.5)', text: 'rgb(251, 113, 133)', gradient: 'linear-gradient(to right, rgb(244, 63, 94), rgb(190, 24, 93))' },
+              amber: { bg: 'rgba(217, 119, 6, 0.3)', border: 'rgba(251, 146, 60, 0.5)', text: 'rgb(253, 224, 71)', gradient: 'linear-gradient(to right, rgb(251, 146, 60), rgb(217, 119, 6))' },
+              sky: { bg: 'rgba(2, 132, 199, 0.3)', border: 'rgba(56, 189, 248, 0.5)', text: 'rgb(125, 211, 252)', gradient: 'linear-gradient(to right, rgb(56, 189, 248), rgb(2, 132, 199))' }
+            };
+            const recColors = colorMap[recommendationColor] || colorMap.emerald;
+
             return \`
               <div class="p-4 rounded-lg \${bgColorClass} border \${borderColorClass} backdrop-blur-sm hover:backdrop-blur-md transition">
                 <!-- Header -->
@@ -3731,7 +3740,7 @@
                     <span class="text-[11px] font-mono font-bold text-slate-200">\${completionPct}%</span>
                   </div>
                   <div class="w-full h-2 bg-slate-800/60 rounded-full overflow-hidden border border-slate-700/30">
-                    <div class="h-full bg-gradient-to-r from-\${statusColor}-500 to-\${statusColor}-400 rounded-full transition-all" style="width: \${completionPct}%"></div>
+                    <div class="h-full rounded-full transition-all" style="width: \${completionPct}%; background: \${colorMap[statusColor]?.gradient || colorMap.emerald.gradient}"></div>
                   </div>
                 </div>
 
@@ -3756,11 +3765,11 @@
                 </div>
 
                 <!-- Recommendation box -->
-                <div class="bg-\${recommendationColor}-950/40 border border-\${recommendationColor}-800/40 rounded p-2 text-[9px]">
+                <div class="rounded p-2 text-[9px]" style="background-color: \${recColors.bg}; border: 1px solid \${recColors.border};">
                   <div class="flex items-start gap-1.5">
                     <span class="text-base mt-0.5">\${recommendationIcon}</span>
                     <div>
-                      <p class="text-\${recommendationColor}-200 font-semibold">\${recommendation}</p>
+                      <p class="font-semibold" style="color: \${recColors.text};">\${recommendation}</p>
                     </div>
                   </div>
                 </div>
