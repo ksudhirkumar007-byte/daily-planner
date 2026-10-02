@@ -3617,14 +3617,14 @@
           const avgCompletion = Math.round(totalCompletionPct / appData.habits.length);
 
           // Build summary card HTML first
-          const summaryCard = \`
+          const summaryCard = `
             <div class="lg:col-span-3 p-4 rounded-lg bg-gradient-to-br from-indigo-950/40 to-purple-950/40 border border-indigo-800/50 backdrop-blur-sm">
               <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div class="flex flex-col">
                   <span class="text-[9px] text-slate-400 uppercase font-semibold">Avg Completion</span>
-                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">\${avgCompletion}%</span>
+                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">${avgCompletion}%</span>
                   <div class="h-1.5 bg-slate-800/60 rounded-full overflow-hidden mt-2 border border-slate-700/30">
-                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-400" style="width: \${avgCompletion}%"></div>
+                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-400" style="width: ${avgCompletion}%"></div>
                   </div>
                 </div>
 
@@ -3632,32 +3632,32 @@
                   <span class="text-[9px] text-slate-400 uppercase font-semibold">Habit Health</span>
                   <div class="flex items-center gap-2 mt-1">
                     <span class="text-sm">🟢</span>
-                    <span class="text-sm font-mono font-bold text-emerald-300">\${excellentCount}</span>
+                    <span class="text-sm font-mono font-bold text-emerald-300">${excellentCount}</span>
                   </div>
                   <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-sm">🟡</span>
-                    <span class="text-sm font-mono font-bold text-amber-300">\${goodCount}</span>
+                    <span class="text-sm font-mono font-bold text-amber-300">${goodCount}</span>
                   </div>
                   <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-sm">🔴</span>
-                    <span class="text-sm font-mono font-bold text-rose-300">\${needsWorkCount}</span>
+                    <span class="text-sm font-mono font-bold text-rose-300">${needsWorkCount}</span>
                   </div>
                 </div>
 
                 <div class="flex flex-col">
                   <span class="text-[9px] text-slate-400 uppercase font-semibold">Best Streak</span>
-                  <span class="text-xl md:text-2xl font-bold font-mono mt-1 text-amber-400">\${bestStreak}d 🔥</span>
+                  <span class="text-xl md:text-2xl font-bold font-mono mt-1 text-amber-400">${bestStreak}d 🔥</span>
                   <span class="text-[9px] text-slate-500 mt-1">Consecutive days</span>
                 </div>
 
                 <div class="flex flex-col">
                   <span class="text-[9px] text-slate-400 uppercase font-semibold">Attention Needed</span>
-                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">\${totalOverdueHabits}</span>
+                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">${totalOverdueHabits}</span>
                   <span class="text-[9px] text-slate-500 mt-1">Overdue habits</span>
                 </div>
               </div>
             </div>
-          \`;
+          `;
 
           // Build individual habit cards
           const habitCards = appData.habits.map(habit => {
@@ -3722,25 +3722,25 @@
             };
             const recColors = colorMap[recommendationColor] || colorMap.emerald;
 
-            return \`
-              <div class="p-4 rounded-lg \${bgColorClass} border \${borderColorClass} backdrop-blur-sm hover:backdrop-blur-md transition">
+            return `
+              <div class="p-4 rounded-lg ${bgColorClass} border ${borderColorClass} backdrop-blur-sm hover:backdrop-blur-md transition">
                 <!-- Header -->
                 <div class="flex items-start justify-between mb-3">
                   <div>
-                    <h4 class="font-semibold text-slate-100 text-sm">\${habit.name}</h4>
-                    <span class="text-[10px] text-slate-400 font-mono">\${habit.type || 'Habit'}</span>
+                    <h4 class="font-semibold text-slate-100 text-sm">${habit.name}</h4>
+                    <span class="text-[10px] text-slate-400 font-mono">${habit.type || 'Habit'}</span>
                   </div>
-                  <span class="text-xl">\${statusEmoji}</span>
+                  <span class="text-xl">${statusEmoji}</span>
                 </div>
 
                 <!-- Completion bar -->
                 <div class="mb-3">
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-[9px] text-slate-400 uppercase font-semibold">Completion Rate</span>
-                    <span class="text-[11px] font-mono font-bold text-slate-200">\${completionPct}%</span>
+                    <span class="text-[11px] font-mono font-bold text-slate-200">${completionPct}%</span>
                   </div>
                   <div class="w-full h-2 bg-slate-800/60 rounded-full overflow-hidden border border-slate-700/30">
-                    <div class="h-full rounded-full transition-all" style="width: \${completionPct}%; background: \${colorMap[statusColor]?.gradient || colorMap.emerald.gradient}"></div>
+                    <div class="h-full rounded-full transition-all" style="width: ${completionPct}%; background: ${colorMap[statusColor]?.gradient || colorMap.emerald.gradient}"></div>
                   </div>
                 </div>
 
@@ -3748,33 +3748,33 @@
                 <div class="grid grid-cols-2 gap-2 mb-3 text-[10px]">
                   <div class="bg-slate-900/40 p-2 rounded">
                     <span class="text-slate-500 block text-[8px] uppercase mb-1">Streak</span>
-                    <span class="text-amber-400 font-mono font-bold text-sm">\${metrics.streak}d 🔥</span>
+                    <span class="text-amber-400 font-mono font-bold text-sm">${metrics.streak}d 🔥</span>
                   </div>
                   <div class="bg-slate-900/40 p-2 rounded">
                     <span class="text-slate-500 block text-[8px] uppercase mb-1">Completed</span>
-                    <span class="text-emerald-400 font-mono font-bold text-sm">\${metrics.totalCompleted}/\${metrics.totalExpected}</span>
+                    <span class="text-emerald-400 font-mono font-bold text-sm">${metrics.totalCompleted}/${metrics.totalExpected}</span>
                   </div>
                   <div class="bg-slate-900/40 p-2 rounded">
                     <span class="text-slate-500 block text-[8px] uppercase mb-1">Overdue Days</span>
-                    <span class="text-slate-200 font-mono font-bold text-sm">\${metrics.daysMissedRecently}d</span>
+                    <span class="text-slate-200 font-mono font-bold text-sm">${metrics.daysMissedRecently}d</span>
                   </div>
                   <div class="bg-slate-900/40 p-2 rounded">
                     <span class="text-slate-500 block text-[8px] uppercase mb-1">Last Done</span>
-                    <span class="text-slate-200 font-mono font-bold text-sm">\${lastCompletedDisplay}</span>
+                    <span class="text-slate-200 font-mono font-bold text-sm">${lastCompletedDisplay}</span>
                   </div>
                 </div>
 
                 <!-- Recommendation box -->
-                <div class="rounded p-2 text-[9px]" style="background-color: \${recColors.bg}; border: 1px solid \${recColors.border};">
+                <div class="rounded p-2 text-[9px]" style="background-color: ${recColors.bg}; border: 1px solid ${recColors.border};">
                   <div class="flex items-start gap-1.5">
-                    <span class="text-base mt-0.5">\${recommendationIcon}</span>
+                    <span class="text-base mt-0.5">${recommendationIcon}</span>
                     <div>
-                      <p class="font-semibold" style="color: \${recColors.text};">\${recommendation}</p>
+                      <p class="font-semibold" style="color: ${recColors.text};">${recommendation}</p>
                     </div>
                   </div>
                 </div>
               </div>
-            \`;
+            `;
           }).join('');
 
           dashboardContainer.innerHTML = summaryCard + habitCards;
