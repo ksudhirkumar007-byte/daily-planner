@@ -453,11 +453,17 @@
           <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Execution adherence, habit discipline, task throughput, and mood trends.</p>
         </div>
 
-        <!-- Time Window Filter Toggle -->
-        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-          <button id="anWindow_7" onclick="setAnalyticsWindow(7)" class="px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">7 Days</button>
-          <button id="anWindow_30" onclick="setAnalyticsWindow(30)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">30 Days</button>
-          <button id="anWindow_ALL" onclick="setAnalyticsWindow(999)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All Time</button>
+        <!-- Time Window Filter Toggle + On-Demand Sync -->
+        <div class="flex flex-col sm:flex-row items-center gap-2 justify-between">
+          <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+            <button id="anWindow_7" onclick="setAnalyticsWindow(7)" class="px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">7 Days</button>
+            <button id="anWindow_30" onclick="setAnalyticsWindow(30)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">30 Days</button>
+            <button id="anWindow_ALL" onclick="setAnalyticsWindow(999)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All Time</button>
+          </div>
+          <button id="btnSyncAnalytics" onclick="syncAnalyticsOnDemand()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-600/30">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>
+          </button>
         </div>
       </div>
 
@@ -575,14 +581,25 @@
 
               <div>
                 <span class="text-[10px] font-mono font-bold text-rose-400 block mb-1">Friction Points & Regrets:</span>
-                <ul id="anReviewFrictionList" class="list-disc list-inside text-slate-400 space-y-1 text-[11px] max-h-20 overflow-y-auto">
-                  <li class="text-slate-500 italic">No blockers logged in this timeframe.</li>
-                </ul>
               </div>
             </div>
           </div>
         </div>
 
+      </div>
+
+      <!-- 💎 BONUS: Detailed Habit Performance Dashboard -->
+      <div class="mt-6 pt-6 border-t border-slate-800/60">
+        <div class="mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Detailed Habit Performance
+          </h3>
+          <p class="text-[10px] text-slate-400 mt-1">Individual habit metrics, trends, and actionable insights</p>
+        </div>
+
+        <div id="habitPerformanceDashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Habit cards will be generated here -->
+        </div>
       </div>
       </div>
     </section>
@@ -1019,6 +1036,8 @@
           actualMins: 0
         }
       ],
+      taskAnalytics: [],  // NEW: Local analytics storage
+      habitAnalytics: [],  // NEW: Local habit analytics storage
       focusLogs: [],
       dailySummaries: {}
     };
@@ -1030,6 +1049,8 @@
     if (!appData.habits) appData.habits = defaultState.habits;
     if (!appData.habitLogs) appData.habitLogs = {};
     if (!appData.tasks) appData.tasks = defaultState.tasks;
+    if (!appData.taskAnalytics) appData.taskAnalytics = [];  // NEW: Initialize analytics
+    if (!appData.habitAnalytics) appData.habitAnalytics = [];  // NEW: Initialize habit analytics
     if (!appData.focusLogs) appData.focusLogs = [];
     if (!appData.dailySummaries) appData.dailySummaries = {};
 
@@ -1267,8 +1288,6 @@
             title: b.title || "Untitled Block",
             startTime: sTime,
             endTime: eTime,
-            timeSlot: `${sTime} - ${eTime}`,
-            timeBlock: getTimeBlockName(sTime),
             color: b.color || "indigo",
             notes: b.notes || "",
             actualStartTime: normalizeTimeString(b.actualStartTime) || "",
@@ -1293,8 +1312,6 @@
             title: r.title || "Routine",
             startTime: sTime,
             endTime: eTime,
-            timeSlot: `${sTime} - ${eTime}`,
-            timeBlock: getTimeBlockName(sTime),
             color: r.color || "amber",
             days: r.days || "Everyday"
           });
@@ -1365,13 +1382,9 @@
             frequency: t.frequency || "once",
             status: t.status || "Need to Start",
             completed: t.completed ? "TRUE" : "FALSE",
-            date: sDate,
             scheduledDate: sDate,
             scheduledStartTime: sTime,
             scheduledEndTime: eTime,
-            timeSlot: (sTime && eTime) ? `${sTime} - ${eTime}` : "",
-            timeBlock: sTime ? getTimeBlockName(sTime) : "",
-            scheduledBlock: sTime ? getTimeBlockName(sTime) : "",
             plannedMins: Number(t.plannedMins) || 30,
             actualMins: Number(t.actualMins) || 0
           };
@@ -2225,47 +2238,134 @@
       lucide.createIcons();
     }
 
-    function calculateStreak(habitId) {
-      let streak = 0;
-      const normHabit = appData.habits.find(h => String(h.id) === String(habitId));
-      const normType = normHabit ? normalizeHabitType(normHabit.type) : 'yesno';
+    // ---------- Habit Analytics Functions ----------
+        function getHabitMetrics(habitId, windowDays = 30) {
+          const hId = String(habitId);
+          const metrics = {
+            lastCompletedDate: null,
+            streak: calculateStreak(hId),
+            daysMissedRecently: 0,
+            completionPercentage: 0,
+            totalCompleted: 0,
+            totalExpected: 0
+          };
 
-      // BUGFIX: Use UTC date parsing to avoid timezone issues
-      const parseDate = (dateStr) => {
-        const [y, m, d] = dateStr.split('-').map(Number);
-        return new Date(Date.UTC(y, m - 1, d));
-      };
+          // Calculate date range
+          const endDate = new Date();
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - windowDays);
 
-      // Check today
-      const todayDate = parseDate(selectedPlannerDate);
-      const keyToday = `${habitId}_${selectedPlannerDate}`;
-      const logToday = appData.habitLogs[keyToday];
-      const todayDone = logToday && (logToday.completed || (normType === 'yesno' && String(logToday.value).toLowerCase() === 'yes'));
-      
-      if (todayDone) streak++;
+          // Find all logs in this window
+          let daysTouched = 0;
+          let daysCompleted = 0;
+          let lastCompleted = null;
 
-      // Check backwards through history
-      let checkDate = new Date(todayDate);
-      checkDate.setUTCDate(checkDate.getUTCDate() - 1); // Go to yesterday in UTC
+          for (let i = 0; i < windowDays; i++) {
+            const checkDate = new Date(startDate);
+            checkDate.setDate(checkDate.getDate() + i);
 
-      for (let i = 0; i < 365; i++) {
-        const y = checkDate.getUTCFullYear();
-        const m = String(checkDate.getUTCMonth() + 1).padStart(2, '0');
-        const d = String(checkDate.getUTCDate()).padStart(2, '0');
-        const dStr = `${y}-${m}-${d}`;
+            const y = checkDate.getFullYear();
+            const m = String(checkDate.getMonth() + 1).padStart(2, '0');
+            const d = String(checkDate.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
 
-        const pastLog = appData.habitLogs[`${habitId}_${dStr}`];
-        const pastDone = pastLog && (pastLog.completed || (normType === 'yesno' && String(pastLog.value).toLowerCase() === 'yes'));
+            const key = `${hId}_${dateStr}`;
+            const log = appData.habitLogs[key];
 
-        if (pastDone) {
-          streak++;
-          checkDate.setUTCDate(checkDate.getUTCDate() - 1); // Move back one day in UTC
-        } else {
-          break; // Streak broken
+            const habit = appData.habits.find(h => String(h.id) === hId);
+            const normType = habit ? normalizeHabitType(habit.type) : 'yesno';
+
+            const isDone = log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+
+            if (isDone) {
+              daysCompleted++;
+              lastCompleted = dateStr;
+            }
+            daysTouched++;
+          }
+
+          metrics.lastCompletedDate = lastCompleted;
+          metrics.totalCompleted = daysCompleted;
+          metrics.totalExpected = windowDays;
+          metrics.completionPercentage = windowDays > 0 ? Math.round((daysCompleted / windowDays) * 100) : 0;
+
+          // Calculate days missed recently (days since last completion)
+          if (lastCompleted) {
+            const lastCompDate = new Date(lastCompleted + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const daysDiff = Math.floor((today - lastCompDate) / (1000 * 60 * 60 * 24));
+            metrics.daysMissedRecently = Math.max(0, daysDiff);
+          } else {
+            metrics.daysMissedRecently = windowDays; // Never completed in this window
+          }
+
+          return metrics;
         }
-      }
-      return streak;
-    }
+
+        function getLastCompletedDate(habitId) {
+          const metrics = getHabitMetrics(habitId, 365);
+          return metrics.lastCompletedDate;
+        }
+
+        function formatDateForDisplay(dateStr) {
+          if (!dateStr) return "Never";
+          const [y, m, d] = dateStr.split('-');
+          const date = new Date(Number(y), Number(m) - 1, Number(d));
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const diffTime = today - date;
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+          if (diffDays === 0) return "Today";
+          if (diffDays === 1) return "Yesterday";
+          if (diffDays < 7) return `${diffDays}d ago`;
+          if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function calculateStreak(habitId) {
+          let streak = 0;
+          const normHabit = appData.habits.find(h => String(h.id) === String(habitId));
+          const normType = normHabit ? normalizeHabitType(normHabit.type) : 'yesno';
+
+          // BUGFIX: Use UTC date parsing to avoid timezone issues
+          const parseDate = (dateStr) => {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(Date.UTC(y, m - 1, d));
+          };
+
+          // Check today
+          const todayDate = parseDate(selectedPlannerDate);
+          const keyToday = `${habitId}_${selectedPlannerDate}`;
+          const logToday = appData.habitLogs[keyToday];
+          const todayDone = logToday && (logToday.completed || (normType === 'yesno' && String(logToday.value).toLowerCase() === 'yes'));
+
+          if (todayDone) streak++;
+
+          // Check backwards through history
+          let checkDate = new Date(todayDate);
+          checkDate.setUTCDate(checkDate.getUTCDate() - 1); // Go to yesterday in UTC
+
+          for (let i = 0; i < 365; i++) {
+            const y = checkDate.getUTCFullYear();
+            const m = String(checkDate.getUTCMonth() + 1).padStart(2, '0');
+            const d = String(checkDate.getUTCDate()).padStart(2, '0');
+            const dStr = `${y}-${m}-${d}`;
+
+            const pastLog = appData.habitLogs[`${habitId}_${dStr}`];
+            const pastDone = pastLog && (pastLog.completed || (normType === 'yesno' && String(pastLog.value).toLowerCase() === 'yes'));
+
+            if (pastDone) {
+              streak++;
+              checkDate.setUTCDate(checkDate.getUTCDate() - 1); // Move back one day in UTC
+            } else {
+              break; // Streak broken
+            }
+          }
+          return streak;
+        }
 
     function toggleYesNoHabit(id) {
       const hId = String(id);
@@ -2275,6 +2375,12 @@
       log.completed = !currentlyDone;
       log.value = log.completed ? "Yes" : "No";
       appData.habitLogs[key] = log;
+
+      // AUTO-CAPTURE: Store analytics when habit toggle changes
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (habit) {
+        captureHabitAnalytics(habit);
+      }
 
       console.log("Habit Updated:", {
         habitId: hId,
@@ -2301,6 +2407,10 @@
         value: num,
         completed: (num >= (habit.target || 1))
       };
+
+      // AUTO-CAPTURE: Store analytics when numeric habit changes
+      captureHabitAnalytics(habit);
+
       // Use requestAnimationFrame to batch UI updates
       requestAnimationFrame(() => {
         renderHabits();
@@ -2321,6 +2431,10 @@
         value: newNum,
         completed: (newNum >= (habit.target || 1))
       };
+
+      // AUTO-CAPTURE: Store analytics when numeric habit changes
+      captureHabitAnalytics(habit);
+
       // Use requestAnimationFrame to batch UI updates
       requestAnimationFrame(() => {
         renderHabits();
@@ -2342,6 +2456,13 @@
       log.value = text ? text.trim() : "";
       log.completed = Boolean(log.value);
       appData.habitLogs[key] = log;
+
+      // AUTO-CAPTURE: Store analytics when descriptive habit changes
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (habit) {
+        captureHabitAnalytics(habit);
+      }
+
       // Use requestAnimationFrame to batch UI updates
       requestAnimationFrame(() => {
         renderHabits();
@@ -2412,6 +2533,61 @@
       syncToRemote();
     }
 
+    // ---------- Task Pending Metrics Functions ----------
+    function getTaskPendingMetrics(task) {
+      // Returns: { pendingDays, pendingFrom, isOverdue, status, daysLabel }
+
+      const referenceDate = task.date || task.scheduledDate;
+      const isScheduled = Boolean(task.date || task.scheduledDate);
+
+      if (!referenceDate) {
+        // Unscheduled task - use creation date (task.id as timestamp)
+        const createdDate = new Date(Number(task.id));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const pendingMs = today - createdDate;
+        const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
+
+        return {
+          pendingDays: Math.max(0, pendingDays),
+          pendingFrom: createdDate.toISOString().split('T')[0],
+          isOverdue: pendingDays > 0 && !task.completed,
+          status: task.completed ? 'completed' : (pendingDays > 7 ? 'overdue' : (pendingDays > 3 ? 'pending' : 'new')),
+          daysLabel: formatPendingDays(pendingDays),
+          type: 'unscheduled'
+        };
+      }
+
+      // Scheduled task - use scheduledDate
+      const [y, m, d] = referenceDate.split('-');
+      const schedDate = new Date(Number(y), Number(m) - 1, Number(d));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const pendingMs = today - schedDate;
+      const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
+
+      return {
+        pendingDays: Math.max(0, pendingDays),
+        pendingFrom: referenceDate,
+        isOverdue: pendingDays > 0 && !task.completed,
+        status: task.completed ? 'completed' : (pendingDays > 14 ? 'critical' : (pendingDays > 7 ? 'overdue' : (pendingDays > 0 ? 'pending' : 'today'))),
+        daysLabel: formatPendingDays(pendingDays),
+        type: 'scheduled'
+      };
+    }
+
+    function formatPendingDays(days) {
+      if (days === 0) return "Today";
+      if (days === 1) return "1 day pending";
+      if (days < 7) return `${days}d pending`;
+      if (days < 30) return `${Math.floor(days / 7)}w pending`;
+      return `${Math.floor(days / 30)}mo pending`;
+    }
+
+    // ---------- End Task Pending Metrics Functions ----------
+
     // ---------- Tasks Manager ----------
     function setTaskFilter(filter) {
       currentTaskFilter = filter;
@@ -2450,6 +2626,9 @@
         actualMins: 0
       });
 
+      // AUTO-CAPTURE: Store analytics for new task
+      captureTaskAnalytics(appData.tasks[0]);
+
       titleInput.value = '';
       renderTasks();
       render24HourPlanner();
@@ -2462,6 +2641,10 @@
       if (task) {
         task.completed = !task.completed;
         task.status = task.completed ? "Completed" : "Need to Start";
+
+        // AUTO-CAPTURE: Store analytics when task completion changes
+        captureTaskAnalytics(task);
+
         renderTasks();
         render24HourPlanner();
         renderAnalytics();
@@ -2515,8 +2698,31 @@
         const freq = (task.frequency || 'once').toLowerCase();
         const freqLabel = freq === 'daily' ? 'Daily' : freq === 'weekdays' ? 'Weekdays' : freq === 'weekends' ? 'Weekends' : freq === 'weekly' ? 'Weekly' : '';
 
+        // Get task pending metrics
+        const pendingMetrics = getTaskPendingMetrics(task);
+
+        // Determine pending badge styling
+        let pendingBgClass = 'bg-slate-950/60 text-slate-300 border-slate-800/50';
+        let pendingIcon = '📌';
+
+        if (!task.completed) {
+          if (pendingMetrics.status === 'critical') {
+            pendingBgClass = 'bg-rose-950/80 text-rose-300 border-rose-800/60';
+            pendingIcon = '🔴';
+          } else if (pendingMetrics.status === 'overdue') {
+            pendingBgClass = 'bg-amber-950/80 text-amber-300 border-amber-800/60';
+            pendingIcon = '⚠️';
+          } else if (pendingMetrics.status === 'pending') {
+            pendingBgClass = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
+            pendingIcon = '⏳';
+          } else if (pendingMetrics.status === 'new') {
+            pendingBgClass = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
+            pendingIcon = '✨';
+          }
+        }
+
         const card = document.createElement('div');
-        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${task.completed ? 'opacity-60' : (isToday ? 'ring-1 ring-indigo-500/20' : '')}`;
+        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${task.completed ? 'opacity-60' : (isToday ? 'ring-1 ring-indigo-500/20' : pendingMetrics.status === 'critical' ? 'ring-1 ring-rose-500/30' : '')}`;
 
         card.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -2527,6 +2733,7 @@
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="text-xs sm:text-sm font-semibold ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
                 <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${priorityClasses[task.priority] || priorityClasses.Med}">${task.priority}</span>
+                ${!task.completed ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${pendingBgClass}">${pendingIcon} ${pendingMetrics.daysLabel}</span>` : ''}
                 ${freqLabel ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-sky-950/60 text-sky-300 border-sky-800/50">${freqLabel}</span>` : ''}
                 ${isToday ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 text-indigo-300 border-indigo-800/50">Today</span>` : ''}
                 ${isScheduled ? `
@@ -2536,7 +2743,7 @@
                 ` : ''}
               </div>
               <div class="text-[10px] text-slate-500 font-mono mt-0.5">
-                ${task.date || 'Unscheduled'} • ${task.actualMins > 0 ? `${task.actualMins}m act` : `${task.plannedMins || 30}m plan`}
+                ${pendingMetrics.type === 'scheduled' ? pendingMetrics.pendingFrom : `Created: ${new Date(Number(task.id)).toLocaleDateString()}`} • ${task.actualMins > 0 ? `${task.actualMins}m act` : `${task.plannedMins || 30}m plan`}
               </div>
             </div>
           </div>
@@ -2644,6 +2851,16 @@
       }
 
       closeTaskModal();
+
+      // Find the task that was just saved and capture its analytics
+      const savedTask = rawId ?
+        appData.tasks.find(x => String(x.id) === String(rawId)) :
+        appData.tasks[0]; // New task is at the beginning
+
+      if (savedTask) {
+        captureTaskAnalytics(savedTask);
+      }
+
       renderTasks();
       render24HourPlanner();
       renderAnalytics();
@@ -2844,6 +3061,207 @@
     // ==========================================
     // ANALYTICS COMPUTATION ENGINE
     // ==========================================
+    // Update pending analytics count badge
+    function updateAnalyticsPendingBadge() {
+      const badge = document.getElementById('btnAnalyticsPendingCount');
+      if (badge) {
+        const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
+        const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
+        const total = taskCount + habitCount;
+        badge.textContent = total;
+        badge.parentElement.parentElement.style.opacity = total > 0 ? "1" : "0.7";
+      }
+    }
+
+    // ---------- Habit Analytics Capture (Auto-Capture on Every Log) ----------
+    function captureHabitAnalytics(habit) {
+      /**
+       * Automatically captures analytics for a habit whenever it's logged
+       * Stores locally in appData.habitAnalytics for later syncing
+       */
+      const metrics = getHabitMetrics(habit.id, 30);  // Use 30-day window
+
+      const analytics = {
+        captureId: `${habit.id}_${selectedPlannerDate}_${Date.now()}`,
+        habitId: String(habit.id),
+        habitName: habit.name,
+        habitType: habit.type || 'yesno',
+        target: habit.target || 0,
+        unit: habit.unit || '',
+        captureDate: selectedPlannerDate,
+        logDate: selectedPlannerDate,
+        streak: metrics.streak,
+        completionPercentage: metrics.completionPercentage,
+        totalCompleted: metrics.totalCompleted,
+        totalExpected: metrics.totalExpected,
+        daysMissedRecently: metrics.daysMissedRecently,
+        lastCompletedDate: metrics.lastCompletedDate,
+        daysLabel: formatDateForDisplay(metrics.lastCompletedDate),
+        captureTimestamp: new Date().toISOString()
+      };
+
+      // Check if we already have a capture for this habit on this date today
+      const existingIndex = appData.habitAnalytics.findIndex(
+        a => a.habitId === String(habit.id) && a.logDate === selectedPlannerDate
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing capture for today
+        appData.habitAnalytics[existingIndex] = analytics;
+        console.log(`📊 Updated habit analytics for ${habit.name}`);
+      } else {
+        // Add new capture
+        appData.habitAnalytics.push(analytics);
+        console.log(`📊 Captured habit analytics for ${habit.name}`);
+      }
+
+      saveState();  // Save to localStorage immediately
+    }
+    // ---------- End Habit Analytics Capture ----------
+
+    // Update pending analytics count badge
+    function updateAnalyticsPendingBadge() {
+      const badge = document.getElementById('btnAnalyticsPendingCount');
+      if (badge) {
+        const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
+        const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
+        const total = taskCount + habitCount;
+        badge.textContent = total;
+        badge.parentElement.parentElement.style.opacity = total > 0 ? "1" : "0.7";
+      }
+    }
+
+    // ---------- Task Analytics Capture (Auto-Capture on Every Change) ----------
+    function captureTaskAnalytics(task) {
+      /**
+       * Automatically captures analytics for a task whenever it changes
+       * Stores locally in appData.taskAnalytics for later syncing
+       */
+      const metrics = getTaskPendingMetrics(task);
+
+      const analytics = {
+        captureId: `${task.id}_${Date.now()}`,  // Unique ID for this capture
+        taskId: String(task.id),
+        taskTitle: task.title,
+        priority: task.priority || 'Med',
+        completed: task.completed ? "TRUE" : "FALSE",
+        status: task.status || "Need to Start",
+        pendingDays: metrics.pendingDays,
+        pendingStatus: metrics.status,
+        daysLabel: metrics.daysLabel,
+        pendingFrom: metrics.pendingFrom,
+        taskType: metrics.type,
+        frequency: task.frequency || 'once',
+        scheduledDate: normalizeDateString(task.date || task.scheduledDate || ""),
+        plannedMins: Number(task.plannedMins) || 0,
+        actualMins: Number(task.actualMins) || 0,
+        captureTimestamp: new Date().toISOString(),
+        captureDate: getTodayKey()
+      };
+
+      // Check if we already have a capture for this task today
+      const existingIndex = appData.taskAnalytics.findIndex(
+        a => a.taskId === String(task.id) && a.captureDate === getTodayKey()
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing capture for today
+        appData.taskAnalytics[existingIndex] = analytics;
+        console.log(`📊 Updated analytics for task ${task.id}`);
+      } else {
+        // Add new capture
+        appData.taskAnalytics.push(analytics);
+        console.log(`📊 Captured analytics for task ${task.id}`);
+      }
+
+      saveState();  // Save to localStorage immediately
+    }
+    // ---------- End Task Analytics Capture ----------
+
+    // ---------- On-Demand Analytics Sync ----------
+    async function syncAnalyticsOnDemand() {
+      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        alert("❌ API URL not configured. Please set it in settings.");
+        return;
+      }
+
+      const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
+      const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
+
+      if (taskCount === 0 && habitCount === 0) {
+        alert("ℹ️ No analytics data to sync. Make changes to tasks or habits first.");
+        return;
+      }
+
+      const btn = document.getElementById('btnSyncAnalytics');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Syncing...</span>';
+      }
+
+      try {
+        console.log("📊 Syncing Analytics:", {
+          taskRecords: taskCount,
+          habitRecords: habitCount,
+          totalRecords: taskCount + habitCount
+        });
+
+        // Send to Google Sheets
+        const res = await fetch(appData.apiUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "syncTaskAnalytics",
+            data: {
+              taskAnalytics: appData.taskAnalytics || [],
+              habitAnalytics: appData.habitAnalytics || [],
+              syncDate: getTodayKey(),
+              syncTime: new Date().toLocaleTimeString()
+            }
+          })
+        });
+
+        if (res.ok) {
+          console.log("✅ Analytics synced successfully");
+          // Clear both analytics after successful sync
+          const totalRecords = taskCount + habitCount;
+          appData.taskAnalytics = [];
+          appData.habitAnalytics = [];
+          saveState();
+
+          if (btn) {
+            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Synced! ('+totalRecords+' records)</span>';
+            btn.classList.add('bg-emerald-700');
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.classList.remove('bg-emerald-700');
+              btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>';
+              updateAnalyticsPendingBadge();
+              lucide.createIcons();
+            }, 2000);
+          }
+        } else {
+          throw new Error("Sync failed with status " + res.status);
+        }
+      } catch (err) {
+        console.error("❌ Analytics sync error:", err);
+        alert("❌ Failed to sync analytics. Check API URL and try again.");
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span>Sync Failed</span>';
+          btn.classList.add('bg-rose-600');
+          setTimeout(() => {
+            btn.classList.remove('bg-rose-600');
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>';
+            updateAnalyticsPendingBadge();
+            lucide.createIcons();
+          }, 3000);
+        }
+      }
+    }
+    // ---------- End On-Demand Analytics Sync ----------
+
     function setAnalyticsWindow(days) {
       currentAnalyticsWindow = days;
       const b7 = document.getElementById('anWindow_7');
@@ -2966,7 +3384,7 @@
       if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
       if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
 
-      // Render Habits Friction List
+      // Render Habits Friction List with Enhanced Metrics
       const frictionContainer = document.getElementById('anHabitsFrictionList');
       if (frictionContainer) {
         if (!appData.habits.length) {
@@ -2975,10 +3393,62 @@
           const sorted = [...appData.habits].sort((a, b) => (missedCounts[String(b.id)] || 0) - (missedCounts[String(a.id)] || 0));
           frictionContainer.innerHTML = sorted.map(h => {
             const mCount = missedCounts[String(h.id)] || 0;
+            const metrics = getHabitMetrics(h.id, 30); // 30-day window
+            const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
+            const completionPct = metrics.completionPercentage;
+
+            // Determine status color and emoji
+            let statusEmoji = '🟢';
+            let statusColor = 'emerald';
+            let statusLabel = 'Excellent';
+            if (completionPct < 50) {
+              statusEmoji = '🔴';
+              statusColor = 'rose';
+              statusLabel = 'Needs Work';
+            } else if (completionPct < 80) {
+              statusEmoji = '🟡';
+              statusColor = 'amber';
+              statusLabel = 'Good';
+            }
+
             return `
-              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
-                <span class="font-medium text-slate-200 truncate pr-2">${h.name}</span>
-                <span class="font-mono text-[10px] px-2 py-0.5 rounded ${mCount > 0 ? 'bg-rose-950/80 text-rose-300 border border-rose-800/60' : 'bg-slate-800 text-slate-400'}">${mCount} missed</span>
+              <div class="flex flex-col p-3 rounded-lg bg-slate-900/70 border border-slate-800/80 text-[10px] space-y-2 hover:bg-slate-900 transition">
+                <!-- Header with habit name and completion % -->
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-200 truncate pr-2">${h.name}</span>
+                  <span class="font-mono text-[9px] px-2 py-0.5 rounded bg-${statusColor}-950/80 text-${statusColor}-300 border border-${statusColor}-800/60 whitespace-nowrap">${completionPct}%</span>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                  <div class="h-full bg-gradient-to-r from-${statusColor}-500 to-${statusColor}-400 rounded-full transition-all" style="width: ${completionPct}%"></div>
+                </div>
+
+                <!-- Metrics grid -->
+                <div class="grid grid-cols-2 gap-2 text-[9px]">
+                  <div class="flex flex-col">
+                    <span class="text-slate-500 text-[8px] uppercase">Last Done</span>
+                    <span class="text-slate-200 font-mono font-semibold mt-0.5">${lastCompletedDisplay}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-slate-500 text-[8px] uppercase">Streak</span>
+                    <span class="text-amber-400 font-mono font-bold mt-0.5">${metrics.streak}d 🔥</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-slate-500 text-[8px] uppercase">Times Missed</span>
+                    <span class="text-rose-400 font-mono font-semibold mt-0.5">${mCount}x</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-slate-500 text-[8px] uppercase">Overdue Days</span>
+                    <span class="text-slate-300 font-mono font-semibold mt-0.5">${metrics.daysMissedRecently}d</span>
+                  </div>
+                </div>
+
+                <!-- Status indicator -->
+                <div class="flex items-center gap-1 pt-1 border-t border-slate-700/30">
+                  <span class="text-xs">${statusEmoji}</span>
+                  <span class="text-[9px] text-slate-400">Status: <b class="text-${statusColor}-300">${statusLabel}</b></span>
+                </div>
               </div>
             `;
           }).join('');
@@ -3120,6 +3590,190 @@
           : `<li class="text-slate-500 italic">No blockers logged in this timeframe.</li>`;
       }
 
+      // Render Habit Performance Dashboard
+      const dashboardContainer = document.getElementById('habitPerformanceDashboard');
+      if (dashboardContainer) {
+        if (!appData.habits.length) {
+          dashboardContainer.innerHTML = `<span class="text-slate-500 italic text-[11px]">No habits configured.</span>`;
+        } else {
+          // Calculate aggregate metrics
+          let totalCompletionPct = 0;
+          let excellentCount = 0;
+          let goodCount = 0;
+          let needsWorkCount = 0;
+          let bestStreak = 0;
+          let totalOverdueHabits = 0;
+
+          appData.habits.forEach(h => {
+            const m = getHabitMetrics(h.id, analyticsWindow);
+            totalCompletionPct += m.completionPercentage;
+            if (m.completionPercentage >= 80) excellentCount++;
+            else if (m.completionPercentage >= 50) goodCount++;
+            else needsWorkCount++;
+            if (m.streak > bestStreak) bestStreak = m.streak;
+            if (m.daysMissedRecently > 0) totalOverdueHabits++;
+          });
+
+          const avgCompletion = Math.round(totalCompletionPct / appData.habits.length);
+
+          // Build summary card HTML first
+          const summaryCard = \`
+            <div class="lg:col-span-3 p-4 rounded-lg bg-gradient-to-br from-indigo-950/40 to-purple-950/40 border border-indigo-800/50 backdrop-blur-sm">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="flex flex-col">
+                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Avg Completion</span>
+                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">\${avgCompletion}%</span>
+                  <div class="h-1.5 bg-slate-800/60 rounded-full overflow-hidden mt-2 border border-slate-700/30">
+                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-400" style="width: \${avgCompletion}%"></div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col">
+                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Habit Health</span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-sm">🟢</span>
+                    <span class="text-sm font-mono font-bold text-emerald-300">\${excellentCount}</span>
+                  </div>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-sm">🟡</span>
+                    <span class="text-sm font-mono font-bold text-amber-300">\${goodCount}</span>
+                  </div>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-sm">🔴</span>
+                    <span class="text-sm font-mono font-bold text-rose-300">\${needsWorkCount}</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-col">
+                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Best Streak</span>
+                  <span class="text-xl md:text-2xl font-bold font-mono mt-1 text-amber-400">\${bestStreak}d 🔥</span>
+                  <span class="text-[9px] text-slate-500 mt-1">Consecutive days</span>
+                </div>
+
+                <div class="flex flex-col">
+                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Attention Needed</span>
+                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">\${totalOverdueHabits}</span>
+                  <span class="text-[9px] text-slate-500 mt-1">Overdue habits</span>
+                </div>
+              </div>
+            </div>
+          \`;
+
+          // Build individual habit cards
+          const habitCards = appData.habits.map(habit => {
+            const metrics = getHabitMetrics(habit.id, analyticsWindow);
+            const completionPct = metrics.completionPercentage;
+            const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
+
+            // Determine status indicators
+            let statusEmoji = '🟢';
+            let statusColor = 'emerald';
+            let statusLabel = 'Excellent';
+            let bgColorClass = 'bg-emerald-950/30';
+            let borderColorClass = 'border-emerald-800/50';
+
+            if (completionPct < 50) {
+              statusEmoji = '🔴';
+              statusColor = 'rose';
+              statusLabel = 'Needs Work';
+              bgColorClass = 'bg-rose-950/30';
+              borderColorClass = 'border-rose-800/50';
+            } else if (completionPct < 80) {
+              statusEmoji = '🟡';
+              statusColor = 'amber';
+              statusLabel = 'Good';
+              bgColorClass = 'bg-amber-950/30';
+              borderColorClass = 'border-amber-800/50';
+            }
+
+            // Recommendation based on metrics
+            let recommendation = '';
+            let recommendationIcon = '✅';
+            let recommendationColor = 'emerald';
+
+            if (metrics.daysMissedRecently > 7) {
+              recommendation = 'Overdue - Restart immediately!';
+              recommendationIcon = '⚠️';
+              recommendationColor = 'rose';
+            } else if (metrics.daysMissedRecently > 2) {
+              recommendation = 'Overdue - Do it today!';
+              recommendationIcon = '⚡';
+              recommendationColor = 'amber';
+            } else if (completionPct < 50) {
+              recommendation = 'Build momentum with daily wins';
+              recommendationIcon = '🚀';
+              recommendationColor = 'amber';
+            } else if (metrics.streak > 14) {
+              recommendation = 'Outstanding consistency! Keep it going!';
+              recommendationIcon = '🏆';
+              recommendationColor = 'emerald';
+            } else {
+              recommendation = 'On track - maintain your routine';
+              recommendationIcon = '💪';
+              recommendationColor = 'sky';
+            }
+
+            return \`
+              <div class="p-4 rounded-lg \${bgColorClass} border \${borderColorClass} backdrop-blur-sm hover:backdrop-blur-md transition">
+                <!-- Header -->
+                <div class="flex items-start justify-between mb-3">
+                  <div>
+                    <h4 class="font-semibold text-slate-100 text-sm">\${habit.name}</h4>
+                    <span class="text-[10px] text-slate-400 font-mono">\${habit.type || 'Habit'}</span>
+                  </div>
+                  <span class="text-xl">\${statusEmoji}</span>
+                </div>
+
+                <!-- Completion bar -->
+                <div class="mb-3">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-[9px] text-slate-400 uppercase font-semibold">Completion Rate</span>
+                    <span class="text-[11px] font-mono font-bold text-slate-200">\${completionPct}%</span>
+                  </div>
+                  <div class="w-full h-2 bg-slate-800/60 rounded-full overflow-hidden border border-slate-700/30">
+                    <div class="h-full bg-gradient-to-r from-\${statusColor}-500 to-\${statusColor}-400 rounded-full transition-all" style="width: \${completionPct}%"></div>
+                  </div>
+                </div>
+
+                <!-- Key metrics grid -->
+                <div class="grid grid-cols-2 gap-2 mb-3 text-[10px]">
+                  <div class="bg-slate-900/40 p-2 rounded">
+                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Streak</span>
+                    <span class="text-amber-400 font-mono font-bold text-sm">\${metrics.streak}d 🔥</span>
+                  </div>
+                  <div class="bg-slate-900/40 p-2 rounded">
+                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Completed</span>
+                    <span class="text-emerald-400 font-mono font-bold text-sm">\${metrics.totalCompleted}/\${metrics.totalExpected}</span>
+                  </div>
+                  <div class="bg-slate-900/40 p-2 rounded">
+                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Overdue Days</span>
+                    <span class="text-slate-200 font-mono font-bold text-sm">\${metrics.daysMissedRecently}d</span>
+                  </div>
+                  <div class="bg-slate-900/40 p-2 rounded">
+                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Last Done</span>
+                    <span class="text-slate-200 font-mono font-bold text-sm">\${lastCompletedDisplay}</span>
+                  </div>
+                </div>
+
+                <!-- Recommendation box -->
+                <div class="bg-\${recommendationColor}-950/40 border border-\${recommendationColor}-800/40 rounded p-2 text-[9px]">
+                  <div class="flex items-start gap-1.5">
+                    <span class="text-base mt-0.5">\${recommendationIcon}</span>
+                    <div>
+                      <p class="text-\${recommendationColor}-200 font-semibold">\${recommendation}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            \`;
+          }).join('');
+
+          dashboardContainer.innerHTML = summaryCard + habitCards;
+        }
+      }
+
+      // Update pending analytics badge
+      updateAnalyticsPendingBadge();
       lucide.createIcons();
     }
 
