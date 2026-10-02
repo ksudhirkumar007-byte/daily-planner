@@ -1042,11 +1042,15 @@
       dailySummaries: {}
     };
 
-    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
+     let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
 
     if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
     if (!appData.routines) appData.routines = defaultState.routines;
-    if (!appData.habits) appData.habits = defaultState.habits;
+    if (!Array.isArray(appData.habits)) appData.habits = defaultState.habits;
+    // Ensure default habits are loaded if habits array is empty
+    if (appData.habits.length === 0) {
+      appData.habits = JSON.parse(JSON.stringify(defaultState.habits));
+    }
     if (!appData.habitLogs) appData.habitLogs = {};
     if (!appData.tasks) appData.tasks = defaultState.tasks;
     if (!appData.taskAnalytics) appData.taskAnalytics = [];  // NEW: Initialize analytics
@@ -2145,14 +2149,30 @@
       syncToRemote();
     }
 
-    // ---------- Habit Tracker ----------
+     // ---------- Habit Tracker ----------
     function renderHabits() {
       const container = document.getElementById('habitCardsContainer');
       if (!container) return;
       container.innerHTML = '';
       let completedCount = 0;
 
-      appData.habits.forEach(habit => {
+       console.log('🔥 renderHabits called. Habits count:', appData.habits ? appData.habits.length : 'NO HABITS');
+       console.log('appData.habits:', appData.habits);
+
+       // Defensive: ensure appData.habits is an array
+       if (!Array.isArray(appData.habits)) {
+         console.warn('⚠️ appData.habits is not an array!', appData.habits);
+         container.innerHTML = '<span class="text-slate-500 text-xs">Error: Habits data is invalid</span>';
+         return;
+       }
+
+       if (appData.habits.length === 0) {
+         console.log('ℹ️ No habits to display');
+         container.innerHTML = '<span class="text-slate-500 italic text-xs">No habits yet. Click "Add Habit" to create one.</span>';
+         return;
+       }
+
+       appData.habits.forEach(habit => {
         const hId = String(habit.id);
         const normType = normalizeHabitType(habit.type);
         const key = `${hId}_${selectedPlannerDate}`;
@@ -2231,11 +2251,13 @@
         `;
 
         container.appendChild(card);
-      });
+       });
 
-      const counter = document.getElementById('habitsCompletedCounter');
-      if (counter) counter.textContent = `${completedCount}/${appData.habits.length} done`;
-      lucide.createIcons();
+       const counter = document.getElementById('habitsCompletedCounter');
+       if (counter && Array.isArray(appData.habits)) {
+         counter.textContent = `${completedCount}/${appData.habits.length} done`;
+       }
+       lucide.createIcons();
     }
 
     // ---------- Habit Analytics Functions ----------
@@ -3605,7 +3627,7 @@
           let totalOverdueHabits = 0;
 
           appData.habits.forEach(h => {
-            const m = getHabitMetrics(h.id, analyticsWindow);
+            const m = getHabitMetrics(h.id, currentAnalyticsWindow);
             totalCompletionPct += m.completionPercentage;
             if (m.completionPercentage >= 80) excellentCount++;
             else if (m.completionPercentage >= 50) goodCount++;
@@ -3661,7 +3683,7 @@
 
           // Build individual habit cards
           const habitCards = appData.habits.map(habit => {
-            const metrics = getHabitMetrics(habit.id, analyticsWindow);
+            const metrics = getHabitMetrics(habit.id, currentAnalyticsWindow);
             const completionPct = metrics.completionPercentage;
             const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
 
@@ -4126,6 +4148,7 @@
 
     // ---------- Master App Render Loop ----------
     function renderAll() {
+      console.log('📋 renderAll() called, appData.habits:', appData.habits);
       const d = new Date(selectedPlannerDate + "T00:00:00");
       const dateSubtext = document.getElementById('headerDateSubtext');
       if (dateSubtext) {
