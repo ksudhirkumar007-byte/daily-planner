@@ -679,27 +679,10 @@
           </div>
         </div>
 
-        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
-          <span class="text-[11px] font-semibold text-indigo-300 font-mono flex items-center gap-1.5">
-            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 1. Planned Schedule
-          </span>
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-[10px] text-slate-500 mb-1">Start Time</label>
-              <input type="time" id="tbStartTime" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
-            </div>
-            <div>
-              <label class="block text-[10px] text-slate-500 mb-1">End Time</label>
-              <input type="time" id="tbEndTime" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
-            </div>
-          </div>
-          <input type="text" id="tbNotes" placeholder="Planned objectives / notes..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none">
-        </div>
-
         <div class="p-3 bg-slate-950 rounded-xl border border-emerald-900/50 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-300 font-mono flex items-center gap-1.5">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 2. Actual Evaluation
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 1. Actual Evaluation
             </span>
             <select id="tbStatus" class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-emerald-400 font-mono focus:outline-none">
               <option value="Planned">Status: Planned</option>
@@ -792,7 +775,7 @@
         </div>
 
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
-          <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1">
+          <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1.5">
             <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 24H Calendar Slot Assignment
           </span>
           <div>
@@ -1600,7 +1583,7 @@
             cleanHabits.push({
               id: hId,
               name: h.name || "Habit",
-              type: normalizeHabitType(h.type),
+              type: h.type || "yesno",
               target: Number(h.target) || 0,
               unit: h.unit || ""
             });
@@ -1943,150 +1926,157 @@
         "Missed": "bg-rose-950 text-rose-300 border-rose-700"
       };
 
-      allPlannedBlocks.forEach(block => {
-        const theme = colorMap[block.color] || colorMap.indigo;
-        const pStartM = timeToMinutes(block.startTime);
-        let pEndM = timeToMinutes(block.endTime);
-        if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
+      allPlannedBlocks.forEach((block) => {
+        // Create an IIFE to capture block data at creation time, not at click time
+        (function(capturedBlock) {
+          const theme = colorMap[capturedBlock.color] || colorMap.indigo;
+          const pStartM = timeToMinutes(capturedBlock.startTime);
+          let pEndM = timeToMinutes(capturedBlock.endTime);
+          if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
 
-        const pDur = Math.max(15, pEndM - pStartM);
-        const cardHeight = Math.max(18, pDur - 2);
-        const cardTop = pStartM + 1;
+          const pDur = Math.max(15, pEndM - pStartM);
+          const cardHeight = Math.max(18, pDur - 2);
+          const cardTop = pStartM + 1;
 
-        const isRoutine = Boolean(block.routineId || block.isVirtualRoutine);
-        const hasEvaluated = Boolean((block.actualStartTime && block.actualEndTime) || (block.status && block.status !== "Planned"));
-        const isCompact = pDur < 42;
+          const isRoutine = Boolean(capturedBlock.routineId || capturedBlock.isVirtualRoutine);
+          const hasEvaluated = Boolean((capturedBlock.actualStartTime && capturedBlock.actualEndTime) || (capturedBlock.status && capturedBlock.status !== "Planned"));
+          const isCompact = pDur < 42;
 
-        const planCard = document.createElement('div');
-        planCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${theme.planBg} ${theme.border}`;
-        planCard.style.left = 'calc(16.667% + 0.5px)';
-        planCard.style.width = 'calc(41.667% - 1px)';
-        planCard.style.top = `${cardTop}px`;
-        planCard.style.height = `${cardHeight}px`;
+          const planCard = document.createElement('div');
+          planCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${theme.planBg} ${theme.border}`;
+          planCard.style.left = 'calc(16.667% + 0.5px)';
+          planCard.style.width = 'calc(41.667% - 1px)';
+          planCard.style.top = `${cardTop}px`;
+          planCard.style.height = `${cardHeight}px`;
 
-        planCard.onclick = (e) => {
-          e.stopPropagation();
-          openEditTimeBlockModal(block);
-        };
+          planCard.onclick = (e) => {
+            e.stopPropagation();
+            openEditTimeBlockModal(capturedBlock);
+          };
 
-        let evalHtml = "";
-        if (hasEvaluated) {
-          const stClass = statusBadges[block.status] || statusBadges["Planned"];
-          const aDurStr = (block.actualStartTime && block.actualEndTime) ? `${block.actualStartTime}-${block.actualEndTime}` : `${block.status}`;
-          evalHtml = `
-            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
-              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${stClass}">
-                ${block.status || 'Done'}
-              </span>
-              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
-                ${aDurStr}
-              </span>
-            </div>
-          `;
-        }
-
-        if (isCompact) {
-          planCard.innerHTML = `
-            <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
-              <div class="flex items-center gap-1 min-w-0 flex-1">
-                <span class="text-[10px] sm:text-[11px] font-bold ${theme.text} truncate">${block.title}</span>
+          let evalHtml = "";
+          if (hasEvaluated) {
+            const stClass = statusBadges[capturedBlock.status] || statusBadges["Planned"];
+            const aDurStr = (capturedBlock.actualStartTime && capturedBlock.actualEndTime) ? `${capturedBlock.actualStartTime}-${capturedBlock.actualEndTime}` : `${capturedBlock.status}`;
+            evalHtml = `
+              <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
+                <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${stClass}">
+                  ${capturedBlock.status || 'Done'}
+                </span>
+                <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
+                  ${aDurStr}
+                </span>
               </div>
-            </div>
-          `;
-        } else {
-          planCard.innerHTML = `
-            <div class="flex items-start justify-between gap-1">
-              <div class="min-w-0 flex-1">
-                <span class="text-[11px] sm:text-xs font-bold ${theme.text} truncate block">${block.title}</span>
-                ${block.notes ? `<p class="text-[9px] text-slate-300/80 truncate mt-0.5">${block.notes}</p>` : ''}
-                ${evalHtml}
-              </div>
-              ${!isRoutine ? `
-                <button onclick="handleQuickDeleteTimeBlock('${block.id}', event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
-                  <i data-lucide="trash-2" class="w-3 h-3"></i>
-                </button>
-              ` : ''}
-            </div>
-          `;
-        }
+            `;
+          }
 
-        container.appendChild(planCard);
+          if (isCompact) {
+            planCard.innerHTML = `
+              <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
+                <div class="flex items-center gap-1 min-w-0 flex-1">
+                  <span class="text-[10px] sm:text-[11px] font-bold ${theme.text} truncate">${capturedBlock.title}</span>
+                </div>
+              </div>
+            `;
+          } else {
+            planCard.innerHTML = `
+              <div class="flex items-start justify-between gap-1">
+                <div class="min-w-0 flex-1">
+                  <span class="text-[11px] sm:text-xs font-bold ${theme.text} truncate block">${capturedBlock.title}</span>
+                  ${capturedBlock.notes ? `<p class="text-[9px] text-slate-300/80 truncate mt-0.5">${capturedBlock.notes}</p>` : ''}
+                  ${evalHtml}
+                </div>
+                ${!isRoutine ? `
+                  <button onclick="handleQuickDeleteTimeBlock('${capturedBlock.id}', event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                  </button>
+                ` : ''}
+              </div>
+            `;
+          }
+
+          container.appendChild(planCard);
+        })(block);  // Pass the block to IIFE
       });
 
       // BUG FIX #1: Render scheduled tasks as time blocks in the planner (not just in task list)
-      scheduledTasks.forEach(task => {
-        const tStartM = timeToMinutes(task.scheduledStartTime);
-        let tEndM = timeToMinutes(task.scheduledEndTime);
-        if (!tEndM || tEndM <= tStartM) tEndM = tStartM + Math.max(15, task.plannedMins || 30);
+      scheduledTasks.forEach((task) => {
+        // Create an IIFE to capture task data at creation time, not at click time
+        (function(capturedTask) {
+          const tStartM = timeToMinutes(capturedTask.scheduledStartTime);
+          let tEndM = timeToMinutes(capturedTask.scheduledEndTime);
+          if (!tEndM || tEndM <= tStartM) tEndM = tStartM + Math.max(15, capturedTask.plannedMins || 30);
 
-        const tDur = Math.max(15, tEndM - tStartM);
-        const taskHeight = Math.max(18, tDur - 2);
-        const taskTop = tStartM + 1;
+          const tDur = Math.max(15, tEndM - tStartM);
+          const taskHeight = Math.max(18, tDur - 2);
+          const taskTop = tStartM + 1;
 
-        const isDone = Boolean(task.completed || task.status === "Completed");
-        const isCompact = tDur < 42;
+          const isDone = Boolean(capturedTask.completed || capturedTask.status === "Completed");
+          const isCompact = tDur < 42;
 
-        const priorityBorder = {
-          High: 'border-rose-500/70 bg-rose-950/30',
-          Med: 'border-amber-500/70 bg-amber-950/30',
-          Low: 'border-slate-700/80 bg-slate-900/80'
-        }[task.priority] || 'border-indigo-500/70 bg-indigo-950/30';
+          const priorityBorder = {
+            High: 'border-rose-500/70 bg-rose-950/30',
+            Med: 'border-amber-500/70 bg-amber-950/30',
+            Low: 'border-slate-700/80 bg-slate-900/80'
+          }[capturedTask.priority] || 'border-indigo-500/70 bg-indigo-950/30';
 
-        const taskCard = document.createElement('div');
-        taskCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
-        taskCard.style.left = 'calc(58.334% + 0.5px)';
-        taskCard.style.width = 'calc(41.667% - 1px)';
-        taskCard.style.top = `${taskTop}px`;
-        taskCard.style.height = `${taskHeight}px`;
+          const taskCard = document.createElement('div');
+          taskCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
 
-        taskCard.onclick = (e) => {
-          e.stopPropagation();
-          openEditTaskModal(task.id);
-        };
+          taskCard.style.left = 'calc(58.334% + 0.5px)';
+          taskCard.style.width = 'calc(41.667% - 1px)';
+          taskCard.style.top = `${taskTop}px`;
+          taskCard.style.height = `${taskHeight}px`;
 
-        let evalHtml = "";
-        if (task.actualMins > 0 || task.actualStartTime) {
-          const isDoneClass = isDone ? 'bg-emerald-950 text-emerald-300 border-emerald-600/50' : 'bg-slate-800 text-slate-300 border-slate-700';
-          evalHtml = `
-            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
-              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${isDoneClass}">
-                ${task.status || 'Done'}
-              </span>
-              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
-                ${task.actualMins > 0 ? task.actualMins + 'm act' : (task.actualStartTime ? task.actualStartTime : 'Logged')}
-              </span>
-            </div>
-          `;
-        }
+          taskCard.onclick = (e) => {
+            e.stopPropagation();
+            openEditTaskModal(capturedTask.id);
+          };
 
-        if (isCompact) {
-          taskCard.innerHTML = `
-            <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
-              <div class="flex items-center gap-1 min-w-0 flex-1">
-                <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
-                  <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
-                </button>
-                <span class="text-[10px] sm:text-[11px] font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
+          let evalHtml = "";
+          if (capturedTask.actualMins > 0 || capturedTask.actualStartTime) {
+            const isDoneClass = isDone ? 'bg-emerald-950 text-emerald-300 border-emerald-600/50' : 'bg-slate-800 text-slate-300 border-slate-700';
+            evalHtml = `
+              <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
+                <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${isDoneClass}">
+                  ${capturedTask.status || 'Done'}
+                </span>
+                <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
+                  ${capturedTask.actualMins > 0 ? capturedTask.actualMins + 'm act' : (capturedTask.actualStartTime ? capturedTask.actualStartTime : 'Logged')}
+                </span>
               </div>
-            </div>
-          `;
-        } else {
-          taskCard.innerHTML = `
-            <div class="flex items-start justify-between gap-1">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1">
-                  <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
-                    <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
+            `;
+          }
+
+          if (isCompact) {
+            taskCard.innerHTML = `
+              <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
+                <div class="flex items-center gap-1 min-w-0 flex-1">
+                  <button onclick="event.stopPropagation(); toggleTaskCompletion('${capturedTask.id}')" class="p-0.5 rounded text-emerald-400">
+                    <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
                   </button>
-                  <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
+                  <span class="text-[10px] sm:text-[11px] font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${capturedTask.title}</span>
                 </div>
-                ${evalHtml}
               </div>
-            </div>
-          `;
-        }
+            `;
+          } else {
+            taskCard.innerHTML = `
+              <div class="flex items-start justify-between gap-1">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1">
+                    <button onclick="event.stopPropagation(); toggleTaskCompletion('${capturedTask.id}')" class="p-0.5 rounded text-emerald-400">
+                      <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+                    </button>
+                    <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${capturedTask.title}</span>
+                  </div>
+                  ${evalHtml}
+                </div>
+              </div>
+            `;
+          }
 
-        container.appendChild(taskCard);
+          container.appendChild(taskCard);
+        })(task);  // Pass the task to IIFE
       });
 
       updateLiveTimeIndicator();
@@ -2216,14 +2206,14 @@
                 <button onclick="stepNumericHabit('${hId}', 1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
                 <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit || ''}</span>
               </div>
-              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
                 <div class="h-full bg-amber-500 rounded-full transition-all" style="width: ${pct}%"></div>
               </div>
             </div>
           `;
         } else {
           controlHtml = `
-            <div class="flex items-center gap-2 w-full sm:w-80">
+            <div class="flex items-center justify-end gap-2 w-full sm:w-80">
               <input type="text" id="desc_input_${hId}" value="${log.value || ''}"
                      onchange="saveDescriptiveHabit('${hId}', this.value)"
                      onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)"
@@ -2243,7 +2233,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <h4 class="text-xs sm:text-sm font-bold text-white">${habit.name}</h4>
-                <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">${typeLabel}</span>
+                <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">24H</span>
               </div>
               <span class="text-[10px] font-mono text-amber-400 mt-0.5 block font-semibold">
                 🔥 ${streak} day streak ${!isCompleted && streak > 0 ? '<span class="text-slate-500 font-normal">(due today)</span>' : ''}
@@ -2304,7 +2294,7 @@
             const log = appData.habitLogs[key];
 
             const habit = appData.habits.find(h => String(h.id) === hId);
-            const normType = habit ? normalizeHabitType(habit.type) : 'yesno';
+            const normType = habit ? normalizeHabitType(h.type) : 'yesno';
 
             const isDone = log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
 
@@ -2813,6 +2803,9 @@
       document.getElementById('tmActualMins').value = task.actualMins || 0;
 
       document.getElementById('taskModal').classList.remove('hidden');
+
+      // Attach auto-calculate listener for task
+      attachTaskAutoCalculate();
       lucide.createIcons();
     }
 
@@ -2829,6 +2822,9 @@
       document.getElementById('tmActualMins').value = 0;
 
       document.getElementById('taskModal').classList.remove('hidden');
+
+      // Attach auto-calculate listener for task
+      attachTaskAutoCalculate();
       lucide.createIcons();
     }
 
@@ -2836,1341 +2832,60 @@
       document.getElementById('taskModal').classList.add('hidden');
     }
 
-    function handleSaveTaskDetail(e) {
-      e.preventDefault();
-      const rawId = document.getElementById('tmTaskId').value;
-      const title = document.getElementById('tmTitle').value.trim();
-      const priority = document.getElementById('tmPriority').value;
-      const frequency = document.getElementById('tmFrequency').value;
-      const status = document.getElementById('tmStatus').value;
-      const date = document.getElementById('tmDate').value;
-      const scheduledStartTime = document.getElementById('tmStartTime').value;
-      const scheduledEndTime = document.getElementById('tmEndTime').value;
-      const plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
-      const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
+    // Attach auto-calculate listeners for tasks
+    function attachTaskAutoCalculate() {
+      const startTimeInput = document.getElementById('tmStartTime');
+      const plannedMinsInput = document.getElementById('tmPlannedMins');
+      const endTimeInput = document.getElementById('tmEndTime');
 
-      if (!title) return;
+      if (!startTimeInput || !plannedMinsInput || !endTimeInput) return;
 
-      if (rawId) {
-        const t = appData.tasks.find(x => String(x.id) === String(rawId));
-        if (t) {
-          t.title = title;
-          t.priority = priority;
-          t.frequency = frequency;
-          t.status = status;
-          t.completed = (status === "Completed");
-          t.date = date;
-          t.scheduledStartTime = scheduledStartTime;
-          t.scheduledEndTime = scheduledEndTime;
-          t.plannedMins = plannedMins;
-          t.actualMins = actualMins;
-        }
-      } else {
-        appData.tasks.unshift({
-          id: Date.now(),
-          title,
-          priority,
-          frequency,
-          status,
-          completed: (status === "Completed"),
-          date,
-          scheduledStartTime,
-          scheduledEndTime,
-          plannedMins,
-          actualMins
-        });
-      }
+      // Function to calculate end time
+      const calculateEndTime = () => {
+        const startTime = startTimeInput.value;
+        const plannedMins = parseInt(plannedMinsInput.value) || 30;
 
-      closeTaskModal();
+        if (!startTime) return;
 
-      // Find the task that was just saved and capture its analytics
-      const savedTask = rawId ?
-        appData.tasks.find(x => String(x.id) === String(rawId)) :
-        appData.tasks[0]; // New task is at the beginning
-
-      if (savedTask) {
-        captureTaskAnalytics(savedTask);
-      }
-
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    function deleteTask(id) {
-      appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    // ---------- Focus Stopwatch ----------
-    let timerInterval = null;
-    let timerSeconds = 0;
-    let isStopwatchRunning = false;
-    let linkedTaskId = null;
-
-    function formatStopwatchTime(sec) {
-      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
-      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
-    }
-
-    function toggleStopwatch() {
-      const btn = document.getElementById('btnToggleStopwatch');
-      const label = document.getElementById('labelTimerToggle');
-      const icon = document.getElementById('iconTimerPlay');
-
-      if (!isStopwatchRunning) {
-        isStopwatchRunning = true;
-        label.textContent = "Pause Session";
-        btn.classList.replace('bg-indigo-600', 'bg-amber-600');
-        btn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
-        icon.setAttribute('data-lucide', 'pause');
-
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          document.getElementById('stopwatchDigitalDisplay').textContent = formatStopwatchTime(timerSeconds);
-        }, 1000);
-      } else {
-        isStopwatchRunning = false;
-        clearInterval(timerInterval);
-        label.textContent = "Resume Session";
-        btn.classList.replace('bg-amber-600', 'bg-indigo-600');
-        btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
-        icon.setAttribute('data-lucide', 'play');
-      }
-      lucide.createIcons();
-    }
-
-    function resetStopwatch() {
-      isStopwatchRunning = false;
-      clearInterval(timerInterval);
-      timerSeconds = 0;
-      linkedTaskId = null;
-      document.getElementById('stopwatchDigitalDisplay').textContent = "00:00:00";
-      document.getElementById('labelTimerToggle').textContent = "Start Session";
-      document.getElementById('btnToggleStopwatch').classList.replace('bg-amber-600', 'bg-indigo-600');
-      document.getElementById('iconTimerPlay').setAttribute('data-lucide', 'play');
-      document.getElementById('activeFocusTaskBadge').textContent = "General Focus";
-      lucide.createIcons();
-    }
-
-    function linkTaskToStopwatch(taskId) {
-      const task = appData.tasks.find(t => String(t.id) === String(taskId));
-      if (!task) return;
-      linkedTaskId = taskId;
-      document.getElementById('focusSessionLabelInput').value = task.title;
-      document.getElementById('activeFocusTaskBadge').textContent = `Task: ${task.title}`;
-      scrollToModule('module_timer');
-      if (!isStopwatchRunning) toggleStopwatch();
-    }
-
-    function logFocusSession() {
-      if (timerSeconds < 5) return;
-      const label = document.getElementById('focusSessionLabelInput').value.trim() || "Deep Focus";
-      const durStr = formatStopwatchTime(timerSeconds);
-      const now = new Date();
-      const timeStamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      appData.focusLogs.unshift({
-        id: Date.now(),
-        label,
-        duration: durStr,
-        timestamp: timeStamp,
-        date: selectedPlannerDate
-      });
-
-      if (linkedTaskId) {
-        const task = appData.tasks.find(t => String(t.id) === String(linkedTaskId));
-        if (task) {
-          task.actualMins = (task.actualMins || 0) + Math.round(timerSeconds / 60);
-        }
-      }
-
-      resetStopwatch();
-      document.getElementById('focusSessionLabelInput').value = '';
-      renderFocusLogs();
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    function renderFocusLogs() {
-      const container = document.getElementById('focusHistoryLogList');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const logsToday = appData.focusLogs.filter(fl => fl.date === selectedPlannerDate || fl.date === getTodayKey());
-
-      if (!logsToday.length) {
-        container.innerHTML = `<div class="text-[11px] text-slate-500 italic">No focus sessions recorded today.</div>`;
-        return;
-      }
-
-      logsToday.slice(0, 5).forEach(l => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono";
-        row.innerHTML = `
-          <span class="text-slate-200 truncate pr-2">${l.label}</span>
-          <span class="text-indigo-400 font-bold whitespace-nowrap">${l.duration} <span class="text-slate-500 font-normal">(${l.timestamp})</span></span>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function clearFocusLogs() {
-      appData.focusLogs = [];
-      renderFocusLogs();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    // ---------- UI Toggle Functions ----------
-    function toggleReviewSection() {
-      const content = document.getElementById('reviewContent');
-      const icon = document.getElementById('reviewToggleIcon');
-      if (!content) return;
-
-      const isHidden = content.classList.contains('hidden');
-      if (isHidden) {
-        content.classList.remove('hidden');
-        icon.setAttribute('data-lucide', 'chevron-up');
-      } else {
-        content.classList.add('hidden');
-        icon.setAttribute('data-lucide', 'chevron-down');
-      }
-      lucide.createIcons();
-    }
-
-    function toggleAnalyticsSection() {
-      const content = document.getElementById('analyticsContent');
-      const icon = document.getElementById('analyticsToggleIcon');
-      if (!content) return;
-
-      const isHidden = content.classList.contains('hidden');
-      if (isHidden) {
-        content.classList.remove('hidden');
-        icon.setAttribute('data-lucide', 'chevron-up');
-      } else {
-        content.classList.add('hidden');
-        icon.setAttribute('data-lucide', 'chevron-down');
-      }
-      lucide.createIcons();
-    }
-
-    // ---------- Daily Review ----------
-    function renderDailyReview() {
-      const s = appData.dailySummaries[selectedPlannerDate] || {};
-      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-      setVal('rev_goodThing', s.goodThing || "");
-      setVal('rev_disliked', s.disliked || "");
-      setVal('rev_productive', s.productive || "");
-      setVal('rev_betterThanYesterday', s.betterThanYesterday || "");
-      setVal('rev_regrets', s.regrets || "");
-      setVal('rev_emotion', s.emotion || "");
-    }
-
-    function saveDailyReview() {
-      appData.dailySummaries[selectedPlannerDate] = {
-        date: selectedPlannerDate,
-        goodThing: document.getElementById('rev_goodThing').value.trim(),
-        disliked: document.getElementById('rev_disliked').value.trim(),
-        productive: document.getElementById('rev_productive').value.trim(),
-        betterThanYesterday: document.getElementById('rev_betterThanYesterday').value.trim(),
-        regrets: document.getElementById('rev_regrets').value.trim(),
-        emotion: document.getElementById('rev_emotion').value.trim()
-      };
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    // ==========================================
-    // ANALYTICS COMPUTATION ENGINE
-    // ==========================================
-    // Update pending analytics count badge
-    function updateAnalyticsPendingBadge() {
-      const badge = document.getElementById('btnAnalyticsPendingCount');
-      if (badge) {
-        const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
-        const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
-        const total = taskCount + habitCount;
-        badge.textContent = total;
-        badge.parentElement.parentElement.style.opacity = total > 0 ? "1" : "0.7";
-      }
-    }
-
-    // ---------- Habit Analytics Capture (Auto-Capture on Every Log) ----------
-    function captureHabitAnalytics(habit) {
-      /**
-       * Automatically captures analytics for a habit whenever it's logged
-       * Stores locally in appData.habitAnalytics for later syncing
-       */
-      const metrics = getHabitMetrics(habit.id, 30);  // Use 30-day window
-
-      const analytics = {
-        captureId: `${habit.id}_${selectedPlannerDate}_${Date.now()}`,
-        habitId: String(habit.id),
-        habitName: habit.name,
-        habitType: habit.type || 'yesno',
-        target: habit.target || 0,
-        unit: habit.unit || '',
-        captureDate: selectedPlannerDate,
-        logDate: selectedPlannerDate,
-        streak: metrics.streak,
-        completionPercentage: metrics.completionPercentage,
-        totalCompleted: metrics.totalCompleted,
-        totalExpected: metrics.totalExpected,
-        daysMissedRecently: metrics.daysMissedRecently,
-        lastCompletedDate: metrics.lastCompletedDate,
-        daysLabel: formatDateForDisplay(metrics.lastCompletedDate),
-        captureTimestamp: new Date().toISOString()
+        const endTime = addMinutesToTime(startTime, plannedMins);
+        endTimeInput.value = endTime;
       };
 
-      // Check if we already have a capture for this habit on this date today
-      const existingIndex = appData.habitAnalytics.findIndex(
-        a => a.habitId === String(habit.id) && a.logDate === selectedPlannerDate
-      );
-
-      if (existingIndex >= 0) {
-        // Update existing capture for today
-        appData.habitAnalytics[existingIndex] = analytics;
-        console.log(`📊 Updated habit analytics for ${habit.name}`);
-      } else {
-        // Add new capture
-        appData.habitAnalytics.push(analytics);
-        console.log(`📊 Captured habit analytics for ${habit.name}`);
-      }
-
-      saveState();  // Save to localStorage immediately
-    }
-    // ---------- End Habit Analytics Capture ----------
-
-    // Update pending analytics count badge
-    function updateAnalyticsPendingBadge() {
-      const badge = document.getElementById('btnAnalyticsPendingCount');
-      if (badge) {
-        const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
-        const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
-        const total = taskCount + habitCount;
-        badge.textContent = total;
-        badge.parentElement.parentElement.style.opacity = total > 0 ? "1" : "0.7";
-      }
+      // Attach listeners to both inputs
+      startTimeInput.addEventListener('change', calculateEndTime);
+      plannedMinsInput.addEventListener('change', calculateEndTime);
+      plannedMinsInput.addEventListener('input', calculateEndTime);
     }
 
-    // ---------- Task Analytics Capture (Auto-Capture on Every Change) ----------
-    function captureTaskAnalytics(task) {
-      /**
-       * Automatically captures analytics for a task whenever it changes
-       * Stores locally in appData.taskAnalytics for later syncing
-       */
-      const metrics = getTaskPendingMetrics(task);
-
-      const analytics = {
-        captureId: `${task.id}_${Date.now()}`,  // Unique ID for this capture
-        taskId: String(task.id),
-        taskTitle: task.title,
-        priority: task.priority || 'Med',
-        completed: task.completed ? "TRUE" : "FALSE",
-        status: task.status || "Need to Start",
-        pendingDays: metrics.pendingDays,
-        pendingStatus: metrics.status,
-        daysLabel: metrics.daysLabel,
-        pendingFrom: metrics.pendingFrom,
-        taskType: metrics.type,
-        frequency: task.frequency || 'once',
-        scheduledDate: normalizeDateString(task.date || task.scheduledDate || ""),
-        plannedMins: Number(task.plannedMins) || 0,
-        actualMins: Number(task.actualMins) || 0,
-        captureTimestamp: new Date().toISOString(),
-        captureDate: getTodayKey()
-      };
-
-      // Check if we already have a capture for this task today
-      const existingIndex = appData.taskAnalytics.findIndex(
-        a => a.taskId === String(task.id) && a.captureDate === getTodayKey()
-      );
-
-      if (existingIndex >= 0) {
-        // Update existing capture for today
-        appData.taskAnalytics[existingIndex] = analytics;
-        console.log(`📊 Updated analytics for task ${task.id}`);
-      } else {
-        // Add new capture
-        appData.taskAnalytics.push(analytics);
-        console.log(`📊 Captured analytics for task ${task.id}`);
-      }
-
-      saveState();  // Save to localStorage immediately
-    }
-    // ---------- End Task Analytics Capture ----------
-
-    // ---------- On-Demand Analytics Sync ----------
-    async function syncAnalyticsOnDemand() {
-      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
-        alert("❌ API URL not configured. Please set it in settings.");
-        return;
-      }
-
-      const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
-      const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
-
-      if (taskCount === 0 && habitCount === 0) {
-        alert("ℹ️ No analytics data to sync. Make changes to tasks or habits first.");
-        return;
-      }
-
-      const btn = document.getElementById('btnSyncAnalytics');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Syncing...</span>';
-      }
-
-      try {
-        console.log("📊 Syncing Analytics:", {
-          taskRecords: taskCount,
-          habitRecords: habitCount,
-          totalRecords: taskCount + habitCount
-        });
-
-        // Send to Google Sheets
-        const res = await fetch(appData.apiUrl, {
-          method: "POST",
-          redirect: "follow",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "syncTaskAnalytics",
-            data: {
-              taskAnalytics: appData.taskAnalytics || [],
-              habitAnalytics: appData.habitAnalytics || [],
-              syncDate: getTodayKey(),
-              syncTime: new Date().toLocaleTimeString()
-            }
-          })
-        });
-
-        if (res.ok) {
-          console.log("✅ Analytics synced successfully");
-          // Clear both analytics after successful sync
-          const totalRecords = taskCount + habitCount;
-          appData.taskAnalytics = [];
-          appData.habitAnalytics = [];
-          saveState();
-
-          if (btn) {
-            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Synced! ('+totalRecords+' records)</span>';
-            btn.classList.add('bg-emerald-700');
-            setTimeout(() => {
-              btn.disabled = false;
-              btn.classList.remove('bg-emerald-700');
-              btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>';
-              updateAnalyticsPendingBadge();
-              lucide.createIcons();
-            }, 2000);
-          }
-        } else {
-          throw new Error("Sync failed with status " + res.status);
-        }
-      } catch (err) {
-        console.error("❌ Analytics sync error:", err);
-        alert("❌ Failed to sync analytics. Check API URL and try again.");
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span>Sync Failed</span>';
-          btn.classList.add('bg-rose-600');
-          setTimeout(() => {
-            btn.classList.remove('bg-rose-600');
-            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>';
-            updateAnalyticsPendingBadge();
-            lucide.createIcons();
-          }, 3000);
-        }
-      }
-    }
-    // ---------- End On-Demand Analytics Sync ----------
-
-    function setAnalyticsWindow(days) {
-      currentAnalyticsWindow = days;
-      const b7 = document.getElementById('anWindow_7');
-      const b30 = document.getElementById('anWindow_30');
-      const bAll = document.getElementById('anWindow_ALL');
-
-      if (b7 && b30 && bAll) {
-        b7.className = days === 7 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
-        b30.className = days === 30 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
-        bAll.className = days === 999 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
-      }
-
-      renderAnalytics();
+    // Add minutes to a time string (HH:mm)
+    function addMinutesToTime(timeStr, minsToAdd) {
+      const [h, m] = timeStr.split(':').map(Number);
+      const totalMins = (h * 60) + m + minsToAdd;
+      const newH = String(Math.floor(totalMins / 60) % 24).padStart(2, '0');
+      const newM = String(totalMins % 60).padStart(2, '0');
+      return `${newH}:${newM}`;
     }
 
-    function getAnalyticsDateSet(days) {
-      if (days >= 900) return null; // All Time
-      const set = new Set();
-      const ref = new Date();
-      for (let i = 0; i < days; i++) {
-        const d = new Date(ref);
-        d.setDate(d.getDate() - i);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        set.add(`${y}-${m}-${day}`);
-      }
-      return set;
-    }
+    // Add event listeners to modals for auto-calculation
+    function attachModalEventListeners() {
+      const timeBlockModal = document.getElementById('timeBlockModal');
+      if (timeBlockModal) {
+        const startTimeInput = timeBlockModal.querySelector('#tbStartTime');
+        const endTimeInput = timeBlockModal.querySelector('#tbEndTime');
 
-    function renderAnalytics() {
-      const windowSet = getAnalyticsDateSet(currentAnalyticsWindow);
-      const isDateInScope = (dateStr) => {
-        if (!windowSet) return true;
-        const norm = normalizeDateString(dateStr);
-        return windowSet.has(norm);
-      };
+        if (startTimeInput && endTimeInput) {
+          startTimeInput.addEventListener('change', () => {
+            const startTime = startTimeInput.value;
+            if (!startTime) return;
 
-      // 1. Planner Execution Analytics
-      const scopedPlans = appData.timeBlocks.filter(b => isDateInScope(b.date));
-      let plannedMinutes = 0;
-      let actualMinutes = 0;
-      let completedBlocks = 0;
-      let missedBlocks = 0;
+            // Default duration is 1 hour if not specified
+            const durationMins = 60;
+            const endTime = addMinutesToTime(startTime, durationMins);
 
-      scopedPlans.forEach(p => {
-        const s = timeToMinutes(p.startTime);
-        const e = timeToMinutes(p.endTime);
-        const dur = Math.max(0, e - s);
-        plannedMinutes += dur;
-
-        if (p.status === 'Completed') {
-          completedBlocks++;
-          const as = p.actualStartTime ? timeToMinutes(p.actualStartTime) : s;
-          const ae = p.actualEndTime ? timeToMinutes(p.actualEndTime) : e;
-          actualMinutes += Math.max(0, ae - as);
-        } else if (p.status === 'Partial / Deviated') {
-          completedBlocks += 0.5;
-          actualMinutes += (dur * 0.5);
-        } else if (p.status === 'Missed') {
-          missedBlocks++;
-        }
-      });
-
-      const pHours = (plannedMinutes / 60).toFixed(1);
-      const aHours = (actualMinutes / 60).toFixed(1);
-      const planFidelity = plannedMinutes > 0 ? Math.round((actualMinutes / plannedMinutes) * 100) : 0;
-
-      const elPlanStat = document.getElementById('anPlanHoursStat');
-      const elPlanFidelity = document.getElementById('anPlanFidelityRate');
-      const elPlanComp = document.getElementById('anPlanCompletedCount');
-      const elPlanMiss = document.getElementById('anPlanMissedCount');
-
-      if (elPlanStat) elPlanStat.textContent = `${aHours}h / ${pHours}h`;
-      if (elPlanFidelity) elPlanFidelity.textContent = `${planFidelity}%`;
-      if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
-      if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
-
-      // 2. Habits Consistency & Friction Analytics
-      const totalHabits = appData.habits.length;
-      let totalExpectedLogs = 0;
-      let totalCompletedLogs = 0;
-      const missedCounts = {};
-      let topStreak = 0;
-
-      appData.habits.forEach(h => {
-        const hId = String(h.id);
-        missedCounts[hId] = 0;
-        const curStreak = calculateStreak(hId);
-        if (curStreak > topStreak) topStreak = curStreak;
-      });
-
-      // Filter habit logs within time scope
-      Object.keys(appData.habitLogs).forEach(key => {
-        const parts = key.split('_');
-        const hId = parts[0];
-        const dateStr = parts.slice(1).join('_');
-        if (isDateInScope(dateStr)) {
-          const l = appData.habitLogs[key];
-          const isDone = l && (l.completed || String(l.value).toLowerCase() === 'yes');
-          if (isDone) totalCompletedLogs++;
-          else if (missedCounts.hasOwnProperty(hId)) {
-            missedCounts[hId]++;
-          }
-        }
-      });
-
-      const daysCount = currentAnalyticsWindow >= 900 ? 30 : currentAnalyticsWindow;
-      totalExpectedLogs = totalHabits * daysCount;
-      const habitSuccessRate = totalExpectedLogs > 0 ? Math.min(100, Math.round((totalCompletedLogs / totalExpectedLogs) * 100)) : 0;
-      const totalMissedCount = Object.values(missedCounts).reduce((a, b) => a + b, 0);
-
-      const elHabitStat = document.getElementById('anHabitCompletedStat');
-      const elHabitRate = document.getElementById('anHabitSuccessRate');
-      const elHabitMiss = document.getElementById('anHabitMissedTotal');
-      const elHabitStreak = document.getElementById('anHabitTopStreak');
-
-      if (elHabitStat) elHabitStat.textContent = `${totalCompletedLogs} / ${totalExpectedLogs}`;
-      if (elHabitRate) elHabitRate.textContent = `${habitSuccessRate}%`;
-      if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
-      if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
-
-      // Render Habits Friction List with Enhanced Metrics
-      const frictionContainer = document.getElementById('anHabitsFrictionList');
-      if (frictionContainer) {
-        if (!appData.habits.length) {
-          frictionContainer.innerHTML = `<span class="text-slate-500 italic text-[11px]">No habits configured.</span>`;
-        } else {
-          const sorted = [...appData.habits].sort((a, b) => (missedCounts[String(b.id)] || 0) - (missedCounts[String(a.id)] || 0));
-          frictionContainer.innerHTML = sorted.map(h => {
-            const mCount = missedCounts[String(h.id)] || 0;
-            const metrics = getHabitMetrics(h.id, 30); // 30-day window
-            const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
-            const completionPct = metrics.completionPercentage;
-
-            // Determine status color and emoji
-            let statusEmoji = '🟢';
-            let statusColor = 'emerald';
-            let statusLabel = 'Excellent';
-            if (completionPct < 50) {
-              statusEmoji = '🔴';
-              statusColor = 'rose';
-              statusLabel = 'Needs Work';
-            } else if (completionPct < 80) {
-              statusEmoji = '🟡';
-              statusColor = 'amber';
-              statusLabel = 'Good';
-            }
-
-            return `
-              <div class="flex flex-col p-3 rounded-lg bg-slate-900/70 border border-slate-800/80 text-[10px] space-y-2 hover:bg-slate-900 transition">
-                <!-- Header with habit name and completion % -->
-                <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-200 truncate pr-2">${h.name}</span>
-                  <span class="font-mono text-[9px] px-2 py-0.5 rounded bg-${statusColor}-950/80 text-${statusColor}-300 border border-${statusColor}-800/60 whitespace-nowrap">${completionPct}%</span>
-                </div>
-
-                <!-- Progress bar -->
-                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                  <div class="h-full bg-gradient-to-r from-${statusColor}-500 to-${statusColor}-400 rounded-full transition-all" style="width: ${completionPct}%"></div>
-                </div>
-
-                <!-- Metrics grid -->
-                <div class="grid grid-cols-2 gap-2 text-[9px]">
-                  <div class="flex flex-col">
-                    <span class="text-slate-500 text-[8px] uppercase">Last Done</span>
-                    <span class="text-slate-200 font-mono font-semibold mt-0.5">${lastCompletedDisplay}</span>
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-slate-500 text-[8px] uppercase">Streak</span>
-                    <span class="text-amber-400 font-mono font-bold mt-0.5">${metrics.streak}d 🔥</span>
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-slate-500 text-[8px] uppercase">Times Missed</span>
-                    <span class="text-rose-400 font-mono font-semibold mt-0.5">${mCount}x</span>
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-slate-500 text-[8px] uppercase">Overdue Days</span>
-                    <span class="text-slate-300 font-mono font-semibold mt-0.5">${metrics.daysMissedRecently}d</span>
-                  </div>
-                </div>
-
-                <!-- Status indicator -->
-                <div class="flex items-center gap-1 pt-1 border-t border-slate-700/30">
-                  <span class="text-xs">${statusEmoji}</span>
-                  <span class="text-[9px] text-slate-400">Status: <b class="text-${statusColor}-300">${statusLabel}</b></span>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-
-      // 3. Tasks Throughput & Priority Breakdown
-      const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
-      const totalTasks = scopedTasks.length;
-      let completedTasksCount = 0;
-      let pendingTasksCount = 0;
-      const priTotal = { High: 0, Med: 0, Low: 0 };
-      const priCompleted = { High: 0, Med: 0, Low: 0 };
-
-      scopedTasks.forEach(t => {
-        const isDone = Boolean(t.completed || t.status === "Completed");
-        const pri = t.priority || 'Med';
-        if (priTotal.hasOwnProperty(pri)) priTotal[pri]++;
-        else priTotal['Med']++;
-
-        if (isDone) {
-          completedTasksCount++;
-          if (priCompleted.hasOwnProperty(pri)) priCompleted[pri]++;
-          else priCompleted['Med']++;
-        } else {
-          pendingTasksCount++;
-        }
-      });
-
-      const tasksRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
-      const highRate = priTotal.High > 0 ? Math.round((priCompleted.High / priTotal.High) * 100) : 0;
-
-      const elTasksStat = document.getElementById('anTasksCountStat');
-      const elTasksRate = document.getElementById('anTasksRateBadge');
-      const elTasksPend = document.getElementById('anTasksPendingCount');
-      const elTasksHigh = document.getElementById('anTasksHighRate');
-
-      if (elTasksStat) elTasksStat.textContent = `${completedTasksCount} / ${totalTasks}`;
-      if (elTasksRate) elTasksRate.textContent = `${tasksRate}%`;
-      if (elTasksPend) elTasksPend.textContent = pendingTasksCount;
-      if (elTasksHigh) elTasksHigh.textContent = `${highRate}% (${priCompleted.High}/${priTotal.High})`;
-
-      // Render Task Priority Bars
-      const priBarsContainer = document.getElementById('anTaskPriorityBars');
-      if (priBarsContainer) {
-        const renderPriBar = (label, colorClass, done, total) => {
-          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          return `
-            <div>
-              <div class="flex justify-between text-[11px] mb-1 font-mono">
-                <span class="text-slate-300 font-semibold">${label}</span>
-                <span class="text-slate-400">${done}/${total} (${pct}%)</span>
-              </div>
-              <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                <div class="h-full ${colorClass} rounded-full transition-all" style="width: ${pct}%"></div>
-              </div>
-            </div>
-          `;
-        };
-
-        priBarsContainer.innerHTML = `
-          ${renderPriBar('🔥 High Priority', 'bg-rose-500', priCompleted.High, priTotal.High)}
-          ${renderPriBar('⚡ Medium Priority', 'bg-amber-500', priCompleted.Med, priTotal.Med)}
-          ${renderPriBar('🌱 Low Priority', 'bg-emerald-500', priCompleted.Low, priTotal.Low)}
-        `;
-      }
-
-      // 4. Daily Review & Reflection Highlights
-      let totalProdScore = 0;
-      let prodScoreCount = 0;
-      const moodCounts = {};
-      const happyList = [];
-      const frictionList = [];
-      let reflectedCount = 0;
-
-      Object.keys(appData.dailySummaries).forEach(d => {
-        if (isDateInScope(d)) {
-          reflectedCount++;
-          const s = appData.dailySummaries[d];
-          if (s.productive) {
-            const m = String(s.productive).match(/^(\d+(?:\.\d+)?)/);
-            if (m) {
-              totalProdScore += Number(m[1]);
-              prodScoreCount++;
-            }
-          }
-          const emo = s.emotion ? s.emotion.trim() : 'Steady';
-          if (emo) moodCounts[emo] = (moodCounts[emo] || 0) + 1;
-
-          if (s.goodThing && s.goodThing.trim()) happyList.push(s.goodThing.trim());
-          if (s.disliked && s.disliked.trim()) frictionList.push(s.disliked.trim());
-        }
-      });
-
-      const avgProd = prodScoreCount > 0 ? (totalProdScore / prodScoreCount).toFixed(1) : '--';
-      
-      let dominantMood = 'Steady';
-      let maxCnt = 0;
-      Object.entries(moodCounts).forEach(([emo, cnt]) => {
-        if (cnt > maxCnt) {
-          maxCnt = cnt;
-          dominantMood = emo;
-        }
-      });
-
-      // Focus Logs in scope
-      const scopedFocus = appData.focusLogs.filter(fl => isDateInScope(fl.date));
-      let totalFocusSecs = 0;
-      scopedFocus.forEach(fl => {
-        const parts = String(fl.duration).split(':').map(Number);
-        if (parts.length === 3) {
-          totalFocusSecs += (parts[0] * 3600) + (parts[1] * 60) + parts[2];
-        }
-      });
-      const focusHoursTotal = (totalFocusSecs / 3600).toFixed(1);
-
-      const elAvgProd = document.getElementById('anAvgProductivityBadge');
-      const elDomMood = document.getElementById('anDominantMoodStat');
-      const elRefDays = document.getElementById('anReflectionDaysCount');
-      const elFocHours = document.getElementById('anTotalFocusHours');
-
-      if (elAvgProd) elAvgProd.textContent = `${avgProd}/10`;
-      if (elDomMood) elDomMood.textContent = dominantMood;
-      if (elRefDays) elRefDays.textContent = `${reflectedCount}d`;
-      if (elFocHours) elFocHours.textContent = `${focusHoursTotal}h`;
-
-      const happyUl = document.getElementById('anReviewHappyList');
-      const frictionUl = document.getElementById('anReviewFrictionList');
-
-      if (happyUl) {
-        happyUl.innerHTML = happyList.length > 0 
-          ? happyList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
-          : `<li class="text-slate-500 italic">No notes recorded in this timeframe.</li>`;
-      }
-
-      if (frictionUl) {
-        frictionUl.innerHTML = frictionList.length > 0 
-          ? frictionList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
-          : `<li class="text-slate-500 italic">No blockers logged in this timeframe.</li>`;
-      }
-
-      // Render Habit Performance Dashboard
-      const dashboardContainer = document.getElementById('habitPerformanceDashboard');
-      if (dashboardContainer) {
-        if (!appData.habits.length) {
-          dashboardContainer.innerHTML = `<span class="text-slate-500 italic text-[11px]">No habits configured.</span>`;
-        } else {
-          // Calculate aggregate metrics
-          let totalCompletionPct = 0;
-          let excellentCount = 0;
-          let goodCount = 0;
-          let needsWorkCount = 0;
-          let bestStreak = 0;
-          let totalOverdueHabits = 0;
-
-          appData.habits.forEach(h => {
-            const m = getHabitMetrics(h.id, currentAnalyticsWindow);
-            totalCompletionPct += m.completionPercentage;
-            if (m.completionPercentage >= 80) excellentCount++;
-            else if (m.completionPercentage >= 50) goodCount++;
-            else needsWorkCount++;
-            if (m.streak > bestStreak) bestStreak = m.streak;
-            if (m.daysMissedRecently > 0) totalOverdueHabits++;
+            endTimeInput.value = endTime;
           });
-
-          const avgCompletion = Math.round(totalCompletionPct / appData.habits.length);
-
-          // Build summary card HTML first
-          const summaryCard = `
-            <div class="lg:col-span-3 p-4 rounded-lg bg-gradient-to-br from-indigo-950/40 to-purple-950/40 border border-indigo-800/50 backdrop-blur-sm">
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div class="flex flex-col">
-                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Avg Completion</span>
-                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">${avgCompletion}%</span>
-                  <div class="h-1.5 bg-slate-800/60 rounded-full overflow-hidden mt-2 border border-slate-700/30">
-                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-400" style="width: ${avgCompletion}%"></div>
-                  </div>
-                </div>
-
-                <div class="flex flex-col">
-                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Habit Health</span>
-                  <div class="flex items-center gap-2 mt-1">
-                    <span class="text-sm">🟢</span>
-                    <span class="text-sm font-mono font-bold text-emerald-300">${excellentCount}</span>
-                  </div>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-sm">🟡</span>
-                    <span class="text-sm font-mono font-bold text-amber-300">${goodCount}</span>
-                  </div>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-sm">🔴</span>
-                    <span class="text-sm font-mono font-bold text-rose-300">${needsWorkCount}</span>
-                  </div>
-                </div>
-
-                <div class="flex flex-col">
-                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Best Streak</span>
-                  <span class="text-xl md:text-2xl font-bold font-mono mt-1 text-amber-400">${bestStreak}d 🔥</span>
-                  <span class="text-[9px] text-slate-500 mt-1">Consecutive days</span>
-                </div>
-
-                <div class="flex flex-col">
-                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Attention Needed</span>
-                  <span class="text-xl md:text-2xl font-bold font-mono mt-1">${totalOverdueHabits}</span>
-                  <span class="text-[9px] text-slate-500 mt-1">Overdue habits</span>
-                </div>
-              </div>
-            </div>
-          `;
-
-          // Build individual habit cards
-          const habitCards = appData.habits.map(habit => {
-            const metrics = getHabitMetrics(habit.id, currentAnalyticsWindow);
-            const completionPct = metrics.completionPercentage;
-            const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
-
-            // Determine status indicators
-            let statusEmoji = '🟢';
-            let statusColor = 'emerald';
-            let statusLabel = 'Excellent';
-            let bgColorClass = 'bg-emerald-950/30';
-            let borderColorClass = 'border-emerald-800/50';
-
-            if (completionPct < 50) {
-              statusEmoji = '🔴';
-              statusColor = 'rose';
-              statusLabel = 'Needs Work';
-              bgColorClass = 'bg-rose-950/30';
-              borderColorClass = 'border-rose-800/50';
-            } else if (completionPct < 80) {
-              statusEmoji = '🟡';
-              statusColor = 'amber';
-              statusLabel = 'Good';
-              bgColorClass = 'bg-amber-950/30';
-              borderColorClass = 'border-amber-800/50';
-            }
-
-            // Recommendation based on metrics
-            let recommendation = '';
-            let recommendationIcon = '✅';
-            let recommendationColor = 'emerald';
-
-            if (metrics.daysMissedRecently > 7) {
-              recommendation = 'Overdue - Restart immediately!';
-              recommendationIcon = '⚠️';
-              recommendationColor = 'rose';
-            } else if (metrics.daysMissedRecently > 2) {
-              recommendation = 'Overdue - Do it today!';
-              recommendationIcon = '⚡';
-              recommendationColor = 'amber';
-            } else if (completionPct < 50) {
-              recommendation = 'Build momentum with daily wins';
-              recommendationIcon = '🚀';
-              recommendationColor = 'amber';
-            } else if (metrics.streak > 14) {
-              recommendation = 'Outstanding consistency! Keep it going!';
-              recommendationIcon = '🏆';
-              recommendationColor = 'emerald';
-            } else {
-              recommendation = 'On track - maintain your routine';
-              recommendationIcon = '💪';
-              recommendationColor = 'sky';
-            }
-
-            // Color mapping for dynamic styles
-            const colorMap = {
-              emerald: { bg: 'rgba(5, 150, 105, 0.3)', border: 'rgba(16, 185, 129, 0.5)', text: 'rgb(110, 231, 183)', gradient: 'linear-gradient(to right, rgb(16, 185, 129), rgb(5, 150, 105))' },
-              rose: { bg: 'rgba(190, 24, 93, 0.3)', border: 'rgba(244, 63, 94, 0.5)', text: 'rgb(251, 113, 133)', gradient: 'linear-gradient(to right, rgb(244, 63, 94), rgb(190, 24, 93))' },
-              amber: { bg: 'rgba(217, 119, 6, 0.3)', border: 'rgba(251, 146, 60, 0.5)', text: 'rgb(253, 224, 71)', gradient: 'linear-gradient(to right, rgb(251, 146, 60), rgb(217, 119, 6))' },
-              sky: { bg: 'rgba(2, 132, 199, 0.3)', border: 'rgba(56, 189, 248, 0.5)', text: 'rgb(125, 211, 252)', gradient: 'linear-gradient(to right, rgb(56, 189, 248), rgb(2, 132, 199))' }
-            };
-            const recColors = colorMap[recommendationColor] || colorMap.emerald;
-
-            return `
-              <div class="p-4 rounded-lg ${bgColorClass} border ${borderColorClass} backdrop-blur-sm hover:backdrop-blur-md transition">
-                <!-- Header -->
-                <div class="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 class="font-semibold text-slate-100 text-sm">${habit.name}</h4>
-                    <span class="text-[10px] text-slate-400 font-mono">${habit.type || 'Habit'}</span>
-                  </div>
-                  <span class="text-xl">${statusEmoji}</span>
-                </div>
-
-                <!-- Completion bar -->
-                <div class="mb-3">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-[9px] text-slate-400 uppercase font-semibold">Completion Rate</span>
-                    <span class="text-[11px] font-mono font-bold text-slate-200">${completionPct}%</span>
-                  </div>
-                  <div class="w-full h-2 bg-slate-800/60 rounded-full overflow-hidden border border-slate-700/30">
-                    <div class="h-full rounded-full transition-all" style="width: ${completionPct}%; background: ${colorMap[statusColor]?.gradient || colorMap.emerald.gradient}"></div>
-                  </div>
-                </div>
-
-                <!-- Key metrics grid -->
-                <div class="grid grid-cols-2 gap-2 mb-3 text-[10px]">
-                  <div class="bg-slate-900/40 p-2 rounded">
-                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Streak</span>
-                    <span class="text-amber-400 font-mono font-bold text-sm">${metrics.streak}d 🔥</span>
-                  </div>
-                  <div class="bg-slate-900/40 p-2 rounded">
-                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Completed</span>
-                    <span class="text-emerald-400 font-mono font-bold text-sm">${metrics.totalCompleted}/${metrics.totalExpected}</span>
-                  </div>
-                  <div class="bg-slate-900/40 p-2 rounded">
-                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Overdue Days</span>
-                    <span class="text-slate-200 font-mono font-bold text-sm">${metrics.daysMissedRecently}d</span>
-                  </div>
-                  <div class="bg-slate-900/40 p-2 rounded">
-                    <span class="text-slate-500 block text-[8px] uppercase mb-1">Last Done</span>
-                    <span class="text-slate-200 font-mono font-bold text-sm">${lastCompletedDisplay}</span>
-                  </div>
-                </div>
-
-                <!-- Recommendation box -->
-                <div class="rounded p-2 text-[9px]" style="background-color: ${recColors.bg}; border: 1px solid ${recColors.border};">
-                  <div class="flex items-start gap-1.5">
-                    <span class="text-base mt-0.5">${recommendationIcon}</span>
-                    <div>
-                      <p class="font-semibold" style="color: ${recColors.text};">${recommendation}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          dashboardContainer.innerHTML = summaryCard + habitCards;
         }
       }
-
-      // Update pending analytics badge
-      updateAnalyticsPendingBadge();
-      lucide.createIcons();
-    }
-
-    // ---------- Time Block Modal Handlers ----------
-    function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
-      const titleModal = document.getElementById('timeBlockModalTitle');
-      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
-      
-      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-      setVal('tbId', '');
-      setVal('tbDate', selectedPlannerDate);
-      setVal('tbRoutineId', '');
-      setVal('tbTaskId', '');
-      setVal('tbTitle', '');
-      setVal('tbColor', 'indigo');
-      setVal('tbStartTime', presetStart);
-      setVal('tbEndTime', presetEnd);
-      setVal('tbNotes', '');
-      setVal('tbStatus', 'Planned');
-      setVal('tbActualStartTime', '');
-      setVal('tbActualEndTime', '');
-      setVal('tbActualNotes', '');
-      
-      const delBtn = document.getElementById('btnDeleteTimeBlock');
-      if (delBtn) delBtn.classList.add('hidden');
-
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function openEditTimeBlockModal(block) {
-      const titleModal = document.getElementById('timeBlockModalTitle');
-      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Edit Timeblock & Evaluate`;
-      
-      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-      setVal('tbId', block.id || '');
-      setVal('tbDate', block.date || selectedPlannerDate);
-      setVal('tbRoutineId', block.routineId || '');
-      setVal('tbTaskId', block.taskId || '');
-      setVal('tbTitle', block.title || '');
-      setVal('tbColor', block.color || 'indigo');
-      setVal('tbStartTime', block.startTime || '09:00');
-      setVal('tbEndTime', block.endTime || '10:00');
-      setVal('tbNotes', block.notes || '');
-      setVal('tbStatus', block.status || 'Planned');
-      setVal('tbActualStartTime', block.actualStartTime || '');
-      setVal('tbActualEndTime', block.actualEndTime || '');
-      setVal('tbActualNotes', block.actualNotes || '');
-      
-      const delBtn = document.getElementById('btnDeleteTimeBlock');
-      if (delBtn) delBtn.classList.remove('hidden');
-
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeTimeBlockModal() {
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    // FEATURE: Copy planned times to actual (went as planned)
-    function wentAsPlanned() {
-      const plannedStart = (document.getElementById('tbStartTime') || {}).value;
-      const plannedEnd = (document.getElementById('tbEndTime') || {}).value;
-
-      if (!plannedStart || !plannedEnd) {
-        alert("Please set planned times first");
-        return;
-      }
-
-      // Copy planned to actual
-      document.getElementById('tbActualStartTime').value = plannedStart;
-      document.getElementById('tbActualEndTime').value = plannedEnd;
-      document.getElementById('tbStatus').value = "Completed";
-
-      // Highlight the fields
-      document.getElementById('tbActualStartTime').classList.add('border-emerald-500', 'bg-emerald-950/20');
-      document.getElementById('tbActualEndTime').classList.add('border-emerald-500', 'bg-emerald-950/20');
-    }
-
-    function handleSaveTimeBlock(e) {
-      e.preventDefault();
-      const rawId = (document.getElementById('tbId') || {}).value || "";
-      const date = (document.getElementById('tbDate') || {}).value || selectedPlannerDate;
-      const routineId = (document.getElementById('tbRoutineId') || {}).value ? Number(document.getElementById('tbRoutineId').value) : null;
-      const taskId = (document.getElementById('tbTaskId') || {}).value ? Number(document.getElementById('tbTaskId').value) : null;
-      const title = (document.getElementById('tbTitle') || {}).value ? document.getElementById('tbTitle').value.trim() : "";
-      const color = (document.getElementById('tbColor') || {}).value || "indigo";
-      let startTime = normalizeTimeString((document.getElementById('tbStartTime') || {}).value);
-      let endTime = normalizeTimeString((document.getElementById('tbEndTime') || {}).value);
-      const notes = (document.getElementById('tbNotes') || {}).value ? document.getElementById('tbNotes').value.trim() : "";
-      const status = (document.getElementById('tbStatus') || {}).value || "Planned";
-      const actualStartTime = normalizeTimeString((document.getElementById('tbActualStartTime') || {}).value);
-      const actualEndTime = normalizeTimeString((document.getElementById('tbActualEndTime') || {}).value);
-      const actualNotes = (document.getElementById('tbActualNotes') || {}).value ? document.getElementById('tbActualNotes').value.trim() : "";
-
-      if (!title || !startTime || !endTime) return;
-
-      const sMins = timeToMinutes(startTime);
-      let eMins = timeToMinutes(endTime);
-      if (eMins <= sMins) {
-        eMins = Math.min(1440, sMins + 30);
-        endTime = minutesToTime(eMins);
-      }
-
-      // FEATURE #8: Conflict detection - check for overlapping blocks on same date
-      const conflicts = [];
-      appData.timeBlocks.forEach(b => {
-        if (b.date === date && String(b.id) !== String(rawId)) {
-          const bStart = timeToMinutes(b.startTime);
-          const bEnd = timeToMinutes(b.endTime);
-
-          // Check if blocks overlap
-          if ((sMins < bEnd && eMins > bStart)) {
-            conflicts.push(b);
-          }
-        }
-      });
-
-      if (conflicts.length > 0) {
-        const conflictNames = conflicts.map(c => `"${c.title}"`).join(", ");
-        const proceed = confirm(`⚠️ Time conflict detected!\n\nThis block overlaps with: ${conflictNames}\n\nProceed anyway?`);
-        if (!proceed) return;
-      }
-
-      const slotStr = `${startTime} - ${endTime}`;
-      const blockName = getTimeBlockName(startTime);
-
-      // BUG FIX #2: Handle all ID types correctly - regular, routine virtual IDs, and new blocks
-      if (rawId) {
-        // Check if it's a virtual routine ID (format: ROUTINE_XXX_YYYY-MM-DD)
-        if (rawId.startsWith('ROUTINE_')) {
-          // Converting virtual routine to actual manual block - need to create new block
-          // But first remove any existing manual block for this routine on this date
-          appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
-
-          appData.timeBlocks.push({
-            id: Date.now(),
-            date,
-            routineId: null, // Remove routine ID since we're making it manual
-            taskId,
-            title,
-            color,
-            startTime,
-            endTime,
-            timeSlot: slotStr,
-            timeBlock: blockName,
-            notes,
-            status,
-            actualStartTime,
-            actualEndTime,
-            actualNotes
-          });
-        } else {
-          // Regular manual block - update in place
-          const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
-          if (idx >= 0) {
-            appData.timeBlocks[idx] = {
-              ...appData.timeBlocks[idx],
-              date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
-              notes, status, actualStartTime, actualEndTime, actualNotes,
-              routineId: routineId,
-              taskId: taskId
-            };
-          }
-        }
-      } else {
-        // New block - add to array
-        appData.timeBlocks.push({
-          id: Date.now(),
-          date,
-          routineId,
-          taskId,
-          title,
-          color,
-          startTime,
-          endTime,
-          timeSlot: slotStr,
-          timeBlock: blockName,
-          notes,
-          status,
-          actualStartTime,
-          actualEndTime,
-          actualNotes
-        });
-      }
-
-      closeTimeBlockModal();
-      renderAll();
-      syncToRemote();
-    }
-
-    function handleDeleteCurrentTimeBlock() {
-      const rawId = document.getElementById('tbId').value;
-      if (rawId && !rawId.startsWith('ROUTINE_')) {
-        appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(rawId));
-      }
-      closeTimeBlockModal();
-      renderAll();
-      syncToRemote();
-    }
-
-    function handleQuickDeleteTimeBlock(id, event) {
-      event.stopPropagation();
-      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
-      renderAll();
-      syncToRemote();
-    }
-
-    // ---------- Routines Management ----------
-    function openRoutineManagerModal() {
-      renderRoutinesList();
-      document.getElementById('routineModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeRoutineModal() {
-      document.getElementById('routineModal').classList.add('hidden');
-    }
-
-    function renderRoutinesList() {
-      const container = document.getElementById('routinesListContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (!appData.routines.length) {
-        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-3">No recurring routines configured. Add one above!</div>`;
-        return;
-      }
-
-      appData.routines.forEach(r => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs";
-        row.innerHTML = `
-          <div>
-            <span class="font-bold text-slate-200">${r.title}</span>
-            <span class="text-[10px] text-slate-500 font-mono block">${r.startTime} - ${r.endTime} (${r.days})</span>
-          </div>
-          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 p-2 min-h-[38px] min-w-[38px] flex items-center justify-center">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        `;
-        container.appendChild(row);
-      });
-      lucide.createIcons();
-    }
-
-    function handleCreateRoutine(e) {
-      e.preventDefault();
-      const title = document.getElementById('rtTitle').value.trim();
-      const color = document.getElementById('rtColor').value;
-      let startTime = normalizeTimeString(document.getElementById('rtStartTime').value);
-      let endTime = normalizeTimeString(document.getElementById('rtEndTime').value);
-
-      if (!title || !startTime || !endTime) return;
-
-      const sMins = timeToMinutes(startTime);
-      let eMins = timeToMinutes(endTime);
-      if (eMins <= sMins) {
-        eMins = Math.min(1440, sMins + 30);
-        endTime = minutesToTime(eMins);
-      }
-
-      const slotStr = `${startTime} - ${endTime}`;
-      const blockName = getTimeBlockName(startTime);
-
-      const normTitle = title.toLowerCase();
-      const existing = appData.routines.find(r => r.title.toLowerCase() === normTitle);
-      if (existing) {
-        existing.title = title;
-        existing.color = color;
-        existing.startTime = startTime;
-        existing.endTime = endTime;
-        existing.timeSlot = slotStr;
-        existing.timeBlock = blockName;
-      } else {
-        appData.routines.push({
-          id: Date.now(),
-          title,
-          color,
-          startTime,
-          endTime,
-          timeSlot: slotStr,
-          timeBlock: blockName,
-          days: "Everyday"
-        });
-      }
-
-      document.getElementById('rtTitle').value = '';
-      renderRoutinesList();
-      renderAll();
-      syncToRemote();
-    }
-
-    function deleteRoutine(id) {
-      appData.routines = appData.routines.filter(r => String(r.id) !== String(id));
-      renderRoutinesList();
-      renderAll();
-      syncToRemote();
-    }
-
-    // ---------- Settings & Backup ----------
-    function openConfigModal() {
-      document.getElementById('apiUrlInput').value = appData.apiUrl || "";
-      document.getElementById('configModal').classList.remove('hidden');
-    }
-
-    function closeConfigModal() {
-      document.getElementById('configModal').classList.add('hidden');
-    }
-
-    function saveApiUrlConfig() {
-      const url = document.getElementById('apiUrlInput').value.trim();
-      console.log("Saving API URL:", url);
-      appData.apiUrl = url;
-      localStorage.setItem('daily_flow_api_url', url);
-      saveState();  // This saves appData to daily_flow_state_v3
-      closeConfigModal();
-      console.log("API URL saved. Reloading with new URL...");
-      // Clear cache and reload to ensure new URL is used
-      setTimeout(() => {
-        isRemoteDataLoaded = false;
-        pendingSyncQueue = null;
-        lastSyncedState = null;
-        fetchRemoteData();
-      }, 100);
-    }
-
-    function exportBackupData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    }
-
-    // ---------- Master App Render Loop ----------
-    function renderAll() {
-      console.log('📋 renderAll() called, appData.habits:', appData.habits);
-      const d = new Date(selectedPlannerDate + "T00:00:00");
-      const dateSubtext = document.getElementById('headerDateSubtext');
-      if (dateSubtext) {
-        dateSubtext.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      }
-      
-      render24HourPlanner();
-      renderHabits();
-      renderTasks();
-      renderFocusLogs();
-      renderDailyReview();
-      renderAnalytics();
-      lucide.createIcons();
     }
 
     window.onload = () => {
