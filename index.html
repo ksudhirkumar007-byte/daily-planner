@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Daily Flow - 24H Planner, Habits & Focus</title>
+  
+  <!-- PWA Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#020617">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daily Flow">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -44,7 +52,6 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
 
-    /* FEATURE #2: Current time indicator animation */
     @keyframes timeIndicatorPulse {
       0%, 100% { box-shadow: 0 0 8px rgba(244, 63, 94, 0.8); }
       50% { box-shadow: 0 0 16px rgba(244, 63, 94, 1); }
@@ -142,17 +149,17 @@
       <div class="px-3 sm:px-4 py-2.5 bg-slate-950/40 border-b border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
           <span class="text-slate-500 text-[9px] uppercase font-mono">Planned</span>
-          <span id="scorePlannedHours" class="text-xs sm:text-base font-bold font-mono text-indigo-300">0.0h</span>
+          <span id="scorePlannedHours" class="text-xs sm:base font-bold font-mono text-indigo-300">0.0h</span>
           <span id="scorePlannedCount" class="text-[9px] text-slate-500 font-mono">0 items</span>
         </div>
         <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
           <span class="text-slate-500 text-[9px] uppercase font-mono">Actual</span>
-          <span id="scoreActualHours" class="text-xs sm:text-base font-bold font-mono text-emerald-400">0.0h</span>
+          <span id="scoreActualHours" class="text-xs sm:base font-bold font-mono text-emerald-400">0.0h</span>
           <span id="scoreActualCount" class="text-[9px] text-slate-500 font-mono">0 logged</span>
         </div>
         <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
           <span class="text-slate-500 text-[9px] uppercase font-mono">Adherence</span>
-          <span id="scoreAdherenceRate" class="text-xs sm:text-base font-bold font-mono text-cyan-400">0%</span>
+          <span id="scoreAdherenceRate" class="text-xs sm:base font-bold font-mono text-cyan-400">0%</span>
           <span id="scoreStatusCount" class="text-[9px] text-slate-500 font-mono">0/0 done</span>
         </div>
         <div class="flex flex-col justify-center bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
@@ -161,7 +168,7 @@
         </div>
       </div>
 
-      <!-- FEATURE #10: Progress Bars Row -->
+      <!-- Progress Bars Row -->
       <div class="px-3 sm:px-4 py-2.5 bg-slate-950/60 border-b border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <!-- Tasks Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
@@ -199,6 +206,8 @@
           <span id="plannerProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 blocks</span>
         </div>
       </div>
+
+      <!-- Presets -->
       <div class="px-3 py-2 bg-slate-900/60 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
         <span class="text-slate-500 text-[10px] font-mono whitespace-nowrap flex items-center gap-1 mr-1">
           <i data-lucide="sparkles" class="w-3 h-3 text-indigo-400"></i> Presets:
@@ -222,26 +231,35 @@
         <div class="col-span-2 sm:col-span-1 text-center font-mono">Time</div>
         <div class="col-span-5 sm:col-span-5 px-1.5 flex items-center justify-between border-r border-slate-800/60">
           <span class="flex items-center gap-1 text-indigo-300 truncate">
-            <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i> Planned
+            <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i> Planned (Drag to Plan)
           </span>
         </div>
         <div class="col-span-5 sm:col-span-6 px-1.5 flex items-center justify-between">
           <span class="flex items-center gap-1 text-emerald-300 truncate">
-            <i data-lucide="check-square" class="w-3 h-3 flex-shrink-0"></i> Scheduled
+            <i data-lucide="check-square" class="w-3 h-3 flex-shrink-0"></i> Scheduled (Drag to Task)
           </span>
         </div>
       </div>
 
       <!-- 24-Hour Scrollable Timeline Canvas -->
       <div id="plannerScrollContainer" class="relative max-h-[580px] sm:max-h-[640px] overflow-y-auto bg-slate-950 select-none">
+        
+        <!-- Live Current Time Indicator -->
         <div id="currentTimeIndicator" class="absolute left-0 right-0 z-20 pointer-events-none hidden flex items-center">
           <div class="w-10 sm:w-16 bg-rose-600 text-white font-mono text-[8px] sm:text-[9px] font-bold text-center py-0.5 rounded-r shadow-md">NOW</div>
           <div class="flex-1 h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
         </div>
 
+        <!-- Interactive Drag-to-Create Overlay Box -->
+        <div id="selectionPreviewBox" class="absolute z-20 pointer-events-none hidden rounded-xl border flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono shadow-lg transition-none">
+          <span id="previewStartTime">09:00</span>
+          <span id="previewDuration" class="font-bold">1h 00m</span>
+          <span id="previewEndTime">10:00</span>
+        </div>
+
         <div class="relative w-full" style="height: 1440px;">
           <div id="hourlyGridLines" class="divide-y divide-slate-900 relative w-full h-full"></div>
-          <div id="scheduledBlocksContainer" class="absolute inset-0 z-10 w-full"></div>
+          <div id="scheduledBlocksContainer" class="absolute inset-0 z-10 w-full pointer-events-none"></div>
         </div>
       </div>
 
@@ -268,7 +286,7 @@
               <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Daily Habits
               </h2>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">One-tap complete, targets, and routine logging.</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">One-tap complete, targets, and 7-day consistency view.</p>
             </div>
             <button onclick="openCreateHabitModal()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Habit
@@ -347,7 +365,7 @@
         </div>
       </div>
 
-      <!-- Quick Add Task Bar with Frequency Selector -->
+      <!-- Quick Add Task Bar -->
       <form onsubmit="handleQuickAddTask(event)" class="flex flex-col md:flex-row gap-2 mb-3.5">
         <input type="text" id="quickTaskTitleInput" placeholder="Add task (e.g. Prepare presentation, Review PR...)" required
                class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
@@ -392,47 +410,45 @@
       <div id="reviewContent" class="hidden px-4 sm:px-6 py-4 sm:py-5 space-y-3.5">
         <div class="flex items-center justify-end mb-2">
           <button onclick="saveDailyReview()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-purple-600/30">
-          <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <label class="block text-[11px] font-semibold text-emerald-400 mb-1">🌟 Good thing today</label>
-          <textarea id="rev_goodThing" rows="2" placeholder="Wins, breakthroughs, gratitude..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none resize-none"></textarea>
+            <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+          </button>
         </div>
 
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <label class="block text-[11px] font-semibold text-rose-400 mb-1">⚡ What went wrong</label>
-          <textarea id="rev_disliked" rows="2" placeholder="Blockers, distractions..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none resize-none"></textarea>
-        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-emerald-400 mb-1">🌟 Good thing today</label>
+            <textarea id="rev_goodThing" rows="2" placeholder="Wins, breakthroughs, gratitude..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none resize-none"></textarea>
+          </div>
 
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <label class="block text-[11px] font-semibold text-cyan-400 mb-1">🎯 Productive hours (1-10)</label>
-          <input type="text" id="rev_productive" placeholder="e.g. 8/10 - deep work morning" class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
-        </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-rose-400 mb-1">⚡ What went wrong</label>
+            <textarea id="rev_disliked" rows="2" placeholder="Blockers, distractions..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none resize-none"></textarea>
+          </div>
 
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <label class="block text-[11px] font-semibold text-indigo-400 mb-1">📈 Better than yesterday?</label>
-          <input type="text" id="rev_betterThanYesterday" placeholder="Yes, woke up early..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
-        </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-cyan-400 mb-1">🎯 Productive hours (1-10)</label>
+            <input type="text" id="rev_productive" placeholder="e.g. 8/10 - deep work morning" class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
 
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <label class="block text-[11px] font-semibold text-amber-400 mb-1">🔄 Regrets or wasted time</label>
-          <input type="text" id="rev_regrets" placeholder="Social media browsing..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
-        </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-indigo-400 mb-1">📈 Better than yesterday?</label>
+            <input type="text" id="rev_betterThanYesterday" placeholder="Yes, woke up early..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
 
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <label class="block text-[11px] font-semibold text-purple-400 mb-1">🧠 Overall Emotion & Mood</label>
-          <input type="text" id="rev_emotion" placeholder="Energized, peaceful..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
-        </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-amber-400 mb-1">🔄 Regrets or wasted time</label>
+            <input type="text" id="rev_regrets" placeholder="Social media browsing..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-purple-400 mb-1">🧠 Overall Emotion & Mood</label>
+            <input type="text" id="rev_emotion" placeholder="Energized, peaceful..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ========================================== -->
-    <!-- DEDICATED ANALYTICS SECTION -->
-    <!-- ========================================== -->
+    <!-- Dedicated Analytics Section -->
     <section id="module_analytics" class="bg-slate-900/90 border border-indigo-900/50 rounded-2xl shadow-2xl scroll-mt-14 overflow-hidden">
       <button onclick="toggleAnalyticsSection()" class="w-full px-4 sm:px-6 py-3.5 flex items-center justify-between hover:bg-slate-900/50 transition group border-b border-indigo-900/30">
         <div class="flex items-center gap-2">
@@ -446,14 +462,6 @@
       </button>
 
       <div id="analyticsContent" class="hidden p-4 sm:p-6 space-y-5">
-        <div>
-          <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-white flex items-center gap-2">
-            <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-400"></i> Performance Analytics & Insights
-          </h2>
-          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Execution adherence, habit discipline, task throughput, and mood trends.</p>
-        </div>
-
-        <!-- Time Window Filter Toggle + On-Demand Sync -->
         <div class="flex flex-col sm:flex-row items-center gap-2 justify-between">
           <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
             <button id="anWindow_7" onclick="setAnalyticsWindow(7)" class="px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">7 Days</button>
@@ -465,157 +473,151 @@
             <span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>
           </button>
         </div>
-      </div>
 
-      <!-- Top Metric Cards Grid -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
-        
-        <!-- Planner Adherence -->
-        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-1">
-              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Plan Fidelity</span>
-              <span id="anPlanFidelityRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-indigo-950/80 border border-indigo-800/60">0%</span>
+        <!-- Top Metric Cards Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+          <!-- Planner Adherence -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Plan Fidelity</span>
+                <span id="anPlanFidelityRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-indigo-950/80 border border-indigo-800/60">0%</span>
+              </div>
+              <div id="anPlanHoursStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0.0h / 0.0h</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Actual vs Planned Hours</span>
             </div>
-            <div id="anPlanHoursStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0.0h / 0.0h</div>
-            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Actual vs Planned Hours</span>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Done: <b id="anPlanCompletedCount" class="text-emerald-400">0</b></span>
+              <span>Missed: <b id="anPlanMissedCount" class="text-rose-400">0</b></span>
+            </div>
           </div>
-          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
-            <span>Completed Blocks: <b id="anPlanCompletedCount" class="text-emerald-400">0</b></span>
-            <span>Missed: <b id="anPlanMissedCount" class="text-rose-400">0</b></span>
+
+          <!-- Habits Consistency -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-amber-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Habit Success</span>
+                <span id="anHabitSuccessRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-800/60">0%</span>
+              </div>
+              <div id="anHabitCompletedStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Logged vs Target Goals</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Missed: <b id="anHabitMissedTotal" class="text-rose-400">0</b></span>
+              <span>Streak: <b id="anHabitTopStreak" class="text-amber-300">0d 🔥</b></span>
+            </div>
+          </div>
+
+          <!-- Tasks Throughput -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-emerald-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Task Velocity</span>
+                <span id="anTasksRateBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-800/60">0%</span>
+              </div>
+              <div id="anTasksCountStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Tasks Cleared vs Total</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Pending: <b id="anTasksPendingCount" class="text-amber-400">0</b></span>
+              <span>High: <b id="anTasksHighRate" class="text-sky-300">0%</b></span>
+            </div>
+          </div>
+
+          <!-- Mood & Productivity -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-purple-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Productivity</span>
+                <span id="anAvgProductivityBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-purple-950/80 border border-purple-800/60">--/10</span>
+              </div>
+              <div id="anDominantMoodStat" class="text-sm sm:text-base font-bold font-mono text-white truncate mt-1">Steady</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Dominant Mood State</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Reflections: <b id="anReflectionDaysCount" class="text-purple-300">0d</b></span>
+              <span>Focus: <b id="anTotalFocusHours" class="text-indigo-300">0h</b></span>
+            </div>
           </div>
         </div>
 
-        <!-- Habits Consistency -->
-        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex items-center justify-between text-amber-400 text-xs font-semibold mb-1">
-              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Habit Success</span>
-              <span id="anHabitSuccessRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-800/60">0%</span>
-            </div>
-            <div id="anHabitCompletedStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
-            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Logged vs Target Goals</span>
-          </div>
-          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
-            <span>Missed Logs: <b id="anHabitMissedTotal" class="text-rose-400">0</b></span>
-            <span>Top Streak: <b id="anHabitTopStreak" class="text-amber-300">0d 🔥</b></span>
-          </div>
-        </div>
-
-        <!-- Tasks Throughput -->
-        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex items-center justify-between text-emerald-400 text-xs font-semibold mb-1">
-              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Task Velocity</span>
-              <span id="anTasksRateBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-800/60">0%</span>
-            </div>
-            <div id="anTasksCountStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
-            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Tasks Cleared vs Total</span>
-          </div>
-          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
-            <span>Pending: <b id="anTasksPendingCount" class="text-amber-400">0</b></span>
-            <span>High Done: <b id="anTasksHighRate" class="text-sky-300">0%</b></span>
-          </div>
-        </div>
-
-        <!-- Mood & Productivity -->
-        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex items-center justify-between text-purple-400 text-xs font-semibold mb-1">
-              <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Productivity</span>
-              <span id="anAvgProductivityBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-purple-950/80 border border-purple-800/60">--/10</span>
-            </div>
-            <div id="anDominantMoodStat" class="text-sm sm:text-base font-bold font-mono text-white truncate mt-1">Steady</div>
-            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Dominant Mood State</span>
-          </div>
-          <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
-            <span>Reflections: <b id="anReflectionDaysCount" class="text-purple-300">0d</b></span>
-            <span>Focus: <b id="anTotalFocusHours" class="text-indigo-300">0h</b></span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Detailed Breakdown Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
-        
-        <!-- Habits Analytics Section - Friction Points & Performance Dashboard -->
-        <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-4">
-            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
-              <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i> Habits Analytics
-            </span>
-            <span class="text-[10px] text-slate-500 font-mono">Performance & Friction</span>
-          </div>
-
-          <!-- Friction Points Subsection -->
-          <div class="mb-4 pb-4 border-b border-slate-800/50">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-mono font-semibold text-amber-400 flex items-center gap-1">
-                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Friction Points
+        <!-- Detailed Breakdown Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+          <!-- Habits Analytics -->
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-4">
+              <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i> Habits Analytics
               </span>
-              <span class="text-[9px] text-slate-500 font-mono">Most Missed</span>
+              <span class="text-[10px] text-slate-500 font-mono">Performance & Friction</span>
             </div>
-            <div id="anHabitsFrictionList" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
+
+            <div class="mb-4 pb-4 border-b border-slate-800/50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-mono font-semibold text-amber-400 flex items-center gap-1">
+                  <i data-lucide="alert-triangle" class="w-3 h-3"></i> Friction Points
+                </span>
+                <span class="text-[9px] text-slate-500 font-mono">Most Missed</span>
+              </div>
+              <div id="anHabitsFrictionList" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] font-mono font-semibold text-emerald-400 flex items-center gap-1">
+                  <i data-lucide="trending-up" class="w-3 h-3"></i> Individual Performance
+                </span>
+                <span class="text-[9px] text-slate-500 font-mono">Detailed View</span>
+              </div>
+              <div id="habitPerformanceDashboard" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
+            </div>
           </div>
 
-          <!-- Performance Dashboard Subsection -->
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[11px] font-mono font-semibold text-emerald-400 flex items-center gap-1">
-                <i data-lucide="trending-up" class="w-3 h-3"></i> Individual Habit Performance
-              </span>
-              <span class="text-[9px] text-slate-500 font-mono">Detailed View</span>
-            </div>
-            <div id="habitPerformanceDashboard" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-              <!-- Habit cards will be generated here -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Task Priority Completion Bars -->
-        <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
-              <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400"></i> Priority Completion
-            </span>
-            <span class="text-[10px] text-slate-500 font-mono">Cleared / Total</span>
-          </div>
-          <div id="anTaskPriorityBars" class="space-y-3 mt-3"></div>
-        </div>
-
-        <!-- Evening Review Summary & Sentiment -->
-        <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col justify-between">
-          <div>
+          <!-- Task Priority Completion Bars -->
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
             <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
               <span class="font-semibold text-slate-200 flex items-center gap-1.5">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> Review Highlights
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400"></i> Priority Completion
               </span>
-              <span class="text-[10px] text-slate-500 font-mono">Gratitude vs Friction</span>
+              <span class="text-[10px] text-slate-500 font-mono">Cleared / Total</span>
             </div>
-            
-            <div class="mt-3 space-y-2.5">
-              <div>
-                <span class="text-[10px] font-mono font-bold text-emerald-400 block mb-1">Key Wins & Gratitude:</span>
-                <ul id="anReviewHappyList" class="list-disc list-inside text-slate-300 space-y-1 text-[11px] max-h-20 overflow-y-auto">
-                  <li class="text-slate-500 italic">No notes recorded in this timeframe.</li>
-                </ul>
-              </div>
+            <div id="anTaskPriorityBars" class="space-y-3 mt-3"></div>
+          </div>
 
-              <div>
-                <span class="text-[10px] font-mono font-bold text-rose-400 block mb-1">Friction Points & Regrets:</span>
+          <!-- Evening Review Highlights -->
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> Review Highlights
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono">Gratitude vs Friction</span>
+              </div>
+              
+              <div class="mt-3 space-y-2.5">
+                <div>
+                  <span class="text-[10px] font-mono font-bold text-emerald-400 block mb-1">Key Wins & Gratitude:</span>
+                  <ul id="anReviewHappyList" class="list-disc list-inside text-slate-300 space-y-1 text-[11px] max-h-20 overflow-y-auto">
+                    <li class="text-slate-500 italic">No notes recorded in this timeframe.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <span class="text-[10px] font-mono font-bold text-rose-400 block mb-1">Friction Points & Regrets:</span>
+                  <ul id="anReviewFrictionList" class="list-disc list-inside text-slate-300 space-y-1 text-[11px] max-h-20 overflow-y-auto">
+                    <li class="text-slate-500 italic">No blockers logged in this timeframe.</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </section>
 
-       </div>
+  </main>
 
-     </section>
-
-   </main>
-
-  <!-- Mobile Bottom Dock (With Analytics Nav Tab) -->
+  <!-- Mobile Bottom Dock -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 safe-bottom px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl">
     <button onclick="scrollToModule('module_planner')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
       <i data-lucide="calendar" class="w-4 h-4"></i>
@@ -792,7 +794,7 @@
         </div>
 
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
-          <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1.5">
+          <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1">
             <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 24H Calendar Slot Assignment
           </span>
           <div>
@@ -937,12 +939,12 @@
 
       <div class="space-y-3.5">
         <p class="text-xs text-slate-400 leading-relaxed">
-          Paste your Google Apps Script Web App URL (`.../exec`). Syncs your 24H Planner, Habits, Tasks, Stopwatch Sessions, and Evening Reflections across all devices.
+          Paste your Google Apps Script Web App URL (<code class="font-mono text-indigo-300">.../exec</code>). Syncs your 24H Planner, Habits, Tasks, Stopwatch Sessions, and Evening Reflections across all devices.
         </p>
 
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Web App URL</label>
-          <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+          <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" 
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono">
         </div>
 
@@ -967,14 +969,20 @@
     };
 
     let selectedPlannerDate = getTodayKey();
-    let currentTaskFilter = 'ACTIVE'; // Default to Pending
-    let currentAnalyticsWindow = 7;   // Default to 7 Days
+    let currentTaskFilter = 'ACTIVE';
+    let currentAnalyticsWindow = 7;
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
     let lastSyncTimestamp = 0;
-    let pendingSyncQueue = null; // Queue changes that come in during sync
-    let lastSyncedState = null;  // Track last synced state for delta sync
+    let pendingSyncQueue = null;
+    let lastSyncedState = null;
+
+    // Interactive Drag Selection State
+    let isDraggingTime = false;
+    let dragStartMinute = 0;
+    let dragEndMinute = 0;
+    let dragTrackType = 'left';
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1045,484 +1053,1677 @@
           actualMins: 0
         }
       ],
-      taskAnalytics: [],  // NEW: Local analytics storage
-      habitAnalytics: [],  // NEW: Local habit analytics storage
+      taskAnalytics: [],
+      habitAnalytics: [],
       focusLogs: [],
       dailySummaries: {}
     };
 
-     let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
 
     if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
     if (!appData.routines) appData.routines = defaultState.routines;
     if (!Array.isArray(appData.habits)) appData.habits = defaultState.habits;
-    // Ensure default habits are loaded if habits array is empty
-    if (appData.habits.length === 0) {
-      appData.habits = JSON.parse(JSON.stringify(defaultState.habits));
-    }
+    if (appData.habits.length === 0) appData.habits = JSON.parse(JSON.stringify(defaultState.habits));
     if (!appData.habitLogs) appData.habitLogs = {};
     if (!appData.tasks) appData.tasks = defaultState.tasks;
-    if (!appData.taskAnalytics) appData.taskAnalytics = [];  // NEW: Initialize analytics
-    if (!appData.habitAnalytics) appData.habitAnalytics = [];  // NEW: Initialize habit analytics
+    if (!appData.taskAnalytics) appData.taskAnalytics = [];
+    if (!appData.habitAnalytics) appData.habitAnalytics = [];
     if (!appData.focusLogs) appData.focusLogs = [];
     if (!appData.dailySummaries) appData.dailySummaries = {};
 
-    // Always reload API URL from dedicated storage (not from stale appData)
     appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
 
     function saveState() {
       localStorage.setItem('daily_flow_state_v3', JSON.stringify(appData));
     }
 
-    function addMinutesToTime(timeStr, minsToAdd) {
-      if (!timeStr) return "";
-      const clean = normalizeTimeString(timeStr);
-      if (!clean || !clean.includes(':')) return "";
-      const [h, m] = clean.split(':').map(Number);
-      const totalMinutes = ((h * 60) + m + (Number(minsToAdd) || 0));
-      const normalized = ((totalMinutes % 1440) + 1440) % 1440;
-      const hh = String(Math.floor(normalized / 60)).padStart(2, '0');
-      const mm = String(normalized % 60).padStart(2, '0');
-      return `${hh}:${mm}`;
+    function scrollToModule(moduleId) {
+      const el = document.getElementById(moduleId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function attachTimeBlockAutoCalculate() {
-      const startTime = document.getElementById('tbStartTime');
-      const endTime = document.getElementById('tbEndTime');
-      if (!startTime || !endTime) return;
-      const update = () => {
-        if (!startTime.value) {
-          endTime.value = "";
-          return;
+    // ---------- Recurrence Matcher ----------
+    function isTaskActiveForDate(task, dateStr) {
+      const freq = (task.frequency || 'once').toLowerCase();
+      const taskDate = normalizeDateString(task.scheduledDate || task.date);
+      const activeDate = normalizeDateString(dateStr);
+
+      if (freq === 'once') {
+        return taskDate === activeDate || (!taskDate && activeDate === selectedPlannerDate);
+      }
+      
+      const d = new Date(activeDate + 'T00:00:00');
+      const dayOfWeek = d.getDay();
+
+      if (freq === 'daily') return true;
+      if (freq === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
+      if (freq === 'weekends') return dayOfWeek === 0 || dayOfWeek === 6;
+      if (freq === 'weekly') {
+        if (!taskDate) return dayOfWeek === 1;
+        const origD = new Date(taskDate + 'T00:00:00');
+        return origD.getDay() === dayOfWeek;
+      }
+      return taskDate === activeDate;
+    }
+
+    // ---------- Normalizers ----------
+    function timeToMinutes(tStr) {
+      if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return 0;
+      const parts = tStr.split(':').map(Number);
+      return ((parts[0] || 0) * 60) + (parts[1] || 0);
+    }
+
+    function minutesToTime(totalMins) {
+      const h = Math.floor(totalMins / 60) % 24;
+      const m = totalMins % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function snapTo15(mins) {
+      return Math.min(1440, Math.max(0, Math.round(mins / 15) * 15));
+    }
+
+    function getTimeBlockName(timeStr) {
+      if (!timeStr) return "Morning";
+      const mins = timeToMinutes(normalizeTimeString(timeStr));
+      if (mins >= 300 && mins < 720) return "Morning";
+      if (mins >= 720 && mins < 1020) return "Afternoon";
+      if (mins >= 1020 && mins < 1320) return "Evening";
+      return "Night";
+    }
+
+    function normalizeTimeString(val) {
+      if (!val) return "";
+      const s = String(val).trim();
+      const matchStandard = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+      if (matchStandard) {
+        const h = String(matchStandard[1]).padStart(2, '0');
+        const m = matchStandard[2];
+        return `${h}:${m}`;
+      }
+      const matchAmpm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (matchAmpm) {
+        let h = parseInt(matchAmpm[1], 10);
+        const m = matchAmpm[2];
+        const isPM = matchAmpm[3].toUpperCase() === 'PM';
+        if (isPM && h < 12) h += 12;
+        if (!isPM && h === 12) h = 0;
+        return `${String(h).padStart(2, '0')}:${m}`;
+      }
+      return s;
+    }
+
+    function extractTimesFromItem(item) {
+      let start = normalizeTimeString(item.scheduledStartTime || item.startTime || "");
+      let end = normalizeTimeString(item.scheduledEndTime || item.endTime || "");
+      const slot = item.timeSlot || item.time_slot || item.timeslot || item.scheduledBlock || "";
+      if ((!start || !end) && slot) {
+        const slotClean = String(slot).replace(/–|—/g, '-');
+        if (slotClean.includes('-')) {
+          const parts = slotClean.split('-').map(s => s.trim());
+          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+        } else if (slotClean.toLowerCase().includes(' to ')) {
+          const parts = slotClean.toLowerCase().split(' to ').map(s => s.trim());
+          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
         }
-        endTime.value = addMinutesToTime(startTime.value, 60);
-      };
-      startTime.oninput = update;
-      startTime.onchange = update;
-      update();
+      }
+      if (start && !end) {
+        const dur = Number(item.plannedMins) || 30;
+        end = minutesToTime(timeToMinutes(start) + dur);
+      }
+      return { start, end };
     }
 
-    function attachTaskAutoCalculate() {
-      const startTime = document.getElementById('tmStartTime');
-      const plannedMins = document.getElementById('tmPlannedMins');
-      const endTime = document.getElementById('tmEndTime');
-      if (!startTime || !plannedMins || !endTime) return;
-      const update = () => {
-        if (!startTime.value) {
-          endTime.value = "";
-          return;
+    function normalizeDateString(val) {
+      if (!val) return "";
+      const s = String(val).trim();
+      if (s.includes('T')) return s.split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+      const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) {
+        let day = Number(dmy[1]);
+        let mon = Number(dmy[2]);
+        let yr = dmy[3];
+        if (mon > 12 && day <= 12) {
+          const tmp = day; day = mon; mon = tmp;
         }
-        const mins = Number(plannedMins.value) || 30;
-        endTime.value = addMinutesToTime(startTime.value, mins);
-      };
-      startTime.oninput = update;
-      startTime.onchange = update;
-      plannedMins.oninput = update;
-      plannedMins.onchange = update;
-      update();
+        return `${yr}-${String(mon).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+
+      const parsed = new Date(s);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      return s;
     }
 
-    function openConfigModal() {
-      const modal = document.getElementById('configModal');
-      const input = document.getElementById('apiUrlInput');
-      if (modal) modal.classList.remove('hidden');
-      if (input) input.value = appData.apiUrl || localStorage.getItem('daily_flow_api_url') || "";
-    }
+    // ---------- Sync Engine ----------
+    function setSyncStatus(state) {
+      const dot = document.getElementById('syncDot');
+      const txt = document.getElementById('syncText');
+      const icon = document.getElementById('syncIcon');
+      if (!dot || !txt || !icon) return;
 
-    function closeConfigModal() {
-      const modal = document.getElementById('configModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function saveApiUrlConfig() {
-      const input = document.getElementById('apiUrlInput');
-      const value = input ? input.value.trim() : "";
-      appData.apiUrl = value;
-      localStorage.setItem('daily_flow_api_url', value);
-      closeConfigModal();
-      saveState();
-      if (value && value.startsWith('http')) {
-        fetchRemoteData();
+      if (state === 'syncing') {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+        txt.textContent = "Syncing...";
+        icon.classList.add('animate-spin');
+      } else if (state === 'error') {
+        dot.className = "w-2 h-2 rounded-full bg-rose-500";
+        txt.textContent = "Offline / Err";
+        icon.classList.remove('animate-spin');
       } else {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        txt.textContent = "Synced";
+        icon.classList.remove('animate-spin');
+      }
+    }
+
+    function syncToRemote() {
+      saveState();
+      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        setSyncStatus('error');
+        return;
+      }
+      if (!isRemoteDataLoaded) {
+        fetchRemoteData();
+        return;
+      }
+
+      if (isSyncInProgress) {
+        pendingSyncQueue = JSON.parse(JSON.stringify(appData));
+        return;
+      }
+
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+    }
+
+    function requestManualSync() {
+      if (isSyncInProgress) return;
+      fetchRemoteData();
+    }
+
+    function getChangedItems(current, previous, keyField = 'id') {
+      if (!previous) return current;
+      const prevMap = {};
+      (previous || []).forEach(item => { prevMap[item[keyField]] = item; });
+      return current.filter(item => {
+        const prevItem = prevMap[item[keyField]];
+        if (!prevItem) return true;
+        return JSON.stringify(item) !== JSON.stringify(prevItem);
+      });
+    }
+
+    function getChangedHabitLogs(current, previous) {
+      if (!previous) return current;
+      const changedLogs = {};
+      Object.keys(current).forEach(key => {
+        if (!previous[key] || JSON.stringify(current[key]) !== JSON.stringify(previous[key])) {
+          changedLogs[key] = current[key];
+        }
+      });
+      return changedLogs;
+    }
+
+    async function executeSyncPayload() {
+      if (isSyncInProgress) return;
+      isSyncInProgress = true;
+      setSyncStatus('syncing');
+
+      try {
+        const allTimeBlocks = appData.timeBlocks.map(b => ({
+          id: String(b.id).trim(),
+          date: normalizeDateString(b.date),
+          title: b.title || "Untitled Block",
+          startTime: normalizeTimeString(b.startTime) || "09:00",
+          endTime: normalizeTimeString(b.endTime) || "10:00",
+          color: b.color || "indigo",
+          notes: b.notes || "",
+          actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+          actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+          actualNotes: b.actualNotes || "",
+          status: b.status || "Planned",
+          taskId: b.taskId ? String(b.taskId).trim() : "",
+          routineId: b.routineId ? String(b.routineId).trim() : ""
+        }));
+
+        const seenRt = new Set();
+        const allRoutines = [];
+        appData.routines.forEach(r => {
+          const normTitle = (r.title || "").trim().toLowerCase();
+          if (!normTitle || seenRt.has(normTitle)) return;
+          seenRt.add(normTitle);
+          allRoutines.push({
+            id: String(r.id),
+            title: r.title || "Routine",
+            startTime: normalizeTimeString(r.startTime) || "07:00",
+            endTime: normalizeTimeString(r.endTime) || "08:00",
+            color: r.color || "amber",
+            days: r.days || "Everyday"
+          });
+        });
+
+        const allHabits = appData.habits.map(h => ({
+          id: String(h.id).trim(),
+          name: h.name || "Habit",
+          type: h.type || "yesno",
+          target: Number(h.target) || 0,
+          unit: h.unit || ""
+        }));
+
+        const allHabitLogsArray = Object.keys(appData.habitLogs).map(key => {
+          const parts = key.split('_');
+          return {
+            id: key,
+            habitId: parts[0],
+            date: parts.slice(1).join('_'),
+            value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
+            completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
+          };
+        });
+
+        const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
+        const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
+        const habitsPayload = getChangedItems(allHabits, lastSyncedState?.habits, 'id');
+        const habitLogsChanges = getChangedHabitLogs(appData.habitLogs, lastSyncedState?.habitLogs);
+        const habitLogsArray = Object.keys(habitLogsChanges).map(key => ({
+          id: key,
+          habitId: key.split('_')[0],
+          date: key.split('_').slice(1).join('_'),
+          value: habitLogsChanges[key].value !== undefined ? String(habitLogsChanges[key].value) : "",
+          completed: habitLogsChanges[key].completed ? "TRUE" : "FALSE"
+        }));
+
+        const allTasks = appData.tasks.map(t => ({
+          id: String(t.id).trim(),
+          title: t.title || "Untitled Task",
+          priority: t.priority || "Med",
+          frequency: t.frequency || "once",
+          status: t.status || "Need to Start",
+          completed: t.completed ? "TRUE" : "FALSE",
+          scheduledDate: normalizeDateString(t.date || t.scheduledDate || ""),
+          scheduledStartTime: normalizeTimeString(t.scheduledStartTime || ""),
+          scheduledEndTime: normalizeTimeString(t.scheduledEndTime || ""),
+          plannedMins: Number(t.plannedMins) || 30,
+          actualMins: Number(t.actualMins) || 0
+        }));
+
+        const tasksPayload = getChangedItems(allTasks, lastSyncedState?.tasks, 'id');
+        const focusLogsPayload = getChangedItems(appData.focusLogs, lastSyncedState?.focusLogs, 'id');
+        const summariesArray = Object.keys(appData.dailySummaries).map(date => ({
+          date: normalizeDateString(date),
+          ...(appData.dailySummaries[date] || {})
+        }));
+        const summariesPayload = getChangedItems(summariesArray, lastSyncedState?.dailySummaries, 'date');
+
+        const hasChanges = plannerPayload.length > 0 || routinesPayload.length > 0 ||
+                          habitsPayload.length > 0 || habitLogsArray.length > 0 ||
+                          tasksPayload.length > 0 || focusLogsPayload.length > 0 ||
+                          summariesPayload.length > 0;
+
+        if (!hasChanges && lastSyncedState) {
+          setSyncStatus('synced');
+          isSyncInProgress = false;
+          return;
+        }
+
+        const res = await fetch(appData.apiUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "syncAll",
+            data: {
+              planner: plannerPayload,
+              routines: routinesPayload,
+              habits: habitsPayload,
+              habitLogs: habitLogsArray,
+              tasks: tasksPayload,
+              focusLogs: focusLogsPayload,
+              dailySummaries: summariesPayload
+            }
+          })
+        });
+
+        if (res.ok) {
+          lastSyncedState = {
+            timeBlocks: allTimeBlocks,
+            routines: allRoutines,
+            habits: allHabits,
+            habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)),
+            tasks: allTasks,
+            focusLogs: appData.focusLogs,
+            dailySummaries: summariesArray
+          };
+          setSyncStatus('synced');
+        } else {
+          setSyncStatus('error');
+        }
+      } catch (err) {
+        console.error("Sync error:", err);
+        setSyncStatus('error');
+      } finally {
+        isSyncInProgress = false;
+        lastSyncTimestamp = Date.now();
+        if (pendingSyncQueue) {
+          appData = JSON.parse(JSON.stringify(pendingSyncQueue));
+          pendingSyncQueue = null;
+          saveState();
+          if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+          syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+        }
+      }
+    }
+
+    async function fetchRemoteData() {
+      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        setSyncStatus('error');
+        return;
+      }
+
+      setSyncStatus('syncing');
+
+      try {
+        const res = await fetch(appData.apiUrl, { method: "GET", redirect: "follow" });
+        if (!res.ok) throw new Error("Failed to fetch");
+        const json = await res.json();
+
+        // 1. Planner
+        if (json.planner && Array.isArray(json.planner)) {
+          const seenPlan = new Set();
+          const cleanPlanner = [];
+          json.planner.forEach(b => {
+            const planId = String(b.id).trim();
+            if (!planId || seenPlan.has(planId)) return;
+            seenPlan.add(planId);
+            const times = extractTimesFromItem(b);
+            const sTime = times.start || "09:00";
+            const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
+            cleanPlanner.push({
+              id: isNaN(planId) ? planId : Number(planId),
+              date: normalizeDateString(b.date),
+              title: b.title || "Untitled Block",
+              startTime: sTime,
+              endTime: eTime,
+              timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
+              timeBlock: b.timeBlock || getTimeBlockName(sTime),
+              color: b.color || "indigo",
+              notes: b.notes || "",
+              actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+              actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+              actualNotes: b.actualNotes || "",
+              status: b.status || "Planned",
+              taskId: b.taskId ? Number(b.taskId) : null,
+              routineId: b.routineId ? Number(b.routineId) : null
+            });
+          });
+          appData.timeBlocks = cleanPlanner;
+        }
+
+        // 2. Routines
+        if (json.routines && Array.isArray(json.routines)) {
+          const seenRt = new Set();
+          const cleanRoutines = [];
+          json.routines.forEach(r => {
+            const normTitle = (r.title || "").trim().toLowerCase();
+            if (!normTitle || seenRt.has(normTitle)) return;
+            seenRt.add(normTitle);
+            const times = extractTimesFromItem(r);
+            const sTime = times.start || "07:00";
+            const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
+            const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
+            cleanRoutines.push({
+              id: isNaN(rId) ? rId : Number(rId),
+              title: r.title || "Routine",
+              startTime: sTime,
+              endTime: eTime,
+              timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
+              timeBlock: r.timeBlock || getTimeBlockName(sTime),
+              color: r.color || "amber",
+              days: r.days || "Everyday"
+            });
+          });
+          appData.routines = cleanRoutines;
+        }
+
+        // 3. Habits
+        if (json.habits && Array.isArray(json.habits)) {
+          const seenHabit = new Set();
+          const cleanHabits = [];
+          json.habits.forEach(h => {
+            const normName = (h.name || "").trim().toLowerCase();
+            if (!normName || seenHabit.has(normName)) return;
+            seenHabit.add(normName);
+
+            let hId = h.id;
+            if (hId !== undefined && hId !== null) {
+              const strId = String(hId).trim();
+              hId = isNaN(strId) ? strId : Number(strId);
+            } else {
+              hId = "hb_" + normName.replace(/\s+/g, '_');
+            }
+
+            cleanHabits.push({
+              id: hId,
+              name: h.name || "Habit",
+              type: normalizeHabitType(h.type),
+              target: Number(h.target) || 0,
+              unit: h.unit || ""
+            });
+          });
+          if (cleanHabits.length > 0) appData.habits = cleanHabits;
+        }
+
+        // 4. Habit Logs
+        if (json.habitLogs && Array.isArray(json.habitLogs)) {
+          const map = {};
+          json.habitLogs.forEach(l => {
+            const dateStr = normalizeDateString(l.date);
+            const key = `${String(l.habitId).trim()}_${dateStr}`;
+            const isCompleted = String(l.completed).trim().toUpperCase() === "TRUE" || 
+                                String(l.completed).trim().toLowerCase() === "yes" || 
+                                l.completed === true || 
+                                l.completed === 1;
+            map[key] = {
+              value: l.value !== undefined ? l.value : "",
+              completed: isCompleted
+            };
+          });
+          appData.habitLogs = map;
+        }
+
+        // 5. Tasks
+        if (json.tasks && Array.isArray(json.tasks)) {
+          const seenTask = new Set();
+          const cleanTasks = [];
+          json.tasks.forEach(t => {
+            const tId = String(t.id).trim();
+            if (!tId || seenTask.has(tId)) return;
+            seenTask.add(tId);
+            const times = extractTimesFromItem(t);
+            cleanTasks.push({
+              id: isNaN(tId) ? tId : Number(tId),
+              title: t.title || "Untitled Task",
+              priority: t.priority || "Med",
+              frequency: t.frequency || "once",
+              status: t.status || "Need to Start",
+              completed: String(t.completed).toUpperCase() === "TRUE",
+              date: normalizeDateString(t.date || t.scheduledDate || ""),
+              scheduledStartTime: times.start,
+              scheduledEndTime: times.end,
+              plannedMins: Number(t.plannedMins) || 30,
+              actualMins: Number(t.actualMins) || 0
+            });
+          });
+          appData.tasks = cleanTasks;
+        }
+
+        // 6. Focus Logs
+        if (json.focusLogs && Array.isArray(json.focusLogs)) {
+          appData.focusLogs = json.focusLogs.map(fl => ({
+            id: Number(fl.id) || Date.now() + Math.random(),
+            label: fl.label || "Focus Session",
+            duration: fl.duration || "00:00:00",
+            timestamp: fl.timestamp || "",
+            date: normalizeDateString(fl.date || getTodayKey())
+          }));
+        }
+
+        // 7. Daily Summaries
+        if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
+          const sMap = {};
+          json.dailySummaries.forEach(s => {
+            const d = normalizeDateString(s.date);
+            if (d) {
+              sMap[d] = {
+                date: d,
+                goodThing: s.goodThing || "",
+                disliked: s.disliked || "",
+                productive: s.productive || "",
+                betterThanYesterday: s.betterThanYesterday || "",
+                regrets: s.regrets || "",
+                emotion: s.emotion || ""
+              };
+            }
+          });
+          appData.dailySummaries = sMap;
+        }
+
+        isRemoteDataLoaded = true;
+        saveState();
+        renderAll();
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error("Fetch error:", err);
         setSyncStatus('error');
       }
     }
 
-    function exportBackupData() {
-      const payload = JSON.stringify(appData, null, 2);
-      const blob = new Blob([payload], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `daily-planner-backup-${getTodayKey()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+    // ---------- Planner & Timeline Render ----------
+    function shiftPlannerDate(delta) {
+      const d = new Date(selectedPlannerDate + "T00:00:00");
+      d.setDate(d.getDate() + delta);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      selectedPlannerDate = `${y}-${m}-${day}`;
+      renderAll();
     }
 
-    function openRoutineManagerModal() {
-      const modal = document.getElementById('routineModal');
-      if (modal) modal.classList.remove('hidden');
-      const list = document.getElementById('routinesListContainer');
-      if (!list) return;
-      list.innerHTML = appData.routines.map(r => `
-        <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800">
-          <div class="min-w-0">
-            <div class="text-[11px] font-semibold text-slate-200 truncate">${r.title}</div>
-            <div class="text-[9px] text-slate-500 font-mono">${r.startTime} - ${r.endTime}</div>
+    function goToPlannerToday() {
+      selectedPlannerDate = getTodayKey();
+      renderAll();
+      scrollToCurrentTimeOrStart();
+    }
+
+    function onPlannerDateSelected(val) {
+      if (val) {
+        selectedPlannerDate = val;
+        renderAll();
+      }
+    }
+
+    // Drag-to-Create Timeline Engine
+    function getTimelineOffsetMinutes(e, container) {
+      const rect = container.getBoundingClientRect();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const relativeY = clientY - rect.top + container.scrollTop;
+      return snapTo15(relativeY);
+    }
+
+    function updateDragPreview(startM, endM, track) {
+      const box = document.getElementById('selectionPreviewBox');
+      if (!box) return;
+
+      const top = Math.min(startM, endM);
+      const bottom = Math.max(startM, endM);
+      const height = Math.max(20, bottom - top);
+
+      box.classList.remove('hidden');
+      box.style.top = `${top}px`;
+      box.style.height = `${height}px`;
+
+      if (track === 'left') {
+        box.style.left = 'calc(16.667% + 1px)';
+        box.style.width = 'calc(41.667% - 2px)';
+        box.className = "absolute z-20 pointer-events-none rounded-xl border border-indigo-400 bg-indigo-500/25 flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono text-indigo-200 shadow-md";
+      } else {
+        box.style.left = 'calc(58.334% + 1px)';
+        box.style.width = 'calc(41.667% - 2px)';
+        box.className = "absolute z-20 pointer-events-none rounded-xl border border-emerald-400 bg-emerald-500/25 flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono text-emerald-200 shadow-md";
+      }
+
+      const sTime = minutesToTime(top);
+      const eTime = minutesToTime(Math.max(top + 15, bottom));
+      const diffMins = Math.max(15, bottom - top);
+      const durH = Math.floor(diffMins / 60);
+      const durM = diffMins % 60;
+
+      document.getElementById('previewStartTime').textContent = sTime;
+      document.getElementById('previewEndTime').textContent = eTime;
+      document.getElementById('previewDuration').textContent = `${durH > 0 ? durH + 'h ' : ''}${durM}m`;
+    }
+
+    function buildHourlyBackgroundGrid() {
+      const grid = document.getElementById('hourlyGridLines');
+      const scrollContainer = document.getElementById('plannerScrollContainer');
+      if (!grid || !scrollContainer) return;
+      grid.innerHTML = '';
+
+      for (let h = 0; h < 24; h++) {
+        const timeStr = `${String(h).padStart(2, '0')}:00`;
+        const row = document.createElement('div');
+        row.className = "grid grid-cols-12 h-[60px] border-b border-slate-900/90 box-border";
+
+        row.innerHTML = `
+          <div class="col-span-2 sm:col-span-1 text-center font-mono text-[9px] sm:text-[10px] text-slate-500 pt-1 border-r border-slate-900 select-none">
+            ${timeStr}
           </div>
-          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 transition">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
+          <div data-track="left" data-hour="${h}" class="time-track-slot col-span-5 sm:col-span-5 border-r border-slate-900/80 cursor-pointer hover:bg-indigo-950/20 active:bg-indigo-900/30 transition"></div>
+          <div data-track="right" data-hour="${h}" class="time-track-slot col-span-5 sm:col-span-6 cursor-pointer hover:bg-emerald-950/20 active:bg-emerald-900/30 transition"></div>
+        `;
+        grid.appendChild(row);
+      }
 
-    function closeRoutineModal() {
-      const modal = document.getElementById('routineModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function deleteRoutine(routineId) {
-      appData.routines = appData.routines.filter(r => String(r.id) !== String(routineId));
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
-
-    function handleCreateRoutine(event) {
-      event.preventDefault();
-      const titleInput = document.getElementById('rtTitle');
-      const colorInput = document.getElementById('rtColor');
-      const startInput = document.getElementById('rtStartTime');
-      const endInput = document.getElementById('rtEndTime');
-      if (!titleInput || !colorInput || !startInput || !endInput) return;
-      const value = titleInput.value.trim();
-      if (!value) return;
-      appData.routines.push({
-        id: Date.now(),
-        title: value,
-        startTime: startInput.value || '07:00',
-        endTime: endInput.value || '08:00',
-        color: colorInput.value || 'amber',
-        days: 'Everyday'
-      });
-      titleInput.value = '';
-      closeRoutineModal();
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
-
-    function addPresetBlock(title, startTime, endTime, color) {
-      appData.timeBlocks.push({
-        id: Date.now() + Math.random(),
-        date: selectedPlannerDate,
-        title,
-        startTime,
-        endTime,
-        timeSlot: `${startTime} - ${endTime}`,
-        timeBlock: getTimeBlockName(startTime),
-        color,
-        notes: '',
-        actualStartTime: '',
-        actualEndTime: '',
-        actualNotes: '',
-        status: 'Planned',
-        taskId: null,
-        routineId: null
-      });
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
-
-    function openAddTimeBlockModal() {
-      const modal = document.getElementById('timeBlockModal');
-      if (!modal) return;
-      const form = document.getElementById('timeBlockForm');
-      if (form) form.reset();
-      document.getElementById('timeBlockModalTitle').textContent = 'Plan Timeblock & Actuals';
-      document.getElementById('tbId').value = '';
-      document.getElementById('tbDate').value = selectedPlannerDate;
-      document.getElementById('tbRoutineId').value = '';
-      document.getElementById('tbTaskId').value = '';
-      document.getElementById('tbTitle').value = '';
-      document.getElementById('tbColor').value = 'indigo';
-      document.getElementById('tbStartTime').value = '09:00';
-      document.getElementById('tbEndTime').value = '10:00';
-      document.getElementById('tbNotes').value = '';
-      document.getElementById('tbStatus').value = 'Planned';
-      document.getElementById('tbActualStartTime').value = '';
-      document.getElementById('tbActualEndTime').value = '';
-      document.getElementById('tbActualNotes').value = '';
-      modal.classList.remove('hidden');
-      attachTimeBlockAutoCalculate();
-    }
-
-    function openEditTimeBlockModal(block) {
-      if (!block) return;
-      const modal = document.getElementById('timeBlockModal');
-      if (!modal) return;
-      document.getElementById('timeBlockModalTitle').textContent = 'Edit Timeblock';
-      document.getElementById('tbId').value = block.id;
-      document.getElementById('tbDate').value = block.date || selectedPlannerDate;
-      document.getElementById('tbRoutineId').value = block.routineId || '';
-      document.getElementById('tbTaskId').value = block.taskId || '';
-      document.getElementById('tbTitle').value = block.title || '';
-      document.getElementById('tbColor').value = block.color || 'indigo';
-      document.getElementById('tbStartTime').value = block.startTime || '';
-      document.getElementById('tbEndTime').value = block.endTime || '';
-      document.getElementById('tbNotes').value = block.notes || '';
-      document.getElementById('tbStatus').value = block.status || 'Planned';
-      document.getElementById('tbActualStartTime').value = block.actualStartTime || '';
-      document.getElementById('tbActualEndTime').value = block.actualEndTime || '';
-      document.getElementById('tbActualNotes').value = block.actualNotes || '';
-      modal.classList.remove('hidden');
-      attachTimeBlockAutoCalculate();
-    }
-
-    function closeTimeBlockModal() {
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function handleSaveTimeBlock(event) {
-      event.preventDefault();
-      const id = document.getElementById('tbId').value;
-      const title = document.getElementById('tbTitle').value.trim();
-      if (!title) return;
-      const payload = {
-        id: id ? String(id) : `plan_${Date.now()}`,
-        date: document.getElementById('tbDate').value || selectedPlannerDate,
-        title,
-        startTime: document.getElementById('tbStartTime').value || '09:00',
-        endTime: document.getElementById('tbEndTime').value || '10:00',
-        color: document.getElementById('tbColor').value || 'indigo',
-        notes: document.getElementById('tbNotes').value.trim(),
-        actualStartTime: document.getElementById('tbActualStartTime').value || '',
-        actualEndTime: document.getElementById('tbActualEndTime').value || '',
-        actualNotes: document.getElementById('tbActualNotes').value.trim(),
-        status: document.getElementById('tbStatus').value || 'Planned',
-        taskId: document.getElementById('tbTaskId').value || null,
-        routineId: document.getElementById('tbRoutineId').value || null
+      const handlePointerDown = (e) => {
+        const slot = e.target.closest('.time-track-slot');
+        if (!slot) return;
+        
+        isDraggingTime = true;
+        dragTrackType = slot.dataset.track;
+        dragStartMinute = getTimelineOffsetMinutes(e, scrollContainer);
+        dragEndMinute = dragStartMinute + 60;
+        updateDragPreview(dragStartMinute, dragEndMinute, dragTrackType);
       };
-      if (id) {
-        const index = appData.timeBlocks.findIndex(b => String(b.id) === String(id));
-        if (index >= 0) appData.timeBlocks[index] = { ...appData.timeBlocks[index], ...payload };
-      } else {
-        appData.timeBlocks.push(payload);
+
+      const handlePointerMove = (e) => {
+        if (!isDraggingTime) return;
+        dragEndMinute = getTimelineOffsetMinutes(e, scrollContainer);
+        updateDragPreview(dragStartMinute, dragEndMinute, dragTrackType);
+      };
+
+      const handlePointerUp = () => {
+        if (!isDraggingTime) return;
+        isDraggingTime = false;
+
+        const box = document.getElementById('selectionPreviewBox');
+        if (box) box.classList.add('hidden');
+
+        const top = Math.min(dragStartMinute, dragEndMinute);
+        let bottom = Math.max(dragStartMinute, dragEndMinute);
+        if (bottom - top < 15) bottom = top + 30;
+
+        const startStr = minutesToTime(top);
+        const endStr = minutesToTime(bottom);
+
+        if (dragTrackType === 'left') {
+          openAddTimeBlockModal(startStr, endStr);
+        } else {
+          openCreateScheduledTaskModal(startStr, endStr);
+        }
+      };
+
+      scrollContainer.onmousedown = handlePointerDown;
+      window.addEventListener('mousemove', handlePointerMove);
+      window.addEventListener('mouseup', handlePointerUp);
+
+      scrollContainer.addEventListener('touchstart', handlePointerDown, { passive: true });
+      window.addEventListener('touchmove', handlePointerMove, { passive: true });
+      window.addEventListener('touchend', handlePointerUp);
+    }
+
+    function render24HourPlanner() {
+      const datePicker = document.getElementById('plannerDatePicker');
+      if (datePicker) datePicker.value = selectedPlannerDate;
+
+      const todayKey = getTodayKey();
+      const isViewingToday = (selectedPlannerDate === todayKey);
+      const dSelected = new Date(selectedPlannerDate + "T00:00:00");
+      const formattedDateStr = dSelected.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      
+      const dToday = new Date(todayKey + "T00:00:00");
+      const dayDiff = Math.round((dSelected.getTime() - dToday.getTime()) / (1000 * 60 * 60 * 24));
+      
+      let relLabel = "Today";
+      if (dayDiff === 1) relLabel = "Tomorrow";
+      else if (dayDiff === -1) relLabel = "Yesterday";
+      else if (dayDiff > 1) relLabel = `+${dayDiff}d`;
+      else if (dayDiff < -1) relLabel = `${dayDiff}d`;
+
+      const relTag = document.getElementById('plannerDateRelativeTag');
+      const fmtText = document.getElementById('plannerDateFormattedText');
+      const todayBtn = document.getElementById('btnPlannerToday');
+
+      if (relTag) {
+        relTag.textContent = relLabel;
+        relTag.className = isViewingToday 
+          ? "px-1.5 py-0.2 rounded font-semibold text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+          : (dayDiff > 0 ? "px-1.5 py-0.2 rounded font-semibold text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30" : "px-1.5 py-0.2 rounded font-semibold text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30");
       }
-      closeTimeBlockModal();
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
+      if (fmtText) fmtText.textContent = formattedDateStr;
 
-    function handleDeleteCurrentTimeBlock() {
-      const id = document.getElementById('tbId').value;
-      if (!id) return;
-      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
-      closeTimeBlockModal();
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
-
-    function wentAsPlanned() {
-      document.getElementById('tbActualStartTime').value = document.getElementById('tbStartTime').value;
-      document.getElementById('tbActualEndTime').value = document.getElementById('tbEndTime').value;
-      document.getElementById('tbStatus').value = 'Completed';
-    }
-
-    function handleHourSlotClick(hour, side) {
-      const start = `${String(hour).padStart(2, '0')}:00`;
-      const end = `${String((hour + 1) % 24).padStart(2, '0')}:00`;
-      if (side === 'left') {
-        openAddTimeBlockModal();
-        document.getElementById('tbTitle').value = 'New Plan Block';
-        document.getElementById('tbStartTime').value = start;
-        document.getElementById('tbEndTime').value = end;
-      } else {
-        openCreateScheduledTaskModal(start, end);
+      if (todayBtn) {
+        todayBtn.className = isViewingToday 
+          ? "px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition"
+          : "px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition";
       }
-    }
 
-    function scrollToCurrentTimeOrStart() {
-      const container = document.getElementById('plannerScrollContainer');
+      const manualBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
+      const routineBlocks = [];
+
+      appData.routines.forEach(r => {
+        const existing = manualBlocks.find(b => b.routineId === r.id);
+        if (!existing) {
+          routineBlocks.push({
+            id: `ROUTINE_${r.id}_${selectedPlannerDate}`,
+            isVirtualRoutine: true,
+            routineId: r.id,
+            date: selectedPlannerDate,
+            title: r.title,
+            startTime: r.startTime,
+            endTime: r.endTime,
+            color: r.color || "amber",
+            notes: "Recurring Routine",
+            actualStartTime: "",
+            actualEndTime: "",
+            actualNotes: "",
+            status: "Planned"
+          });
+        }
+      });
+
+      const allPlannedBlocks = [...manualBlocks, ...routineBlocks];
+      const routineBadge = document.getElementById('activeRoutineCountBadge');
+      if (routineBadge) routineBadge.textContent = appData.routines.length;
+
+      const scheduledTasks = appData.tasks.filter(t => {
+        return isTaskActiveForDate(t, selectedPlannerDate) && t.scheduledStartTime;
+      });
+
+      let totalPlannedMins = 0;
+      let totalActualMins = 0;
+      let completedCount = 0;
+
+      allPlannedBlocks.forEach(b => {
+        const pStart = timeToMinutes(b.startTime);
+        const pEnd = timeToMinutes(b.endTime);
+        if (pEnd > pStart) totalPlannedMins += (pEnd - pStart);
+
+        if (b.actualStartTime && b.actualEndTime) {
+          const aStart = timeToMinutes(b.actualStartTime);
+          const aEnd = timeToMinutes(b.actualEndTime);
+          if (aEnd > aStart) totalActualMins += (aEnd - aStart);
+        }
+
+        if (b.status === "Completed" || b.status === "Partial / Deviated") completedCount++;
+      });
+
+      scheduledTasks.forEach(t => {
+        const pStart = timeToMinutes(t.scheduledStartTime);
+        const pEnd = timeToMinutes(t.scheduledEndTime);
+        const dur = (pEnd > pStart) ? (pEnd - pStart) : (t.plannedMins || 30);
+        totalPlannedMins += dur;
+
+        if (t.actualMins > 0) {
+          totalActualMins += t.actualMins;
+        } else if (t.completed) {
+          totalActualMins += dur;
+        }
+
+        if (t.completed || t.status === "Completed") completedCount++;
+      });
+
+      const totalItems = allPlannedBlocks.length + scheduledTasks.length;
+      const pHours = (totalPlannedMins / 60).toFixed(1);
+      const aHours = (totalActualMins / 60).toFixed(1);
+      const adherence = totalPlannedMins > 0 ? Math.min(100, Math.round((totalActualMins / totalPlannedMins) * 100)) : 0;
+      const diffHours = (totalActualMins / 60) - (totalPlannedMins / 60);
+
+      document.getElementById('scorePlannedHours').textContent = `${pHours}h`;
+      document.getElementById('scorePlannedCount').textContent = `${totalItems} items`;
+      document.getElementById('scoreActualHours').textContent = `${aHours}h`;
+      document.getElementById('scoreActualCount').textContent = `${allPlannedBlocks.filter(b => b.actualStartTime).length + scheduledTasks.filter(t => t.actualMins > 0).length} logged`;
+      document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
+      document.getElementById('scoreStatusCount').textContent = `${completedCount}/${totalItems} done`;
+
+      // Progress Bars
+      const totalTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate)).length;
+      const completedTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate) && t.completed).length;
+      const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      const taskPBar = document.getElementById('taskProgressBar');
+      const taskPPercent = document.getElementById('taskProgressPercent');
+      const taskPLabel = document.getElementById('taskProgressLabel');
+      if (taskPBar && taskPPercent && taskPLabel) {
+        taskPBar.style.width = `${taskProgress}%`;
+        taskPPercent.textContent = `${taskProgress}%`;
+        taskPLabel.textContent = `${completedTasks}/${totalTasks} completed`;
+      }
+
+      const totalHabits = appData.habits.length;
+      const completedHabits = appData.habits.filter(h => {
+        const hId = String(h.id);
+        const normType = normalizeHabitType(h.type);
+        const key = `${hId}_${selectedPlannerDate}`;
+        const log = appData.habitLogs[key];
+        return log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+      }).length;
+      const habitProgress = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
+      const habitPBar = document.getElementById('habitProgressBar');
+      const habitPPercent = document.getElementById('habitProgressPercent');
+      const habitPLabel = document.getElementById('habitProgressLabel');
+      if (habitPBar && habitPPercent && habitPLabel) {
+        habitPBar.style.width = `${habitProgress}%`;
+        habitPPercent.textContent = `${habitProgress}%`;
+        habitPLabel.textContent = `${completedHabits}/${totalHabits} logged`;
+      }
+
+      const totalPlannerBlocks = allPlannedBlocks.length;
+      const completedPlannerBlocks = allPlannedBlocks.filter(b => b.status === 'Completed' || b.status === 'Partial / Deviated').length;
+      const plannerProgress = totalPlannerBlocks > 0 ? Math.round((completedPlannerBlocks / totalPlannerBlocks) * 100) : 0;
+      const planPBar = document.getElementById('plannerProgressBar');
+      const planPPercent = document.getElementById('plannerProgressPercent');
+      const planPLabel = document.getElementById('plannerProgressLabel');
+      if (planPBar && planPPercent && planPLabel) {
+        planPBar.style.width = `${plannerProgress}%`;
+        planPPercent.textContent = `${plannerProgress}%`;
+        planPLabel.textContent = `${completedPlannerBlocks}/${totalPlannerBlocks} blocks`;
+      }
+
+      const varBadge = document.getElementById('scoreVarianceBadge');
+      if (varBadge) {
+        if (diffHours === 0) {
+          varBadge.textContent = "0.0h on track";
+          varBadge.className = "text-[10px] sm:text-xs font-mono font-semibold text-slate-300";
+        } else if (diffHours > 0) {
+          varBadge.textContent = `+${diffHours.toFixed(1)}h over`;
+          varBadge.className = "text-[10px] sm:text-xs font-mono font-semibold text-amber-400";
+        } else {
+          varBadge.textContent = `${diffHours.toFixed(1)}h diff`;
+          varBadge.className = "text-[10px] sm:text-xs font-mono font-semibold text-rose-400";
+        }
+      }
+
+      const container = document.getElementById('scheduledBlocksContainer');
       if (!container) return;
-      const now = new Date();
-      const currentMinute = now.getHours() * 60 + now.getMinutes();
-      container.scrollTop = Math.max(0, currentMinute - 180);
+      container.innerHTML = '';
+
+      const colorMap = {
+        indigo: { border: 'border-indigo-500/80', planBg: 'bg-indigo-950/90', text: 'text-indigo-200' },
+        emerald: { border: 'border-emerald-500/80', planBg: 'bg-emerald-950/90', text: 'text-emerald-200' },
+        amber: { border: 'border-amber-500/80', planBg: 'bg-amber-950/90', text: 'text-amber-200' },
+        cyan: { border: 'border-cyan-500/80', planBg: 'bg-cyan-950/90', text: 'text-cyan-200' },
+        purple: { border: 'border-purple-500/80', planBg: 'bg-purple-950/90', text: 'text-purple-200' }
+      };
+
+      const statusBadges = {
+        "Planned": "bg-slate-800 text-slate-300 border-slate-700",
+        "In Progress": "bg-cyan-950 text-cyan-300 border-cyan-700 animate-pulse",
+        "Completed": "bg-emerald-950 text-emerald-300 border-emerald-700",
+        "Partial / Deviated": "bg-amber-950 text-amber-300 border-amber-700",
+        "Missed": "bg-rose-950 text-rose-300 border-rose-700"
+      };
+
+      allPlannedBlocks.forEach(block => {
+        const theme = colorMap[block.color] || colorMap.indigo;
+        const pStartM = timeToMinutes(block.startTime);
+        let pEndM = timeToMinutes(block.endTime);
+        if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
+
+        const pDur = Math.max(15, pEndM - pStartM);
+        const cardHeight = Math.max(18, pDur - 2);
+        const cardTop = pStartM + 1;
+
+        const isRoutine = Boolean(block.routineId || block.isVirtualRoutine);
+        const hasEvaluated = Boolean((block.actualStartTime && block.actualEndTime) || (block.status && block.status !== "Planned"));
+        const isCompact = pDur < 42;
+
+        const planCard = document.createElement('div');
+        planCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${theme.planBg} ${theme.border}`;
+        planCard.style.left = 'calc(16.667% + 0.5px)';
+        planCard.style.width = 'calc(41.667% - 1px)';
+        planCard.style.top = `${cardTop}px`;
+        planCard.style.height = `${cardHeight}px`;
+
+        planCard.onclick = (e) => {
+          e.stopPropagation();
+          openEditTimeBlockModal(block);
+        };
+
+        let evalHtml = "";
+        if (hasEvaluated) {
+          const stClass = statusBadges[block.status] || statusBadges["Planned"];
+          const aDurStr = (block.actualStartTime && block.actualEndTime) ? `${block.actualStartTime}-${block.actualEndTime}` : `${block.status}`;
+          evalHtml = `
+            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
+              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${stClass}">
+                ${block.status || 'Done'}
+              </span>
+              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
+                ${aDurStr}
+              </span>
+            </div>
+          `;
+        }
+
+        if (isCompact) {
+          planCard.innerHTML = `
+            <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
+              <div class="flex items-center gap-1 min-w-0 flex-1">
+                <span class="text-[10px] sm:text-[11px] font-bold ${theme.text} truncate">${block.title}</span>
+              </div>
+            </div>
+          `;
+        } else {
+          planCard.innerHTML = `
+            <div class="flex items-start justify-between gap-1">
+              <div class="min-w-0 flex-1">
+                <span class="text-[11px] sm:text-xs font-bold ${theme.text} truncate block">${block.title}</span>
+                ${block.notes ? `<p class="text-[9px] text-slate-300/80 truncate mt-0.5">${block.notes}</p>` : ''}
+                ${evalHtml}
+              </div>
+              ${!isRoutine ? `
+                <button onclick="handleQuickDeleteTimeBlock('${block.id}', event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        container.appendChild(planCard);
+      });
+
+      scheduledTasks.forEach(task => {
+        const tStartM = timeToMinutes(task.scheduledStartTime);
+        let tEndM = timeToMinutes(task.scheduledEndTime);
+        if (!tEndM || tEndM <= tStartM) tEndM = tStartM + Math.max(15, task.plannedMins || 30);
+
+        const tDur = Math.max(15, tEndM - tStartM);
+        const taskHeight = Math.max(18, tDur - 2);
+        const taskTop = tStartM + 1;
+
+        const isDone = Boolean(task.completed || task.status === "Completed");
+        const isCompact = tDur < 42;
+
+        const priorityBorder = {
+          High: 'border-rose-500/70 bg-rose-950/30',
+          Med: 'border-amber-500/70 bg-amber-950/30',
+          Low: 'border-slate-700/80 bg-slate-900/80'
+        }[task.priority] || 'border-indigo-500/70 bg-indigo-950/30';
+
+        const taskCard = document.createElement('div');
+        taskCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
+        taskCard.style.left = 'calc(58.334% + 0.5px)';
+        taskCard.style.width = 'calc(41.667% - 1px)';
+        taskCard.style.top = `${taskTop}px`;
+        taskCard.style.height = `${taskHeight}px`;
+
+        taskCard.onclick = (e) => {
+          e.stopPropagation();
+          openEditTaskModal(task.id);
+        };
+
+        let evalHtml = "";
+        if (task.actualMins > 0 || task.actualStartTime) {
+          const isDoneClass = isDone ? 'bg-emerald-950 text-emerald-300 border-emerald-600/50' : 'bg-slate-800 text-slate-300 border-slate-700';
+          evalHtml = `
+            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
+              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${isDoneClass}">
+                ${task.status || 'Done'}
+              </span>
+              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
+                ${task.actualMins > 0 ? task.actualMins + 'm act' : (task.actualStartTime ? task.actualStartTime : 'Logged')}
+              </span>
+            </div>
+          `;
+        }
+
+        if (isCompact) {
+          taskCard.innerHTML = `
+            <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
+              <div class="flex items-center gap-1 min-w-0 flex-1">
+                <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
+                  <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
+                </button>
+                <span class="text-[10px] sm:text-[11px] font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
+              </div>
+            </div>
+          `;
+        } else {
+          taskCard.innerHTML = `
+            <div class="flex items-start justify-between gap-1">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1">
+                  <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
+                    <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
+                </div>
+                ${evalHtml}
+              </div>
+            </div>
+          `;
+        }
+
+        container.appendChild(taskCard);
+      });
+
+      updateLiveTimeIndicator();
+      lucide.createIcons();
     }
 
     function updateLiveTimeIndicator() {
       const indicator = document.getElementById('currentTimeIndicator');
       if (!indicator) return;
-      const now = new Date();
-      const currentMinute = now.getHours() * 60 + now.getMinutes();
-      indicator.style.top = `${Math.max(0, Math.min(currentMinute, 1440))}px`;
-      indicator.classList.remove('hidden');
-    }
 
-    function openCreateHabitModal() {
-      const modal = document.getElementById('habitModal');
-      const form = document.getElementById('habitForm');
-      if (modal) modal.classList.remove('hidden');
-      if (form) form.reset();
-      const id = document.getElementById('hmHabitId');
-      if (id) id.value = '';
-      const type = document.getElementById('hmType');
-      if (type) type.value = 'yesno';
-      const numberFields = document.getElementById('hmNumberFields');
-      if (numberFields) numberFields.classList.add('hidden');
-    }
-
-    function closeHabitModal() {
-      const modal = document.getElementById('habitModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function onHabitTypeChange(type) {
-      const numberFields = document.getElementById('hmNumberFields');
-      if (numberFields) numberFields.classList.toggle('hidden', type !== 'number');
-    }
-
-    function handleSaveHabit(event) {
-      event.preventDefault();
-      const id = document.getElementById('hmHabitId').value;
-      const name = document.getElementById('hmName').value.trim();
-      const type = document.getElementById('hmType').value;
-      const target = Number(document.getElementById('hmTarget').value || 0);
-      const unit = document.getElementById('hmUnit').value.trim();
-      if (!name) return;
-      const payload = {
-        id: id || Date.now(),
-        name,
-        type: normalizeHabitType(type),
-        target: type === 'number' ? target : 1,
-        unit: type === 'number' ? unit : ''
-      };
-      if (id) {
-        const idx = appData.habits.findIndex(h => String(h.id) === String(id));
-        if (idx >= 0) appData.habits[idx] = payload;
-      } else {
-        appData.habits.push(payload);
+      if (selectedPlannerDate !== getTodayKey()) {
+        indicator.classList.add('hidden');
+        return;
       }
-      closeHabitModal();
-      saveState();
+
+      indicator.classList.remove('hidden');
+      const now = new Date();
+      const currentMins = (now.getHours() * 60) + now.getMinutes();
+      indicator.style.top = `${currentMins}px`;
+    }
+
+    function scrollToCurrentTimeOrStart() {
+      const scrollBox = document.getElementById('plannerScrollContainer');
+      if (!scrollBox) return;
+
+      if (selectedPlannerDate === getTodayKey()) {
+        const now = new Date();
+        const targetScroll = Math.max(0, ((now.getHours() * 60) + now.getMinutes()) - 180);
+        scrollBox.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      } else {
+        scrollBox.scrollTo({ top: 420, behavior: 'smooth' });
+      }
+    }
+
+    function addPresetBlock(title, start, end, color) {
+      const s = normalizeTimeString(start);
+      const e = normalizeTimeString(end);
+      appData.timeBlocks.push({
+        id: Date.now(),
+        date: selectedPlannerDate,
+        title,
+        startTime: s,
+        endTime: e,
+        timeSlot: `${s} - ${e}`,
+        timeBlock: getTimeBlockName(s),
+        color: color || "indigo",
+        notes: "",
+        actualStartTime: "",
+        actualEndTime: "",
+        actualNotes: "",
+        status: "Planned",
+        taskId: null,
+        routineId: null
+      });
       renderAll();
       syncToRemote();
     }
 
+    // ---------- Habit Tracker ----------
     function renderHabits() {
       const container = document.getElementById('habitCardsContainer');
       if (!container) return;
       container.innerHTML = '';
-      if (!appData.habits || !appData.habits.length) {
-        container.innerHTML = '<div class="text-[11px] text-slate-500 italic">No habits yet.</div>';
+      let completedCount = 0;
+
+      if (!Array.isArray(appData.habits) || appData.habits.length === 0) {
+        container.innerHTML = '<span class="text-slate-500 italic text-xs">No habits yet. Click "Add Habit" to create one.</span>';
         return;
       }
 
-      appData.habits.forEach((habit) => {
-        const habitKey = `${String(habit.id)}_${selectedPlannerDate}`;
-        const log = appData.habitLogs[habitKey] || {};
-        const isDone = Boolean(log.completed || (normalizeHabitType(habit.type) === 'yesno' && String(log.value).toLowerCase() === 'yes'));
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/80 p-2.5';
-        row.innerHTML = `
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <button onclick="toggleHabitCompletion('${habit.id}')" class="p-1 rounded-lg ${isDone ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
-                <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
-              </button>
-              <div class="min-w-0">
-                <div class="text-[12px] font-semibold text-slate-200 truncate">${habit.name}</div>
-                <div class="text-[10px] text-slate-500 font-mono">${habit.type === 'number' ? `${habit.target || 0} ${habit.unit || ''}` : 'Daily check-in'}</div>
+      appData.habits.forEach(habit => {
+        const hId = String(habit.id);
+        const normType = normalizeHabitType(habit.type);
+        const key = `${hId}_${selectedPlannerDate}`;
+        const log = appData.habitLogs[key] || { value: "", completed: false };
+
+        const isCompleted = Boolean(log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+        if (isCompleted) completedCount++;
+
+        const streak = calculateStreak(hId);
+
+        // 7-day Mini Heatmap Dots
+        let weekDots = '';
+        const dRef = new Date(selectedPlannerDate + 'T00:00:00');
+        for (let i = 6; i >= 0; i--) {
+          const dotDate = new Date(dRef);
+          dotDate.setDate(dRef.getDate() - i);
+          const y = dotDate.getFullYear();
+          const m = String(dotDate.getMonth() + 1).padStart(2, '0');
+          const day = String(dotDate.getDate()).padStart(2, '0');
+          const dStr = `${y}-${m}-${day}`;
+          const dKey = `${hId}_${dStr}`;
+          const dLog = appData.habitLogs[dKey];
+          const done = dLog && (dLog.completed || (normType === 'yesno' && String(dLog.value).toLowerCase() === 'yes'));
+          weekDots += `<span title="${dStr}" class="w-2 h-2 rounded-full ${done ? 'bg-amber-400 shadow-sm shadow-amber-400/50' : 'bg-slate-800 border border-slate-700/60'}"></span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = "p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 shadow-sm";
+
+        let controlHtml = "";
+        if (normType === 'yesno') {
+          controlHtml = `
+            <button onclick="toggleYesNoHabit('${hId}')" class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[44px] ${isCompleted ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
+              <i data-lucide="${isCompleted ? 'check-circle-2' : 'circle'}" class="w-4 h-4 ${isCompleted ? 'text-emerald-400' : 'text-slate-500'}"></i>
+              <span>${isCompleted ? 'Done ✓' : 'Mark Done'}</span>
+            </button>
+          `;
+        } else if (normType === 'number') {
+          const currentVal = Number(log.value) || 0;
+          const targetVal = habit.target || 1;
+          const pct = Math.min(100, Math.round((currentVal / targetVal) * 100));
+          controlHtml = `
+            <div class="space-y-2 w-full sm:w-auto">
+              <div class="flex items-center gap-2">
+                <button onclick="stepNumericHabit('${hId}', -1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
+                <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : 0}" oninput="setNumericHabit('${hId}', this.value)" class="w-16 bg-slate-900 border border-slate-800 rounded-xl py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
+                <button onclick="stepNumericHabit('${hId}', 1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
+                <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit || ''}</span>
+              </div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="h-full bg-amber-500 rounded-full transition-all" style="width: ${pct}%"></div>
               </div>
             </div>
+          `;
+        } else {
+          controlHtml = `
+            <div class="flex items-center gap-2 w-full sm:w-80">
+              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
+                     onchange="saveDescriptiveHabit('${hId}', this.value)" 
+                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)" 
+                     placeholder="Notes / routine details..." 
+                     class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
+              <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
+                ${isCompleted ? 'Done ✓' : 'Save'}
+              </button>
+            </div>
+          `;
+        }
+
+        const typeLabel = normType === 'yesno' ? 'Yes / No' : (normType === 'number' ? 'Numeric' : 'Notes');
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs sm:text-sm font-bold text-white">${habit.name}</h4>
+                <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">${typeLabel}</span>
+              </div>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] font-mono text-amber-400 block font-semibold">
+                  🔥 ${streak}d streak
+                </span>
+                <div class="flex items-center gap-1 pl-2 border-l border-slate-800" title="Last 7 days">
+                  ${weekDots}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 justify-between sm:justify-end">
+              ${controlHtml}
+              <button onclick="deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
-          <button onclick="deleteHabit('${habit.id}')" class="text-slate-500 hover:text-rose-400 transition">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
         `;
-        container.appendChild(row);
+
+        container.appendChild(card);
       });
+
+      const counter = document.getElementById('habitsCompletedCounter');
+      if (counter && Array.isArray(appData.habits)) {
+        counter.textContent = `${completedCount}/${appData.habits.length} done`;
+      }
       lucide.createIcons();
     }
 
-    function toggleHabitCompletion(habitId) {
-      const habit = appData.habits.find(h => String(h.id) === String(habitId));
-      if (!habit) return;
-      const normType = normalizeHabitType(habit.type);
-      const key = `${String(habit.id)}_${selectedPlannerDate}`;
-      if (normType === 'number') {
-        const current = Number(appData.habitLogs[key]?.value || 0);
-        const nextValue = Number(prompt(`Enter value for ${habit.name}:`, current || habit.target || 0));
-        if (Number.isNaN(nextValue)) return;
-        appData.habitLogs[key] = { value: nextValue, completed: nextValue >= (Number(habit.target) || 0) };
-      } else {
-        const current = appData.habitLogs[key] || { value: '', completed: false };
-        const next = !current.completed;
-        appData.habitLogs[key] = { value: next ? 'yes' : '', completed: next };
-      }
-      captureHabitAnalytics(habit);
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
-
-    function deleteHabit(habitId) {
-      appData.habits = appData.habits.filter(h => String(h.id) !== String(habitId));
-      Object.keys(appData.habitLogs).forEach(key => {
-        if (key.startsWith(`${String(habitId)}_`)) delete appData.habitLogs[key];
-      });
-      saveState();
-      renderAll();
-      syncToRemote();
-    }
-
-    function getHabitMetrics(habitId, days = 30) {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - days);
+    function calculateStreak(habitId) {
       let streak = 0;
-      let completionCount = 0;
-      let totalExpected = 0;
-      let lastCompletedDate = '';
-      const habit = appData.habits.find(h => String(h.id) === String(habitId));
-      const normType = normalizeHabitType(habit ? habit.type : 'yesno');
-      const uniqueDates = [...new Set(Object.keys(appData.habitLogs || {})
-        .filter(key => key.startsWith(`${String(habitId)}_`))
-        .map(key => key.replace(`${String(habitId)}_`, ''))
-        .filter(date => {
-          const d = new Date(normalizeDateString(date) + 'T00:00:00');
-          return !isNaN(d.getTime()) && d >= cutoff;
-        }))].sort();
+      const normHabit = appData.habits.find(h => String(h.id) === String(habitId));
+      const normType = normHabit ? normalizeHabitType(normHabit.type) : 'yesno';
 
-      for (let i = uniqueDates.length - 1; i >= 0; i--) {
-        const dateValue = uniqueDates[i];
-        const log = appData.habitLogs[`${String(habitId)}_${dateValue}`];
-        totalExpected++;
-        if (log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'))) {
-          completionCount++;
+      const parseDate = (dateStr) => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(Date.UTC(y, m - 1, d));
+      };
+
+      const todayDate = parseDate(selectedPlannerDate);
+      const keyToday = `${habitId}_${selectedPlannerDate}`;
+      const logToday = appData.habitLogs[keyToday];
+      const todayDone = logToday && (logToday.completed || (normType === 'yesno' && String(logToday.value).toLowerCase() === 'yes'));
+
+      if (todayDone) streak++;
+
+      let checkDate = new Date(todayDate);
+      checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+
+      for (let i = 0; i < 365; i++) {
+        const y = checkDate.getUTCFullYear();
+        const m = String(checkDate.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(checkDate.getUTCDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${d}`;
+
+        const pastLog = appData.habitLogs[`${habitId}_${dStr}`];
+        const pastDone = pastLog && (pastLog.completed || (normType === 'yesno' && String(pastLog.value).toLowerCase() === 'yes'));
+
+        if (pastDone) {
           streak++;
-          lastCompletedDate = dateValue;
+          checkDate.setUTCDate(checkDate.getUTCDate() - 1);
         } else {
           break;
         }
       }
+      return streak;
+    }
 
-      const completionPercentage = totalExpected ? Math.round((completionCount / totalExpected) * 100) : 0;
-      return {
-        streak,
-        completionPercentage,
-        totalCompleted: completionCount,
-        totalExpected,
-        daysMissedRecently: Math.max(0, totalExpected - completionCount),
-        lastCompletedDate,
+    function getHabitMetrics(habitId, windowDays = 30) {
+      const hId = String(habitId);
+      const metrics = {
+        lastCompletedDate: null,
+        streak: calculateStreak(hId),
+        daysMissedRecently: 0,
+        completionPercentage: 0,
+        totalCompleted: 0,
+        totalExpected: windowDays
       };
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - windowDays);
+
+      let daysCompleted = 0;
+      let lastCompleted = null;
+
+      for (let i = 0; i < windowDays; i++) {
+        const checkDate = new Date(startDate);
+        checkDate.setDate(checkDate.getDate() + i);
+
+        const y = checkDate.getFullYear();
+        const m = String(checkDate.getMonth() + 1).padStart(2, '0');
+        const d = String(checkDate.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${d}`;
+
+        const key = `${hId}_${dateStr}`;
+        const log = appData.habitLogs[key];
+        const habit = appData.habits.find(h => String(h.id) === hId);
+        const normType = habit ? normalizeHabitType(habit.type) : 'yesno';
+
+        const isDone = log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+
+        if (isDone) {
+          daysCompleted++;
+          lastCompleted = dateStr;
+        }
+      }
+
+      metrics.lastCompletedDate = lastCompleted;
+      metrics.totalCompleted = daysCompleted;
+      metrics.completionPercentage = windowDays > 0 ? Math.round((daysCompleted / windowDays) * 100) : 0;
+
+      if (lastCompleted) {
+        const lastCompDate = new Date(lastCompleted + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const daysDiff = Math.floor((today - lastCompDate) / (1000 * 60 * 60 * 24));
+        metrics.daysMissedRecently = Math.max(0, daysDiff);
+      } else {
+        metrics.daysMissedRecently = windowDays;
+      }
+
+      return metrics;
+    }
+
+    function formatDateForDisplay(dateStr) {
+      if (!dateStr) return "Never";
+      const [y, m, d] = dateStr.split('-');
+      const date = new Date(Number(y), Number(m) - 1, Number(d));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = today - date;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays}d ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function toggleYesNoHabit(id) {
+      const hId = String(id);
+      const key = `${hId}_${selectedPlannerDate}`;
+      const log = appData.habitLogs[key] || { value: "", completed: false };
+      const currentlyDone = Boolean(log.completed || String(log.value).toLowerCase() === 'yes');
+      log.completed = !currentlyDone;
+      log.value = log.completed ? "Yes" : "No";
+      appData.habitLogs[key] = log;
+
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (habit) captureHabitAnalytics(habit);
+
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function setNumericHabit(id, val) {
+      const hId = String(id);
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (!habit) return;
+      const num = parseFloat(val) || 0;
+      const key = `${hId}_${selectedPlannerDate}`;
+      appData.habitLogs[key] = {
+        value: num,
+        completed: (num >= (habit.target || 1))
+      };
+
+      captureHabitAnalytics(habit);
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function stepNumericHabit(id, step) {
+      const hId = String(id);
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (!habit) return;
+      const key = `${hId}_${selectedPlannerDate}`;
+      const log = appData.habitLogs[key] || { value: 0, completed: false };
+      const currentVal = Number(log.value) || 0;
+      const newNum = Math.max(0, currentVal + step);
+      appData.habitLogs[key] = {
+        value: newNum,
+        completed: (newNum >= (habit.target || 1))
+      };
+
+      captureHabitAnalytics(habit);
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function saveDescriptiveFromInput(id) {
+      const hId = String(id);
+      const input = document.getElementById(`desc_input_${hId}`);
+      if (input) saveDescriptiveHabit(hId, input.value);
+    }
+
+    function saveDescriptiveHabit(id, text) {
+      const hId = String(id);
+      const key = `${hId}_${selectedPlannerDate}`;
+      const log = appData.habitLogs[key] || { value: "", completed: false };
+      log.value = text ? text.trim() : "";
+      log.completed = Boolean(log.value);
+      appData.habitLogs[key] = log;
+
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (habit) captureHabitAnalytics(habit);
+
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function openCreateHabitModal() {
+      document.getElementById('hmHabitId').value = "";
+      document.getElementById('hmName').value = "";
+      document.getElementById('hmType').value = "yesno";
+      document.getElementById('hmTarget').value = "";
+      document.getElementById('hmUnit').value = "";
+      onHabitTypeChange("yesno");
+      document.getElementById('habitModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeHabitModal() {
+      document.getElementById('habitModal').classList.add('hidden');
+    }
+
+    function onHabitTypeChange(val) {
+      const numFields = document.getElementById('hmNumberFields');
+      if (numFields) {
+        if (val === 'number') numFields.classList.remove('hidden');
+        else numFields.classList.add('hidden');
+      }
+    }
+
+    function handleSaveHabit(e) {
+      e.preventDefault();
+      const name = document.getElementById('hmName').value.trim();
+      const type = document.getElementById('hmType').value;
+      const target = parseFloat(document.getElementById('hmTarget').value) || 0;
+      const unit = document.getElementById('hmUnit').value.trim();
+
+      if (!name) return;
+
+      const normName = name.toLowerCase();
+      const existing = appData.habits.find(h => h.name.toLowerCase() === normName);
+      if (existing) {
+        existing.name = name;
+        existing.type = type;
+        existing.target = target;
+        existing.unit = unit;
+      } else {
+        appData.habits.push({ id: Date.now(), name, type, target, unit });
+      }
+
+      closeHabitModal();
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function deleteHabit(id) {
+      appData.habits = appData.habits.filter(h => String(h.id) !== String(id));
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    // ---------- Task Pending Metrics ----------
+    function getTaskPendingMetrics(task) {
+      const referenceDate = task.date || task.scheduledDate;
+
+      if (!referenceDate) {
+        const createdDate = new Date(Number(task.id));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const pendingMs = today - createdDate;
+        const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
+
+        return {
+          pendingDays: Math.max(0, pendingDays),
+          pendingFrom: createdDate.toISOString().split('T')[0],
+          isOverdue: pendingDays > 0 && !task.completed,
+          status: task.completed ? 'completed' : (pendingDays > 7 ? 'overdue' : (pendingDays > 3 ? 'pending' : 'new')),
+          daysLabel: formatPendingDays(pendingDays),
+          type: 'unscheduled'
+        };
+      }
+
+      const [y, m, d] = referenceDate.split('-');
+      const schedDate = new Date(Number(y), Number(m) - 1, Number(d));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const pendingMs = today - schedDate;
+      const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
+
+      return {
+        pendingDays: Math.max(0, pendingDays),
+        pendingFrom: referenceDate,
+        isOverdue: pendingDays > 0 && !task.completed,
+        status: task.completed ? 'completed' : (pendingDays > 14 ? 'critical' : (pendingDays > 7 ? 'overdue' : (pendingDays > 0 ? 'pending' : 'today'))),
+        daysLabel: formatPendingDays(pendingDays),
+        type: 'scheduled'
+      };
+    }
+
+    function formatPendingDays(days) {
+      if (days === 0) return "Today";
+      if (days === 1) return "pending 1d";
+      if (days < 7) return `pending ${days}d`;
+      if (days < 30) return `pending ${Math.floor(days / 7)}w`;
+      return `${Math.floor(days / 30)}mo pending`;
+    }
+
+    // ---------- Tasks Manager ----------
+    function setTaskFilter(filter) {
+      currentTaskFilter = filter;
+      ['ALL', 'ACTIVE', 'SCHEDULED'].forEach(f => {
+        const btn = document.getElementById(`taskFilterBtn_${f}`);
+        if (!btn) return;
+        if (f === filter) {
+          btn.className = "px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition";
+        }
+      });
+      renderTasks();
+    }
+
+    function handleQuickAddTask(e) {
+      e.preventDefault();
+      const titleInput = document.getElementById('quickTaskTitleInput');
+      const prioritySelect = document.getElementById('quickTaskPrioritySelect');
+      const frequencySelect = document.getElementById('quickTaskFrequencySelect');
+      const title = titleInput.value.trim();
+
+      if (!title) return;
+
+      appData.tasks.unshift({
+        id: Date.now(),
+        title,
+        priority: prioritySelect.value,
+        frequency: frequencySelect ? frequencySelect.value : 'once',
+        status: "Need to Start",
+        completed: false,
+        date: selectedPlannerDate,
+        scheduledStartTime: "",
+        scheduledEndTime: "",
+        plannedMins: 30,
+        actualMins: 0
+      });
+
+      captureTaskAnalytics(appData.tasks[0]);
+      titleInput.value = '';
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
+    }
+
+    function toggleTaskCompletion(id) {
+      const task = appData.tasks.find(t => String(t.id) === String(id));
+      if (task) {
+        task.completed = !task.completed;
+        task.status = task.completed ? "Completed" : "Need to Start";
+        captureTaskAnalytics(task);
+        renderTasks();
+        render24HourPlanner();
+        renderAnalytics();
+        syncToRemote();
+      }
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('masterTaskList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      let list = [...appData.tasks];
+      if (currentTaskFilter === 'ACTIVE') {
+        list = list.filter(t => !t.completed && t.status !== "Completed");
+      } else if (currentTaskFilter === 'SCHEDULED') {
+        list = list.filter(t => Boolean(t.scheduledStartTime && t.scheduledEndTime));
+      }
+
+      list.sort((a, b) => {
+        const aToday = isTaskActiveForDate(a, selectedPlannerDate);
+        const bToday = isTaskActiveForDate(b, selectedPlannerDate);
+        if (aToday && !bToday) return -1;
+        if (!aToday && bToday) return 1;
+
+        const aPri = PRIORITY_ORDER[a.priority] || 2;
+        const bPri = PRIORITY_ORDER[b.priority] || 2;
+        if (aPri !== bPri) return aPri - bPri;
+
+        if (a.scheduledStartTime && b.scheduledStartTime) {
+          return timeToMinutes(a.scheduledStartTime) - timeToMinutes(b.scheduledStartTime);
+        }
+        return 0;
+      });
+
+      if (!list.length) {
+        const emptyLabel = currentTaskFilter === 'ACTIVE' ? 'pending' : (currentTaskFilter === 'SCHEDULED' ? 'scheduled' : '');
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">No ${emptyLabel} tasks found. Add one above!</div>`;
+        return;
+      }
+
+      const priorityClasses = {
+        High: 'text-rose-400 bg-rose-950/40 border-rose-800/40',
+        Med: 'text-amber-400 bg-amber-950/40 border-amber-800/40',
+        Low: 'text-slate-400 bg-slate-800 border-slate-700'
+      };
+
+      list.forEach(task => {
+        const isScheduled = Boolean(task.scheduledStartTime && task.scheduledEndTime);
+        const isToday = isTaskActiveForDate(task, selectedPlannerDate);
+        const freq = (task.frequency || 'once').toLowerCase();
+        const freqLabel = freq === 'daily' ? 'Daily' : freq === 'weekdays' ? 'Weekdays' : freq === 'weekends' ? 'Weekends' : freq === 'weekly' ? 'Weekly' : '';
+
+        const pendingMetrics = getTaskPendingMetrics(task);
+
+        let pendingBgClass = 'bg-slate-950/60 text-slate-300 border-slate-800/50';
+        let pendingIcon = '📌';
+
+        if (!task.completed) {
+          if (pendingMetrics.status === 'critical') {
+            pendingBgClass = 'bg-rose-950/80 text-rose-300 border-rose-800/60';
+            pendingIcon = '🔴';
+          } else if (pendingMetrics.status === 'overdue') {
+            pendingBgClass = 'bg-amber-950/80 text-amber-300 border-amber-800/60';
+            pendingIcon = '⚠️';
+          } else if (pendingMetrics.status === 'pending') {
+            pendingBgClass = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
+            pendingIcon = '⏳';
+          } else if (pendingMetrics.status === 'new') {
+            pendingBgClass = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
+            pendingIcon = '✨';
+          }
+        }
+
+        const card = document.createElement('div');
+        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${task.completed ? 'opacity-60' : (isToday ? 'ring-1 ring-indigo-500/20' : pendingMetrics.status === 'critical' ? 'ring-1 ring-rose-500/30' : '')}`;
+
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <button onclick="toggleTaskCompletion('${task.id}')" class="p-1 rounded text-emerald-400 active:scale-90 transition flex-shrink-0">
+              <i data-lucide="${task.completed ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+            </button>
+            <div class="min-w-0 flex-1 cursor-pointer" onclick="openEditTaskModal('${task.id}')">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs sm:text-sm font-semibold ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${priorityClasses[task.priority] || priorityClasses.Med}">${task.priority}</span>
+                ${!task.completed ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${pendingBgClass}">${pendingIcon} ${pendingMetrics.daysLabel}</span>` : ''}
+                ${freqLabel ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-sky-950/60 text-sky-300 border-sky-800/50">${freqLabel}</span>` : ''}
+                ${isToday ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 text-indigo-300 border-indigo-800/50">Today</span>` : ''}
+                ${isScheduled ? `
+                  <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
+                    ⏱️️ ${task.scheduledStartTime}-${task.scheduledEndTime}
+                  </span>
+                ` : ''}
+              </div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">
+                ${pendingMetrics.type === 'scheduled' ? pendingMetrics.pendingFrom : `Created: ${new Date(Number(task.id)).toLocaleDateString()}`} • ${task.actualMins > 0 ? `${task.actualMins}m act` : `${task.plannedMins || 30}m plan`}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="linkTaskToStopwatch('${task.id}')" title="Focus on Task" class="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <i data-lucide="timer" class="w-4 h-4"></i>
+            </button>
+            <button onclick="openEditTaskModal('${task.id}')" title="Plan & Schedule" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+            </button>
+            <button onclick="deleteTask('${task.id}')" title="Delete" class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+      lucide.createIcons();
     }
 
     function openEditTaskModal(id) {
@@ -1541,7 +2742,6 @@
       document.getElementById('tmActualMins').value = task.actualMins || 0;
 
       document.getElementById('taskModal').classList.remove('hidden');
-      attachTaskAutoCalculate();
       lucide.createIcons();
     }
 
@@ -1554,11 +2754,12 @@
       document.getElementById('tmDate').value = selectedPlannerDate;
       document.getElementById('tmStartTime').value = startTime;
       document.getElementById('tmEndTime').value = endTime;
-      document.getElementById('tmPlannedMins').value = 60;
+      const sM = timeToMinutes(startTime);
+      const eM = timeToMinutes(endTime);
+      document.getElementById('tmPlannedMins').value = Math.max(15, eM - sM);
       document.getElementById('tmActualMins').value = 0;
 
       document.getElementById('taskModal').classList.remove('hidden');
-      attachTaskAutoCalculate();
       lucide.createIcons();
     }
 
@@ -1613,14 +2814,11 @@
 
       closeTaskModal();
 
-      // Find the task that was just saved and capture its analytics
       const savedTask = rawId ?
         appData.tasks.find(x => String(x.id) === String(rawId)) :
-        appData.tasks[0]; // New task is at the beginning
+        appData.tasks[0];
 
-      if (savedTask) {
-        captureTaskAnalytics(savedTask);
-      }
+      if (savedTask) captureTaskAnalytics(savedTask);
 
       renderTasks();
       render24HourPlanner();
@@ -1760,7 +2958,7 @@
       syncToRemote();
     }
 
-    // ---------- UI Toggle Functions ----------
+    // ---------- UI Toggle Handlers ----------
     function toggleReviewSection() {
       const content = document.getElementById('reviewContent');
       const icon = document.getElementById('reviewToggleIcon');
@@ -1819,10 +3017,7 @@
       syncToRemote();
     }
 
-    // ==========================================
-    // ANALYTICS COMPUTATION ENGINE
-    // ==========================================
-    // Update pending analytics count badge
+    // ---------- Analytics & Auto-Capture Engine ----------
     function updateAnalyticsPendingBadge() {
       const badge = document.getElementById('btnAnalyticsPendingCount');
       if (badge) {
@@ -1830,18 +3025,12 @@
         const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
         const total = taskCount + habitCount;
         badge.textContent = total;
-        badge.parentElement.parentElement.style.opacity = total > 0 ? "1" : "0.7";
+        badge.parentElement.style.opacity = total > 0 ? "1" : "0.7";
       }
     }
 
-    // ---------- Habit Analytics Capture (Auto-Capture on Every Log) ----------
     function captureHabitAnalytics(habit) {
-      /**
-       * Automatically captures analytics for a habit whenever it's logged
-       * Stores locally in appData.habitAnalytics for later syncing
-       */
-      const metrics = getHabitMetrics(habit.id, 30);  // Use 30-day window
-
+      const metrics = getHabitMetrics(habit.id, 30);
       const analytics = {
         captureId: `${habit.id}_${selectedPlannerDate}_${Date.now()}`,
         habitId: String(habit.id),
@@ -1861,47 +3050,24 @@
         captureTimestamp: new Date().toISOString()
       };
 
-      // Check if we already have a capture for this habit on this date today
       const existingIndex = appData.habitAnalytics.findIndex(
         a => a.habitId === String(habit.id) && a.logDate === selectedPlannerDate
       );
 
       if (existingIndex >= 0) {
-        // Update existing capture for today
         appData.habitAnalytics[existingIndex] = analytics;
-        console.log(`📊 Updated habit analytics for ${habit.name}`);
       } else {
-        // Add new capture
         appData.habitAnalytics.push(analytics);
-        console.log(`📊 Captured habit analytics for ${habit.name}`);
       }
 
-      saveState();  // Save to localStorage immediately
-    }
-    // ---------- End Habit Analytics Capture ----------
-
-    // Update pending analytics count badge
-    function updateAnalyticsPendingBadge() {
-      const badge = document.getElementById('btnAnalyticsPendingCount');
-      if (badge) {
-        const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
-        const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
-        const total = taskCount + habitCount;
-        badge.textContent = total;
-        badge.parentElement.parentElement.style.opacity = total > 0 ? "1" : "0.7";
-      }
+      saveState();
+      updateAnalyticsPendingBadge();
     }
 
-    // ---------- Task Analytics Capture (Auto-Capture on Every Change) ----------
     function captureTaskAnalytics(task) {
-      /**
-       * Automatically captures analytics for a task whenever it changes
-       * Stores locally in appData.taskAnalytics for later syncing
-       */
       const metrics = getTaskPendingMetrics(task);
-
       const analytics = {
-        captureId: `${task.id}_${Date.now()}`,  // Unique ID for this capture
+        captureId: `${task.id}_${Date.now()}`,
         taskId: String(task.id),
         taskTitle: task.title,
         priority: task.priority || 'Med',
@@ -1920,26 +3086,20 @@
         captureDate: getTodayKey()
       };
 
-      // Check if we already have a capture for this task today
       const existingIndex = appData.taskAnalytics.findIndex(
         a => a.taskId === String(task.id) && a.captureDate === getTodayKey()
       );
 
       if (existingIndex >= 0) {
-        // Update existing capture for today
         appData.taskAnalytics[existingIndex] = analytics;
-        console.log(`📊 Updated analytics for task ${task.id}`);
       } else {
-        // Add new capture
         appData.taskAnalytics.push(analytics);
-        console.log(`📊 Captured analytics for task ${task.id}`);
       }
 
-      saveState();  // Save to localStorage immediately
+      saveState();
+      updateAnalyticsPendingBadge();
     }
-    // ---------- End Task Analytics Capture ----------
 
-    // ---------- On-Demand Analytics Sync ----------
     async function syncAnalyticsOnDemand() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         alert("❌ API URL not configured. Please set it in settings.");
@@ -1961,13 +3121,6 @@
       }
 
       try {
-        console.log("📊 Syncing Analytics:", {
-          taskRecords: taskCount,
-          habitRecords: habitCount,
-          totalRecords: taskCount + habitCount
-        });
-
-        // Send to Google Sheets
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -1984,15 +3137,13 @@
         });
 
         if (res.ok) {
-          console.log("✅ Analytics synced successfully");
-          // Clear both analytics after successful sync
           const totalRecords = taskCount + habitCount;
           appData.taskAnalytics = [];
           appData.habitAnalytics = [];
           saveState();
 
           if (btn) {
-            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Synced! ('+totalRecords+' records)</span>';
+            btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Synced! (${totalRecords} records)</span>`;
             btn.classList.add('bg-emerald-700');
             setTimeout(() => {
               btn.disabled = false;
@@ -2006,7 +3157,7 @@
           throw new Error("Sync failed with status " + res.status);
         }
       } catch (err) {
-        console.error("❌ Analytics sync error:", err);
+        console.error("Analytics sync error:", err);
         alert("❌ Failed to sync analytics. Check API URL and try again.");
         if (btn) {
           btn.disabled = false;
@@ -2021,27 +3172,6 @@
         }
       }
     }
-    // ---------- End On-Demand Analytics Sync ----------
-
-    // ---------- Master App Render Loop ----------
-    function renderAll() {
-      console.log('📋 renderAll() called, appData.habits:', appData.habits);
-      const d = new Date(selectedPlannerDate + "T00:00:00");
-      const dateSubtext = document.getElementById('headerDateSubtext');
-      if (dateSubtext) {
-        dateSubtext.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      }
-
-      render24HourPlanner();
-      renderHabits();
-      renderTasks();
-      renderFocusLogs();
-      renderDailyReview();
-      renderAnalytics();
-      lucide.createIcons();
-    }
-
-    window.renderAll = renderAll;
 
     function setAnalyticsWindow(days) {
       currentAnalyticsWindow = days;
@@ -2058,19 +3188,619 @@
       renderAnalytics();
     }
 
-    window.setAnalyticsWindow = setAnalyticsWindow;
+    function getAnalyticsDateSet(days) {
+      if (days >= 900) return null;
+      const set = new Set();
+      const ref = new Date();
+      for (let i = 0; i < days; i++) {
+        const d = new Date(ref);
+        d.setDate(d.getDate() - i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        set.add(`${y}-${m}-${day}`);
+      }
+      return set;
+    }
 
-    window.addEventListener('load', () => {
-      console.log("🚀 App Started");
-      console.log("Configured API URL:", appData.apiUrl ? appData.apiUrl.substring(0, 60) + "..." : "NOT SET");
+    function renderAnalytics() {
+      const windowSet = getAnalyticsDateSet(currentAnalyticsWindow);
+      const isDateInScope = (dateStr) => {
+        if (!windowSet) return true;
+        const norm = normalizeDateString(dateStr);
+        return windowSet.has(norm);
+      };
 
+      // 1. Planner Execution
+      const scopedPlans = appData.timeBlocks.filter(b => isDateInScope(b.date));
+      let plannedMinutes = 0;
+      let actualMinutes = 0;
+      let completedBlocks = 0;
+      let missedBlocks = 0;
+
+      scopedPlans.forEach(p => {
+        const s = timeToMinutes(p.startTime);
+        const e = timeToMinutes(p.endTime);
+        const dur = Math.max(0, e - s);
+        plannedMinutes += dur;
+
+        if (p.status === 'Completed') {
+          completedBlocks++;
+          const as = p.actualStartTime ? timeToMinutes(p.actualStartTime) : s;
+          const ae = p.actualEndTime ? timeToMinutes(p.actualEndTime) : e;
+          actualMinutes += Math.max(0, ae - as);
+        } else if (p.status === 'Partial / Deviated') {
+          completedBlocks += 0.5;
+          actualMinutes += (dur * 0.5);
+        } else if (p.status === 'Missed') {
+          missedBlocks++;
+        }
+      });
+
+      const pHours = (plannedMinutes / 60).toFixed(1);
+      const aHours = (actualMinutes / 60).toFixed(1);
+      const planFidelity = plannedMinutes > 0 ? Math.round((actualMinutes / plannedMinutes) * 100) : 0;
+
+      const elPlanStat = document.getElementById('anPlanHoursStat');
+      const elPlanFidelity = document.getElementById('anPlanFidelityRate');
+      const elPlanComp = document.getElementById('anPlanCompletedCount');
+      const elPlanMiss = document.getElementById('anPlanMissedCount');
+
+      if (elPlanStat) elPlanStat.textContent = `${aHours}h / ${pHours}h`;
+      if (elPlanFidelity) elPlanFidelity.textContent = `${planFidelity}%`;
+      if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
+      if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
+
+      // 2. Habits Consistency
+      const totalHabits = appData.habits.length;
+      let totalCompletedLogs = 0;
+      const missedCounts = {};
+      let topStreak = 0;
+
+      appData.habits.forEach(h => {
+        const hId = String(h.id);
+        missedCounts[hId] = 0;
+        const curStreak = calculateStreak(hId);
+        if (curStreak > topStreak) topStreak = curStreak;
+      });
+
+      Object.keys(appData.habitLogs).forEach(key => {
+        const parts = key.split('_');
+        const hId = parts[0];
+        const dateStr = parts.slice(1).join('_');
+        if (isDateInScope(dateStr)) {
+          const l = appData.habitLogs[key];
+          const isDone = l && (l.completed || String(l.value).toLowerCase() === 'yes');
+          if (isDone) totalCompletedLogs++;
+          else if (missedCounts.hasOwnProperty(hId)) {
+            missedCounts[hId]++;
+          }
+        }
+      });
+
+      const daysCount = currentAnalyticsWindow >= 900 ? 30 : currentAnalyticsWindow;
+      const totalExpectedLogs = totalHabits * daysCount;
+      const habitSuccessRate = totalExpectedLogs > 0 ? Math.min(100, Math.round((totalCompletedLogs / totalExpectedLogs) * 100)) : 0;
+      const totalMissedCount = Object.values(missedCounts).reduce((a, b) => a + b, 0);
+
+      const elHabitStat = document.getElementById('anHabitCompletedStat');
+      const elHabitRate = document.getElementById('anHabitSuccessRate');
+      const elHabitMiss = document.getElementById('anHabitMissedTotal');
+      const elHabitStreak = document.getElementById('anHabitTopStreak');
+
+      if (elHabitStat) elHabitStat.textContent = `${totalCompletedLogs} / ${totalExpectedLogs}`;
+      if (elHabitRate) elHabitRate.textContent = `${habitSuccessRate}%`;
+      if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
+      if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
+
+      const frictionContainer = document.getElementById('anHabitsFrictionList');
+      if (frictionContainer) {
+        if (!appData.habits.length) {
+          frictionContainer.innerHTML = `<span class="text-slate-500 italic text-[11px]">No habits configured.</span>`;
+        } else {
+          const sorted = [...appData.habits].sort((a, b) => (missedCounts[String(b.id)] || 0) - (missedCounts[String(a.id)] || 0));
+          frictionContainer.innerHTML = sorted.map(h => {
+            const mCount = missedCounts[String(h.id)] || 0;
+            const metrics = getHabitMetrics(h.id, 30);
+            const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
+            const completionPct = metrics.completionPercentage;
+
+            let statusColor = completionPct < 50 ? 'rose' : (completionPct < 80 ? 'amber' : 'emerald');
+
+            return `
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800/80 text-[10px]">
+                <div class="min-w-0 flex-1 pr-2">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-semibold text-slate-200 truncate">${h.name}</span>
+                    <span class="font-mono text-[9px] text-${statusColor}-400 font-bold">${completionPct}%</span>
+                  </div>
+                  <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-${statusColor}-500 rounded-full" style="width: ${completionPct}%"></div>
+                  </div>
+                  <span class="text-[9px] text-slate-500 font-mono mt-1 block">Missed: ${mCount}x • Last: ${lastCompletedDisplay}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 3. Tasks Throughput
+      const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
+      const totalTasks = scopedTasks.length;
+      let completedTasksCount = 0;
+      let pendingTasksCount = 0;
+      const priTotal = { High: 0, Med: 0, Low: 0 };
+      const priCompleted = { High: 0, Med: 0, Low: 0 };
+
+      scopedTasks.forEach(t => {
+        const isDone = Boolean(t.completed || t.status === "Completed");
+        const pri = t.priority || 'Med';
+        if (priTotal.hasOwnProperty(pri)) priTotal[pri]++;
+        else priTotal['Med']++;
+
+        if (isDone) {
+          completedTasksCount++;
+          if (priCompleted.hasOwnProperty(pri)) priCompleted[pri]++;
+          else priCompleted['Med']++;
+        } else {
+          pendingTasksCount++;
+        }
+      });
+
+      const tasksRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+      const highRate = priTotal.High > 0 ? Math.round((priCompleted.High / priTotal.High) * 100) : 0;
+
+      const elTasksStat = document.getElementById('anTasksCountStat');
+      const elTasksRate = document.getElementById('anTasksRateBadge');
+      const elTasksPend = document.getElementById('anTasksPendingCount');
+      const elTasksHigh = document.getElementById('anTasksHighRate');
+
+      if (elTasksStat) elTasksStat.textContent = `${completedTasksCount} / ${totalTasks}`;
+      if (elTasksRate) elTasksRate.textContent = `${tasksRate}%`;
+      if (elTasksPend) elTasksPend.textContent = pendingTasksCount;
+      if (elTasksHigh) elTasksHigh.textContent = `${highRate}% (${priCompleted.High}/${priTotal.High})`;
+
+      const priBarsContainer = document.getElementById('anTaskPriorityBars');
+      if (priBarsContainer) {
+        const renderPriBar = (label, colorClass, done, total) => {
+          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+          return `
+            <div>
+              <div class="flex justify-between text-[11px] mb-1 font-mono">
+                <span class="text-slate-300 font-semibold">${label}</span>
+                <span class="text-slate-400">${done}/${total} (${pct}%)</span>
+              </div>
+              <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <div class="h-full ${colorClass} rounded-full transition-all" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        };
+
+        priBarsContainer.innerHTML = `
+          ${renderPriBar('🔥 High Priority', 'bg-rose-500', priCompleted.High, priTotal.High)}
+          ${renderPriBar('⚡ Medium Priority', 'bg-amber-500', priCompleted.Med, priTotal.Med)}
+          ${renderPriBar('🌱 Low Priority', 'bg-emerald-500', priCompleted.Low, priTotal.Low)}
+        `;
+      }
+
+      // 4. Daily Reviews & Sentiment
+      let totalProdScore = 0;
+      let prodScoreCount = 0;
+      const moodCounts = {};
+      const happyList = [];
+      const frictionList = [];
+      let reflectedCount = 0;
+
+      Object.keys(appData.dailySummaries).forEach(d => {
+        if (isDateInScope(d)) {
+          reflectedCount++;
+          const s = appData.dailySummaries[d];
+          if (s.productive) {
+            const m = String(s.productive).match(/^(\d+(?:\.\d+)?)/);
+            if (m) {
+              totalProdScore += Number(m[1]);
+              prodScoreCount++;
+            }
+          }
+          const emo = s.emotion ? s.emotion.trim() : 'Steady';
+          if (emo) moodCounts[emo] = (moodCounts[emo] || 0) + 1;
+
+          if (s.goodThing && s.goodThing.trim()) happyList.push(s.goodThing.trim());
+          if (s.disliked && s.disliked.trim()) frictionList.push(s.disliked.trim());
+        }
+      });
+
+      const avgProd = prodScoreCount > 0 ? (totalProdScore / prodScoreCount).toFixed(1) : '--';
+      let dominantMood = 'Steady';
+      let maxCnt = 0;
+      Object.entries(moodCounts).forEach(([emo, cnt]) => {
+        if (cnt > maxCnt) {
+          maxCnt = cnt;
+          dominantMood = emo;
+        }
+      });
+
+      const scopedFocus = appData.focusLogs.filter(fl => isDateInScope(fl.date));
+      let totalFocusSecs = 0;
+      scopedFocus.forEach(fl => {
+        const parts = String(fl.duration).split(':').map(Number);
+        if (parts.length === 3) {
+          totalFocusSecs += (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        }
+      });
+      const focusHoursTotal = (totalFocusSecs / 3600).toFixed(1);
+
+      const elAvgProd = document.getElementById('anAvgProductivityBadge');
+      const elDomMood = document.getElementById('anDominantMoodStat');
+      const elRefDays = document.getElementById('anReflectionDaysCount');
+      const elFocHours = document.getElementById('anTotalFocusHours');
+
+      if (elAvgProd) elAvgProd.textContent = `${avgProd}/10`;
+      if (elDomMood) elDomMood.textContent = dominantMood;
+      if (elRefDays) elRefDays.textContent = `${reflectedCount}d`;
+      if (elFocHours) elFocHours.textContent = `${focusHoursTotal}h`;
+
+      const happyUl = document.getElementById('anReviewHappyList');
+      const frictionUl = document.getElementById('anReviewFrictionList');
+
+      if (happyUl) {
+        happyUl.innerHTML = happyList.length > 0 
+          ? happyList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
+          : `<li class="text-slate-500 italic">No notes recorded in this timeframe.</li>`;
+      }
+
+      if (frictionUl) {
+        frictionUl.innerHTML = frictionList.length > 0 
+          ? frictionList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
+          : `<li class="text-slate-500 italic">No blockers logged in this timeframe.</li>`;
+      }
+
+      updateAnalyticsPendingBadge();
+      lucide.createIcons();
+    }
+
+    // ---------- Time Block Modal Handlers ----------
+    function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
+      const titleModal = document.getElementById('timeBlockModalTitle');
+      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
+      
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('tbId', '');
+      setVal('tbDate', selectedPlannerDate);
+      setVal('tbRoutineId', '');
+      setVal('tbTaskId', '');
+      setVal('tbTitle', '');
+      setVal('tbColor', 'indigo');
+      setVal('tbStartTime', presetStart);
+      setVal('tbEndTime', presetEnd);
+      setVal('tbNotes', '');
+      setVal('tbStatus', 'Planned');
+      setVal('tbActualStartTime', '');
+      setVal('tbActualEndTime', '');
+      setVal('tbActualNotes', '');
+      
+      const delBtn = document.getElementById('btnDeleteTimeBlock');
+      if (delBtn) delBtn.classList.add('hidden');
+
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function openEditTimeBlockModal(block) {
+      const titleModal = document.getElementById('timeBlockModalTitle');
+      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Edit Timeblock & Evaluate`;
+      
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('tbId', block.id || '');
+      setVal('tbDate', block.date || selectedPlannerDate);
+      setVal('tbRoutineId', block.routineId || '');
+      setVal('tbTaskId', block.taskId || '');
+      setVal('tbTitle', block.title || '');
+      setVal('tbColor', block.color || 'indigo');
+      setVal('tbStartTime', block.startTime || '09:00');
+      setVal('tbEndTime', block.endTime || '10:00');
+      setVal('tbNotes', block.notes || '');
+      setVal('tbStatus', block.status || 'Planned');
+      setVal('tbActualStartTime', block.actualStartTime || '');
+      setVal('tbActualEndTime', block.actualEndTime || '');
+      setVal('tbActualNotes', block.actualNotes || '');
+      
+      const delBtn = document.getElementById('btnDeleteTimeBlock');
+      if (delBtn) delBtn.classList.remove('hidden');
+
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeTimeBlockModal() {
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function wentAsPlanned() {
+      const plannedStart = (document.getElementById('tbStartTime') || {}).value;
+      const plannedEnd = (document.getElementById('tbEndTime') || {}).value;
+
+      if (!plannedStart || !plannedEnd) {
+        alert("Please set planned times first");
+        return;
+      }
+
+      document.getElementById('tbActualStartTime').value = plannedStart;
+      document.getElementById('tbActualEndTime').value = plannedEnd;
+      document.getElementById('tbStatus').value = "Completed";
+    }
+
+    function handleSaveTimeBlock(e) {
+      e.preventDefault();
+      const rawId = (document.getElementById('tbId') || {}).value || "";
+      const date = (document.getElementById('tbDate') || {}).value || selectedPlannerDate;
+      const routineId = (document.getElementById('tbRoutineId') || {}).value ? Number(document.getElementById('tbRoutineId').value) : null;
+      const taskId = (document.getElementById('tbTaskId') || {}).value ? Number(document.getElementById('tbTaskId').value) : null;
+      const title = (document.getElementById('tbTitle') || {}).value ? document.getElementById('tbTitle').value.trim() : "";
+      const color = (document.getElementById('tbColor') || {}).value || "indigo";
+      let startTime = normalizeTimeString((document.getElementById('tbStartTime') || {}).value);
+      let endTime = normalizeTimeString((document.getElementById('tbEndTime') || {}).value);
+      const notes = (document.getElementById('tbNotes') || {}).value ? document.getElementById('tbNotes').value.trim() : "";
+      const status = (document.getElementById('tbStatus') || {}).value || "Planned";
+      const actualStartTime = normalizeTimeString((document.getElementById('tbActualStartTime') || {}).value);
+      const actualEndTime = normalizeTimeString((document.getElementById('tbActualEndTime') || {}).value);
+      const actualNotes = (document.getElementById('tbActualNotes') || {}).value ? document.getElementById('tbActualNotes').value.trim() : "";
+
+      if (!title || !startTime || !endTime) return;
+
+      const sMins = timeToMinutes(startTime);
+      let eMins = timeToMinutes(endTime);
+      if (eMins <= sMins) {
+        eMins = Math.min(1440, sMins + 30);
+        endTime = minutesToTime(eMins);
+      }
+
+      const conflicts = [];
+      appData.timeBlocks.forEach(b => {
+        if (b.date === date && String(b.id) !== String(rawId)) {
+          const bStart = timeToMinutes(b.startTime);
+          const bEnd = timeToMinutes(b.endTime);
+          if (sMins < bEnd && eMins > bStart) conflicts.push(b);
+        }
+      });
+
+      if (conflicts.length > 0) {
+        const conflictNames = conflicts.map(c => `"${c.title}"`).join(", ");
+        const proceed = confirm(`⚠️ Time conflict detected!\n\nThis block overlaps with: ${conflictNames}\n\nProceed anyway?`);
+        if (!proceed) return;
+      }
+
+      const slotStr = `${startTime} - ${endTime}`;
+      const blockName = getTimeBlockName(startTime);
+
+      if (rawId) {
+        if (rawId.startsWith('ROUTINE_')) {
+          appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
+          appData.timeBlocks.push({
+            id: Date.now(),
+            date,
+            routineId: routineId,
+            taskId,
+            title,
+            color,
+            startTime,
+            endTime,
+            timeSlot: slotStr,
+            timeBlock: blockName,
+            notes,
+            status,
+            actualStartTime,
+            actualEndTime,
+            actualNotes
+          });
+        } else {
+          const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
+          if (idx >= 0) {
+            appData.timeBlocks[idx] = {
+              ...appData.timeBlocks[idx],
+              date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
+              notes, status, actualStartTime, actualEndTime, actualNotes,
+              routineId, taskId
+            };
+          }
+        }
+      } else {
+        appData.timeBlocks.push({
+          id: Date.now(),
+          date,
+          routineId,
+          taskId,
+          title,
+          color,
+          startTime,
+          endTime,
+          timeSlot: slotStr,
+          timeBlock: blockName,
+          notes,
+          status,
+          actualStartTime,
+          actualEndTime,
+          actualNotes
+        });
+      }
+
+      closeTimeBlockModal();
+      renderAll();
+      syncToRemote();
+    }
+
+    function handleDeleteCurrentTimeBlock() {
+      const rawId = document.getElementById('tbId').value;
+      if (rawId && !rawId.startsWith('ROUTINE_')) {
+        appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(rawId));
+      }
+      closeTimeBlockModal();
+      renderAll();
+      syncToRemote();
+    }
+
+    function handleQuickDeleteTimeBlock(id, event) {
+      event.stopPropagation();
+      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
+      renderAll();
+      syncToRemote();
+    }
+
+    // ---------- Routines Management ----------
+    function openRoutineManagerModal() {
+      renderRoutinesList();
+      document.getElementById('routineModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeRoutineModal() {
+      document.getElementById('routineModal').classList.add('hidden');
+    }
+
+    function renderRoutinesList() {
+      const container = document.getElementById('routinesListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!appData.routines.length) {
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-3">No recurring routines configured. Add one above!</div>`;
+        return;
+      }
+
+      appData.routines.forEach(r => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs";
+        row.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-200">${r.title}</span>
+            <span class="text-[10px] text-slate-500 font-mono block">${r.startTime} - ${r.endTime} (${r.days})</span>
+          </div>
+          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 p-2 min-h-[38px] min-w-[38px] flex items-center justify-center">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    function handleCreateRoutine(e) {
+      e.preventDefault();
+      const title = document.getElementById('rtTitle').value.trim();
+      const color = document.getElementById('rtColor').value;
+      let startTime = normalizeTimeString(document.getElementById('rtStartTime').value);
+      let endTime = normalizeTimeString(document.getElementById('rtEndTime').value);
+
+      if (!title || !startTime || !endTime) return;
+
+      const sMins = timeToMinutes(startTime);
+      let eMins = timeToMinutes(endTime);
+      if (eMins <= sMins) {
+        eMins = Math.min(1440, sMins + 30);
+        endTime = minutesToTime(eMins);
+      }
+
+      const slotStr = `${startTime} - ${endTime}`;
+      const blockName = getTimeBlockName(startTime);
+
+      const normTitle = title.toLowerCase();
+      const existing = appData.routines.find(r => r.title.toLowerCase() === normTitle);
+      if (existing) {
+        existing.title = title;
+        existing.color = color;
+        existing.startTime = startTime;
+        existing.endTime = endTime;
+        existing.timeSlot = slotStr;
+        existing.timeBlock = blockName;
+      } else {
+        appData.routines.push({
+          id: Date.now(),
+          title,
+          color,
+          startTime,
+          endTime,
+          timeSlot: slotStr,
+          timeBlock: blockName,
+          days: "Everyday"
+        });
+      }
+
+      document.getElementById('rtTitle').value = '';
+      renderRoutinesList();
+      renderAll();
+      syncToRemote();
+    }
+
+    function deleteRoutine(id) {
+      appData.routines = appData.routines.filter(r => String(r.id) !== String(id));
+      renderRoutinesList();
+      renderAll();
+      syncToRemote();
+    }
+
+    // ---------- Settings & Backup ----------
+    function openConfigModal() {
+      document.getElementById('apiUrlInput').value = appData.apiUrl || "";
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    function saveApiUrlConfig() {
+      const url = document.getElementById('apiUrlInput').value.trim();
+      appData.apiUrl = url;
+      localStorage.setItem('daily_flow_api_url', url);
+      saveState();
+      closeConfigModal();
+      setTimeout(() => {
+        isRemoteDataLoaded = false;
+        pendingSyncQueue = null;
+        lastSyncedState = null;
+        fetchRemoteData();
+      }, 100);
+    }
+
+    function exportBackupData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    // ---------- Master App Render Loop ----------
+    function renderAll() {
+      const d = new Date(selectedPlannerDate + "T00:00:00");
+      const dateSubtext = document.getElementById('headerDateSubtext');
+      if (dateSubtext) {
+        dateSubtext.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      
+      render24HourPlanner();
+      renderHabits();
+      renderTasks();
+      renderFocusLogs();
+      renderDailyReview();
+      renderAnalytics();
+      lucide.createIcons();
+    }
+
+    window.onload = () => {
       buildHourlyBackgroundGrid();
       setTaskFilter('ACTIVE');
       setAnalyticsWindow(7);
       renderAll();
       scrollToCurrentTimeOrStart();
 
-      // Ensure lucide icons are initialized
       if (window.lucide && window.lucide.createIcons) {
         setTimeout(() => {
           window.lucide.createIcons();
@@ -2084,7 +3814,14 @@
       }
 
       setInterval(updateLiveTimeIndicator, 60000);
-    });
+
+      // Register PWA Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.log('SW registration skipped:', err);
+        });
+      }
+    };
   </script>
 </body>
 </html>
