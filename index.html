@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Daily Flow - 24H Planner, Habits & Focus</title>
   
-  <!-- PWA Settings -->
   <!-- PWA & Mobile Web App Settings -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#020617">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Daily Flow">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daily Flow">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -151,17 +150,17 @@
       <div class="px-3 sm:px-4 py-2.5 bg-slate-950/40 border-b border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
           <span class="text-slate-500 text-[9px] uppercase font-mono">Planned</span>
-          <span id="scorePlannedHours" class="text-xs sm:base font-bold font-mono text-indigo-300">0.0h</span>
+          <span id="scorePlannedHours" class="text-xs sm:text-base font-bold font-mono text-indigo-300">0.0h</span>
           <span id="scorePlannedCount" class="text-[9px] text-slate-500 font-mono">0 items</span>
         </div>
         <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
           <span class="text-slate-500 text-[9px] uppercase font-mono">Actual</span>
-          <span id="scoreActualHours" class="text-xs sm:base font-bold font-mono text-emerald-400">0.0h</span>
+          <span id="scoreActualHours" class="text-xs sm:text-base font-bold font-mono text-emerald-400">0.0h</span>
           <span id="scoreActualCount" class="text-[9px] text-slate-500 font-mono">0 logged</span>
         </div>
         <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
           <span class="text-slate-500 text-[9px] uppercase font-mono">Adherence</span>
-          <span id="scoreAdherenceRate" class="text-xs sm:base font-bold font-mono text-cyan-400">0%</span>
+          <span id="scoreAdherenceRate" class="text-xs sm:text-base font-bold font-mono text-cyan-400">0%</span>
           <span id="scoreStatusCount" class="text-[9px] text-slate-500 font-mono">0/0 done</span>
         </div>
         <div class="flex flex-col justify-center bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
@@ -233,12 +232,12 @@
         <div class="col-span-2 sm:col-span-1 text-center font-mono">Time</div>
         <div class="col-span-5 sm:col-span-5 px-1.5 flex items-center justify-between border-r border-slate-800/60">
           <span class="flex items-center gap-1 text-indigo-300 truncate">
-            <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i> Planned (Drag to Plan)
+            <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i> Planned (Click to Plan)
           </span>
         </div>
         <div class="col-span-5 sm:col-span-6 px-1.5 flex items-center justify-between">
           <span class="flex items-center gap-1 text-emerald-300 truncate">
-            <i data-lucide="check-square" class="w-3 h-3 flex-shrink-0"></i> Scheduled (Drag to Task)
+            <i data-lucide="check-square" class="w-3 h-3 flex-shrink-0"></i> Scheduled (Click to Task)
           </span>
         </div>
       </div>
@@ -250,13 +249,6 @@
         <div id="currentTimeIndicator" class="absolute left-0 right-0 z-20 pointer-events-none hidden flex items-center">
           <div class="w-10 sm:w-16 bg-rose-600 text-white font-mono text-[8px] sm:text-[9px] font-bold text-center py-0.5 rounded-r shadow-md">NOW</div>
           <div class="flex-1 h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
-        </div>
-
-        <!-- Interactive Drag-to-Create Overlay Box -->
-        <div id="selectionPreviewBox" class="absolute z-20 pointer-events-none hidden rounded-xl border flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono shadow-lg transition-none">
-          <span id="previewStartTime">09:00</span>
-          <span id="previewDuration" class="font-bold">1h 00m</span>
-          <span id="previewEndTime">10:00</span>
         </div>
 
         <div class="relative w-full" style="height: 1440px;">
@@ -980,12 +972,6 @@
     let pendingSyncQueue = null;
     let lastSyncedState = null;
 
-    // Interactive Drag Selection State
-    let isDraggingTime = false;
-    let dragStartMinute = 0;
-    let dragEndMinute = 0;
-    let dragTrackType = 'left';
-
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
     function normalizeHabitType(val) {
@@ -1120,10 +1106,6 @@
       const h = Math.floor(totalMins / 60) % 24;
       const m = totalMins % 60;
       return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    }
-
-    function snapTo15(mins) {
-      return Math.min(1440, Math.max(0, Math.round(mins / 15) * 15));
     }
 
     function getTimeBlockName(timeStr) {
@@ -1320,17 +1302,6 @@
           target: Number(h.target) || 0,
           unit: h.unit || ""
         }));
-
-        const allHabitLogsArray = Object.keys(appData.habitLogs).map(key => {
-          const parts = key.split('_');
-          return {
-            id: key,
-            habitId: parts[0],
-            date: parts.slice(1).join('_'),
-            value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
-            completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
-          };
-        });
 
         const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
         const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
@@ -1633,51 +1604,21 @@
       }
     }
 
-    // Drag-to-Create Timeline Engine
-    function getTimelineOffsetMinutes(e, container) {
-      const rect = container.getBoundingClientRect();
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const relativeY = clientY - rect.top + container.scrollTop;
-      return snapTo15(relativeY);
-    }
-
-    function updateDragPreview(startM, endM, track) {
-      const box = document.getElementById('selectionPreviewBox');
-      if (!box) return;
-
-      const top = Math.min(startM, endM);
-      const bottom = Math.max(startM, endM);
-      const height = Math.max(20, bottom - top);
-
-      box.classList.remove('hidden');
-      box.style.top = `${top}px`;
-      box.style.height = `${height}px`;
+    // Direct Click Slot Handlers (Clean Tap-to-Create)
+    function handleHourSlotClick(hour, track) {
+      const startStr = `${String(hour).padStart(2, '0')}:00`;
+      const endStr = `${String(Math.min(23, hour + 1)).padStart(2, '0')}:00`;
 
       if (track === 'left') {
-        box.style.left = 'calc(16.667% + 1px)';
-        box.style.width = 'calc(41.667% - 2px)';
-        box.className = "absolute z-20 pointer-events-none rounded-xl border border-indigo-400 bg-indigo-500/25 flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono text-indigo-200 shadow-md";
+        openAddTimeBlockModal(startStr, endStr);
       } else {
-        box.style.left = 'calc(58.334% + 1px)';
-        box.style.width = 'calc(41.667% - 2px)';
-        box.className = "absolute z-20 pointer-events-none rounded-xl border border-emerald-400 bg-emerald-500/25 flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono text-emerald-200 shadow-md";
+        openCreateScheduledTaskModal(startStr, endStr);
       }
-
-      const sTime = minutesToTime(top);
-      const eTime = minutesToTime(Math.max(top + 15, bottom));
-      const diffMins = Math.max(15, bottom - top);
-      const durH = Math.floor(diffMins / 60);
-      const durM = diffMins % 60;
-
-      document.getElementById('previewStartTime').textContent = sTime;
-      document.getElementById('previewEndTime').textContent = eTime;
-      document.getElementById('previewDuration').textContent = `${durH > 0 ? durH + 'h ' : ''}${durM}m`;
     }
 
     function buildHourlyBackgroundGrid() {
       const grid = document.getElementById('hourlyGridLines');
-      const scrollContainer = document.getElementById('plannerScrollContainer');
-      if (!grid || !scrollContainer) return;
+      if (!grid) return;
       grid.innerHTML = '';
 
       for (let h = 0; h < 24; h++) {
@@ -1689,57 +1630,13 @@
           <div class="col-span-2 sm:col-span-1 text-center font-mono text-[9px] sm:text-[10px] text-slate-500 pt-1 border-r border-slate-900 select-none">
             ${timeStr}
           </div>
-          <div data-track="left" data-hour="${h}" class="time-track-slot col-span-5 sm:col-span-5 border-r border-slate-900/80 cursor-pointer hover:bg-indigo-950/20 active:bg-indigo-900/30 transition"></div>
-          <div data-track="right" data-hour="${h}" class="time-track-slot col-span-5 sm:col-span-6 cursor-pointer hover:bg-emerald-950/20 active:bg-emerald-900/30 transition"></div>
+          <div onclick="handleHourSlotClick(${h}, 'left')" title="Click to Plan at ${timeStr}" 
+               class="col-span-5 sm:col-span-5 border-r border-slate-900/80 cursor-pointer hover:bg-indigo-950/20 active:bg-indigo-900/30 transition"></div>
+          <div onclick="handleHourSlotClick(${h}, 'right')" title="Click to Schedule Task at ${timeStr}" 
+               class="col-span-5 sm:col-span-6 cursor-pointer hover:bg-emerald-950/20 active:bg-emerald-900/30 transition"></div>
         `;
         grid.appendChild(row);
       }
-
-      const handlePointerDown = (e) => {
-        const slot = e.target.closest('.time-track-slot');
-        if (!slot) return;
-        
-        isDraggingTime = true;
-        dragTrackType = slot.dataset.track;
-        dragStartMinute = getTimelineOffsetMinutes(e, scrollContainer);
-        dragEndMinute = dragStartMinute + 60;
-        updateDragPreview(dragStartMinute, dragEndMinute, dragTrackType);
-      };
-
-      const handlePointerMove = (e) => {
-        if (!isDraggingTime) return;
-        dragEndMinute = getTimelineOffsetMinutes(e, scrollContainer);
-        updateDragPreview(dragStartMinute, dragEndMinute, dragTrackType);
-      };
-
-      const handlePointerUp = () => {
-        if (!isDraggingTime) return;
-        isDraggingTime = false;
-
-        const box = document.getElementById('selectionPreviewBox');
-        if (box) box.classList.add('hidden');
-
-        const top = Math.min(dragStartMinute, dragEndMinute);
-        let bottom = Math.max(dragStartMinute, dragEndMinute);
-        if (bottom - top < 15) bottom = top + 30;
-
-        const startStr = minutesToTime(top);
-        const endStr = minutesToTime(bottom);
-
-        if (dragTrackType === 'left') {
-          openAddTimeBlockModal(startStr, endStr);
-        } else {
-          openCreateScheduledTaskModal(startStr, endStr);
-        }
-      };
-
-      scrollContainer.onmousedown = handlePointerDown;
-      window.addEventListener('mousemove', handlePointerMove);
-      window.addEventListener('mouseup', handlePointerUp);
-
-      scrollContainer.addEventListener('touchstart', handlePointerDown, { passive: true });
-      window.addEventListener('touchmove', handlePointerMove, { passive: true });
-      window.addEventListener('touchend', handlePointerUp);
     }
 
     function render24HourPlanner() {
@@ -2700,7 +2597,7 @@
                 ${isToday ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 text-indigo-300 border-indigo-800/50">Today</span>` : ''}
                 ${isScheduled ? `
                   <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
-                    ⏱️️ ${task.scheduledStartTime}-${task.scheduledEndTime}
+                    ⏱ ${task.scheduledStartTime}-${task.scheduledEndTime}
                   </span>
                 ` : ''}
               </div>
