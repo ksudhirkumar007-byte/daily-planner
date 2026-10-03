@@ -1074,1021 +1074,455 @@
       localStorage.setItem('daily_flow_state_v3', JSON.stringify(appData));
     }
 
-    function scrollToModule(moduleId) {
-      const el = document.getElementById(moduleId);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function addMinutesToTime(timeStr, minsToAdd) {
+      if (!timeStr) return "";
+      const clean = normalizeTimeString(timeStr);
+      if (!clean || !clean.includes(':')) return "";
+      const [h, m] = clean.split(':').map(Number);
+      const totalMinutes = ((h * 60) + m + (Number(minsToAdd) || 0));
+      const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+      const hh = String(Math.floor(normalized / 60)).padStart(2, '0');
+      const mm = String(normalized % 60).padStart(2, '0');
+      return `${hh}:${mm}`;
     }
 
-    // ---------- Frequency Recurrence Matcher ----------
-    function isTaskActiveForDate(task, dateStr) {
-      const freq = (task.frequency || 'once').toLowerCase();
-      const taskDate = normalizeDateString(task.scheduledDate || task.date);
-      const activeDate = normalizeDateString(dateStr);
-
-      if (freq === 'once') {
-        return taskDate === activeDate || (!taskDate && activeDate === selectedPlannerDate);
-      }
-      
-      const d = new Date(activeDate + 'T00:00:00');
-      const dayOfWeek = d.getDay(); // 0: Sun, 1: Mon ... 6: Sat
-
-      if (freq === 'daily') return true;
-      if (freq === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
-      if (freq === 'weekends') return dayOfWeek === 0 || dayOfWeek === 6;
-      if (freq === 'weekly') {
-        if (!taskDate) return dayOfWeek === 1;
-        const origD = new Date(taskDate + 'T00:00:00');
-        return origD.getDay() === dayOfWeek;
-      }
-      return taskDate === activeDate;
-    }
-
-    // ---------- Normalizers ----------
-    function timeToMinutes(tStr) {
-      if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return 0;
-      const parts = tStr.split(':').map(Number);
-      return ((parts[0] || 0) * 60) + (parts[1] || 0);
-    }
-
-    function minutesToTime(totalMins) {
-      const h = Math.floor(totalMins / 60) % 24;
-      const m = totalMins % 60;
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    }
-
-    function getTimeBlockName(timeStr) {
-      if (!timeStr) return "Morning";
-      const mins = timeToMinutes(normalizeTimeString(timeStr));
-      if (mins >= 300 && mins < 720) return "Morning";
-      if (mins >= 720 && mins < 1020) return "Afternoon";
-      if (mins >= 1020 && mins < 1320) return "Evening";
-      return "Night";
-    }
-
-    function normalizeTimeString(val) {
-      if (!val) return "";
-      const s = String(val).trim();
-      const matchStandard = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
-      if (matchStandard) {
-        const h = String(matchStandard[1]).padStart(2, '0');
-        const m = matchStandard[2];
-        return `${h}:${m}`;
-      }
-      const matchAmpm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-      if (matchAmpm) {
-        let h = parseInt(matchAmpm[1], 10);
-        const m = matchAmpm[2];
-        const isPM = matchAmpm[3].toUpperCase() === 'PM';
-        if (isPM && h < 12) h += 12;
-        if (!isPM && h === 12) h = 0;
-        return `${String(h).padStart(2, '0')}:${m}`;
-      }
-      return s;
-    }
-
-    function extractTimesFromItem(item) {
-      let start = normalizeTimeString(item.scheduledStartTime || item.startTime || "");
-      let end = normalizeTimeString(item.scheduledEndTime || item.endTime || "");
-      const slot = item.timeSlot || item.time_slot || item.timeslot || item.scheduledBlock || "";
-      if ((!start || !end) && slot) {
-        const slotClean = String(slot).replace(/–|—/g, '-');
-        if (slotClean.includes('-')) {
-          const parts = slotClean.split('-').map(s => s.trim());
-          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
-          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
-        } else if (slotClean.toLowerCase().includes(' to ')) {
-          const parts = slotClean.toLowerCase().split(' to ').map(s => s.trim());
-          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
-          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
-        }
-      }
-      if (start && !end) {
-        const dur = Number(item.plannedMins) || 30;
-        end = minutesToTime(timeToMinutes(start) + dur);
-      }
-      return { start, end };
-    }
-
-    function normalizeDateString(val) {
-      if (!val) return "";
-      const s = String(val).trim();
-      if (s.includes('T')) return s.split('T')[0];
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-
-      const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (dmy) {
-        let day = Number(dmy[1]);
-        let mon = Number(dmy[2]);
-        let yr = dmy[3];
-        if (mon > 12 && day <= 12) {
-          const tmp = day; day = mon; mon = tmp;
-        }
-        return `${yr}-${String(mon).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      }
-
-      const parsed = new Date(s);
-      if (!isNaN(parsed.getTime())) {
-        const y = parsed.getFullYear();
-        const m = String(parsed.getMonth() + 1).padStart(2, '0');
-        const d = String(parsed.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      }
-      return s;
-    }
-
-    // ---------- Sync Engine ----------
-    function setSyncStatus(state) {
-      const dot = document.getElementById('syncDot');
-      const txt = document.getElementById('syncText');
-      const icon = document.getElementById('syncIcon');
-      if (!dot || !txt || !icon) return;
-
-      if (state === 'syncing') {
-        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-        txt.textContent = "Syncing...";
-        icon.classList.add('animate-spin');
-      } else if (state === 'error') {
-        dot.className = "w-2 h-2 rounded-full bg-rose-500";
-        txt.textContent = "Offline / Err";
-        icon.classList.remove('animate-spin');
-      } else {
-        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
-        txt.textContent = "Synced";
-        icon.classList.remove('animate-spin');
-      }
-    }
-
-    function syncToRemote() {
-      saveState();
-      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
-        setSyncStatus('error');
-        return;
-      }
-      if (!isRemoteDataLoaded) {
-        fetchRemoteData();
-        return;
-      }
-
-      // If sync is already in progress, queue the changes
-      if (isSyncInProgress) {
-        pendingSyncQueue = JSON.parse(JSON.stringify(appData));
-        console.log("Sync in progress, queued pending changes");
-        return;
-      }
-
-      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-      syncDebounceTimer = setTimeout(executeSyncPayload, 400);
-    }
-
-    function requestManualSync() {
-      // Prevent triggering sync while one is in progress
-      if (isSyncInProgress) {
-        console.log("Sync already in progress, please wait");
-        return;
-      }
-      fetchRemoteData();
-    }
-
-    // Delta Sync Helper Functions
-    function getChangedItems(current, previous, keyField = 'id') {
-      if (!previous) return current; // First sync, send all
-
-      const prevMap = {};
-      (previous || []).forEach(item => {
-        prevMap[item[keyField]] = item;
-      });
-
-      // Return only items that changed or are new
-      return current.filter(item => {
-        const key = item[keyField];
-        const prevItem = prevMap[key];
-        if (!prevItem) return true; // New item
-        // Check if any field changed
-        return JSON.stringify(item) !== JSON.stringify(prevItem);
-      });
-    }
-
-    function getChangedHabitLogs(current, previous) {
-      if (!previous) return current;
-
-      const prevKeys = Object.keys(previous || {});
-      const changedLogs = {};
-
-      Object.keys(current).forEach(key => {
-        if (!previous[key] || JSON.stringify(current[key]) !== JSON.stringify(previous[key])) {
-          changedLogs[key] = current[key];
-        }
-      });
-
-      return changedLogs;
-    }
-
-    async function executeSyncPayload() {
-      if (isSyncInProgress) return;
-      isSyncInProgress = true;
-      setSyncStatus('syncing');
-
-      console.log("📤 ExecuteSyncPayload starting with URL:", appData.apiUrl.substring(0, 80));
-
-      try {
-        // Build all payloads first
-        const allTimeBlocks = appData.timeBlocks.map(b => {
-          const sTime = normalizeTimeString(b.startTime) || "09:00";
-          const eTime = normalizeTimeString(b.endTime) || "10:00";
-          return {
-            id: String(b.id).trim(),
-            date: normalizeDateString(b.date),
-            title: b.title || "Untitled Block",
-            startTime: sTime,
-            endTime: eTime,
-            color: b.color || "indigo",
-            notes: b.notes || "",
-            actualStartTime: normalizeTimeString(b.actualStartTime) || "",
-            actualEndTime: normalizeTimeString(b.actualEndTime) || "",
-            actualNotes: b.actualNotes || "",
-            status: b.status || "Planned",
-            taskId: b.taskId ? String(b.taskId).trim() : "",
-            routineId: b.routineId ? String(b.routineId).trim() : ""
-          };
-        });
-
-        const seenRt = new Set();
-        const allRoutines = [];
-        appData.routines.forEach(r => {
-          const normTitle = (r.title || "").trim().toLowerCase();
-          if (!normTitle || seenRt.has(normTitle)) return;
-          seenRt.add(normTitle);
-          const sTime = normalizeTimeString(r.startTime) || "07:00";
-          const eTime = normalizeTimeString(r.endTime) || "08:00";
-          allRoutines.push({
-            id: String(r.id),
-            title: r.title || "Routine",
-            startTime: sTime,
-            endTime: eTime,
-            color: r.color || "amber",
-            days: r.days || "Everyday"
-          });
-        });
-
-        const allHabits = appData.habits.map(h => ({
-          id: String(h.id).trim(),
-          name: h.name || "Habit",
-          type: h.type || "yesno",
-          target: Number(h.target) || 0,
-          unit: h.unit || ""
-        }));
-
-        const allHabitLogsArray = Object.keys(appData.habitLogs).map(key => {
-          const parts = key.split('_');
-          const habitId = parts[0];
-          const date = parts.slice(1).join('_');
-          const entry = appData.habitLogs[key];
-          return {
-            id: key,
-            habitId: habitId,
-            date: date,
-            value: entry.value !== undefined ? String(entry.value) : "",
-            completed: entry.completed ? "TRUE" : "FALSE"
-          };
-        });
-
-        // Now apply delta sync - only send items that changed
-        const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
-        const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
-        const habitsPayload = getChangedItems(allHabits, lastSyncedState?.habits, 'id');
-        const habitLogsChanges = getChangedHabitLogs(appData.habitLogs, lastSyncedState?.habitLogs);
-        const habitLogsArray = Object.keys(habitLogsChanges).map(key => {
-          const parts = key.split('_');
-          const habitId = parts[0];
-          const date = parts.slice(1).join('_');
-          const entry = habitLogsChanges[key];
-          return {
-            id: key,
-            habitId: habitId,
-            date: date,
-            value: entry.value !== undefined ? String(entry.value) : "",
-            completed: entry.completed ? "TRUE" : "FALSE"
-          };
-        });
-
-        console.log("Sync Debug - Delta Summary:", {
-          plannerChanges: plannerPayload.length,
-          routinesChanges: routinesPayload.length,
-          habitChanges: habitsPayload.length,
-          habitLogChanges: Object.keys(habitLogsChanges).length,
-          totalAppData: {
-            planner: appData.timeBlocks.length,
-            routines: appData.routines.length,
-            habits: appData.habits.length,
-            habitLogs: Object.keys(appData.habitLogs).length
-          }
-        });
-
-        const allTasks = appData.tasks.map(t => {
-          const sDate = normalizeDateString(t.date || t.scheduledDate || "");
-          const sTime = normalizeTimeString(t.scheduledStartTime || "");
-          const eTime = normalizeTimeString(t.scheduledEndTime || "");
-          return {
-            id: String(t.id).trim(),
-            title: t.title || "Untitled Task",
-            priority: t.priority || "Med",
-            frequency: t.frequency || "once",
-            status: t.status || "Need to Start",
-            completed: t.completed ? "TRUE" : "FALSE",
-            scheduledDate: sDate,
-            scheduledStartTime: sTime,
-            scheduledEndTime: eTime,
-            plannedMins: Number(t.plannedMins) || 30,
-            actualMins: Number(t.actualMins) || 0
-          };
-        });
-
-        const tasksPayload = getChangedItems(allTasks, lastSyncedState?.tasks, 'id');
-        const focusLogsPayload = getChangedItems(appData.focusLogs, lastSyncedState?.focusLogs, 'id');
-
-        const summariesArray = Object.keys(appData.dailySummaries).map(date => ({
-          date: normalizeDateString(date),
-          ...(appData.dailySummaries[date] || {})
-        }));
-        const summariesPayload = getChangedItems(summariesArray, lastSyncedState?.dailySummaries, 'date');
-
-        // Only send if payload has changes
-        const hasChanges = plannerPayload.length > 0 || routinesPayload.length > 0 ||
-                          habitsPayload.length > 0 || habitLogsArray.length > 0 ||
-                          tasksPayload.length > 0 || focusLogsPayload.length > 0 ||
-                          summariesPayload.length > 0;
-
-        if (!hasChanges && lastSyncedState) {
-          console.log("No changes detected, skipping sync");
-          setSyncStatus('synced');
-          isSyncInProgress = false;
+    function attachTimeBlockAutoCalculate() {
+      const startTime = document.getElementById('tbStartTime');
+      const endTime = document.getElementById('tbEndTime');
+      if (!startTime || !endTime) return;
+      const update = () => {
+        if (!startTime.value) {
+          endTime.value = "";
           return;
         }
+        endTime.value = addMinutesToTime(startTime.value, 60);
+      };
+      startTime.oninput = update;
+      startTime.onchange = update;
+      update();
+    }
 
-        const startTime = performance.now();
-        const res = await fetch(appData.apiUrl, {
-          method: "POST",
-          redirect: "follow",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "syncAll",
-            data: {
-              planner: plannerPayload,
-              routines: routinesPayload,
-              habits: habitsPayload,
-              habitLogs: habitLogsArray,
-              tasks: tasksPayload,
-              focusLogs: focusLogsPayload,
-              dailySummaries: summariesPayload
-            }
-          })
-        });
-
-        const syncDuration = performance.now() - startTime;
-        const totalChanges = plannerPayload.length + routinesPayload.length + habitsPayload.length +
-                            Object.keys(habitLogsChanges).length + tasksPayload.length +
-                            focusLogsPayload.length + summariesPayload.length;
-
-        console.log(`✅ DELTA SYNC OPTIMIZATION: Sent ${totalChanges} changes instead of ${
-          allTimeBlocks.length + allRoutines.length + allHabits.length +
-          Object.keys(appData.habitLogs).length + allTasks.length +
-          appData.focusLogs.length + summariesArray.length
-        } total items. Completed in ${syncDuration.toFixed(0)}ms`);
-
-        if (res.ok) {
-          // Capture current state as last synced
-          // IMPORTANT: Deep copy habitLogs to prevent reference issues with delta detection
-          lastSyncedState = {
-            timeBlocks: allTimeBlocks,
-            routines: allRoutines,
-            habits: allHabits,
-            habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)), // Deep copy!
-            tasks: allTasks,
-            focusLogs: appData.focusLogs,
-            dailySummaries: summariesArray
-          };
-          setSyncStatus('synced');
+    function attachTaskAutoCalculate() {
+      const startTime = document.getElementById('tmStartTime');
+      const plannedMins = document.getElementById('tmPlannedMins');
+      const endTime = document.getElementById('tmEndTime');
+      if (!startTime || !plannedMins || !endTime) return;
+      const update = () => {
+        if (!startTime.value) {
+          endTime.value = "";
+          return;
         }
-        else setSyncStatus('error');
-      } catch (err) {
-        console.error("❌ Sync error:", err);
+        const mins = Number(plannedMins.value) || 30;
+        endTime.value = addMinutesToTime(startTime.value, mins);
+      };
+      startTime.oninput = update;
+      startTime.onchange = update;
+      plannedMins.oninput = update;
+      plannedMins.onchange = update;
+      update();
+    }
 
-        if (err.name === 'AbortError') {
-          console.error("❌ TIMEOUT - Sync took too long (10+ seconds). API URL may be unreachable.");
-        } else if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
-          console.error("❌ NETWORK ERROR - Could not reach Google Apps Script URL.");
-          console.error("API URL: " + appData.apiUrl);
-          console.error("Fix: Check your API URL in settings (⚙️ icon)");
-        } else {
-          console.error("❌ Unexpected sync error. Check console for details.");
-        }
+    function openConfigModal() {
+      const modal = document.getElementById('configModal');
+      const input = document.getElementById('apiUrlInput');
+      if (modal) modal.classList.remove('hidden');
+      if (input) input.value = appData.apiUrl || localStorage.getItem('daily_flow_api_url') || "";
+    }
 
+    function closeConfigModal() {
+      const modal = document.getElementById('configModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveApiUrlConfig() {
+      const input = document.getElementById('apiUrlInput');
+      const value = input ? input.value.trim() : "";
+      appData.apiUrl = value;
+      localStorage.setItem('daily_flow_api_url', value);
+      closeConfigModal();
+      saveState();
+      if (value && value.startsWith('http')) {
+        fetchRemoteData();
+      } else {
         setSyncStatus('error');
-      } finally {
-        isSyncInProgress = false;
-        lastSyncTimestamp = Date.now();
-
-        // Process any pending changes that came in during sync
-        if (pendingSyncQueue) {
-          console.log("Processing pending changes from queue");
-          appData = JSON.parse(JSON.stringify(pendingSyncQueue));
-          pendingSyncQueue = null;
-          saveState();
-          // Trigger another sync with the queued changes
-          if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-          syncDebounceTimer = setTimeout(executeSyncPayload, 400);
-        }
       }
     }
 
-    async function fetchRemoteData() {
-      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
-        console.warn("❌ No API URL configured");
-        setSyncStatus('error');
+    function exportBackupData() {
+      const payload = JSON.stringify(appData, null, 2);
+      const blob = new Blob([payload], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `daily-planner-backup-${getTodayKey()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function openRoutineManagerModal() {
+      const modal = document.getElementById('routineModal');
+      if (modal) modal.classList.remove('hidden');
+      const list = document.getElementById('routinesListContainer');
+      if (!list) return;
+      list.innerHTML = appData.routines.map(r => `
+        <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="min-w-0">
+            <div class="text-[11px] font-semibold text-slate-200 truncate">${r.title}</div>
+            <div class="text-[9px] text-slate-500 font-mono">${r.startTime} - ${r.endTime}</div>
+          </div>
+          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 transition">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function closeRoutineModal() {
+      const modal = document.getElementById('routineModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function deleteRoutine(routineId) {
+      appData.routines = appData.routines.filter(r => String(r.id) !== String(routineId));
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function handleCreateRoutine(event) {
+      event.preventDefault();
+      const titleInput = document.getElementById('rtTitle');
+      const colorInput = document.getElementById('rtColor');
+      const startInput = document.getElementById('rtStartTime');
+      const endInput = document.getElementById('rtEndTime');
+      if (!titleInput || !colorInput || !startInput || !endInput) return;
+      const value = titleInput.value.trim();
+      if (!value) return;
+      appData.routines.push({
+        id: Date.now(),
+        title: value,
+        startTime: startInput.value || '07:00',
+        endTime: endInput.value || '08:00',
+        color: colorInput.value || 'amber',
+        days: 'Everyday'
+      });
+      titleInput.value = '';
+      closeRoutineModal();
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function addPresetBlock(title, startTime, endTime, color) {
+      appData.timeBlocks.push({
+        id: Date.now() + Math.random(),
+        date: selectedPlannerDate,
+        title,
+        startTime,
+        endTime,
+        timeSlot: `${startTime} - ${endTime}`,
+        timeBlock: getTimeBlockName(startTime),
+        color,
+        notes: '',
+        actualStartTime: '',
+        actualEndTime: '',
+        actualNotes: '',
+        status: 'Planned',
+        taskId: null,
+        routineId: null
+      });
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function openAddTimeBlockModal() {
+      const modal = document.getElementById('timeBlockModal');
+      if (!modal) return;
+      const form = document.getElementById('timeBlockForm');
+      if (form) form.reset();
+      document.getElementById('timeBlockModalTitle').textContent = 'Plan Timeblock & Actuals';
+      document.getElementById('tbId').value = '';
+      document.getElementById('tbDate').value = selectedPlannerDate;
+      document.getElementById('tbRoutineId').value = '';
+      document.getElementById('tbTaskId').value = '';
+      document.getElementById('tbTitle').value = '';
+      document.getElementById('tbColor').value = 'indigo';
+      document.getElementById('tbStartTime').value = '09:00';
+      document.getElementById('tbEndTime').value = '10:00';
+      document.getElementById('tbNotes').value = '';
+      document.getElementById('tbStatus').value = 'Planned';
+      document.getElementById('tbActualStartTime').value = '';
+      document.getElementById('tbActualEndTime').value = '';
+      document.getElementById('tbActualNotes').value = '';
+      modal.classList.remove('hidden');
+      attachTimeBlockAutoCalculate();
+    }
+
+    function openEditTimeBlockModal(block) {
+      if (!block) return;
+      const modal = document.getElementById('timeBlockModal');
+      if (!modal) return;
+      document.getElementById('timeBlockModalTitle').textContent = 'Edit Timeblock';
+      document.getElementById('tbId').value = block.id;
+      document.getElementById('tbDate').value = block.date || selectedPlannerDate;
+      document.getElementById('tbRoutineId').value = block.routineId || '';
+      document.getElementById('tbTaskId').value = block.taskId || '';
+      document.getElementById('tbTitle').value = block.title || '';
+      document.getElementById('tbColor').value = block.color || 'indigo';
+      document.getElementById('tbStartTime').value = block.startTime || '';
+      document.getElementById('tbEndTime').value = block.endTime || '';
+      document.getElementById('tbNotes').value = block.notes || '';
+      document.getElementById('tbStatus').value = block.status || 'Planned';
+      document.getElementById('tbActualStartTime').value = block.actualStartTime || '';
+      document.getElementById('tbActualEndTime').value = block.actualEndTime || '';
+      document.getElementById('tbActualNotes').value = block.actualNotes || '';
+      modal.classList.remove('hidden');
+      attachTimeBlockAutoCalculate();
+    }
+
+    function closeTimeBlockModal() {
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleSaveTimeBlock(event) {
+      event.preventDefault();
+      const id = document.getElementById('tbId').value;
+      const title = document.getElementById('tbTitle').value.trim();
+      if (!title) return;
+      const payload = {
+        id: id ? String(id) : `plan_${Date.now()}`,
+        date: document.getElementById('tbDate').value || selectedPlannerDate,
+        title,
+        startTime: document.getElementById('tbStartTime').value || '09:00',
+        endTime: document.getElementById('tbEndTime').value || '10:00',
+        color: document.getElementById('tbColor').value || 'indigo',
+        notes: document.getElementById('tbNotes').value.trim(),
+        actualStartTime: document.getElementById('tbActualStartTime').value || '',
+        actualEndTime: document.getElementById('tbActualEndTime').value || '',
+        actualNotes: document.getElementById('tbActualNotes').value.trim(),
+        status: document.getElementById('tbStatus').value || 'Planned',
+        taskId: document.getElementById('tbTaskId').value || null,
+        routineId: document.getElementById('tbRoutineId').value || null
+      };
+      if (id) {
+        const index = appData.timeBlocks.findIndex(b => String(b.id) === String(id));
+        if (index >= 0) appData.timeBlocks[index] = { ...appData.timeBlocks[index], ...payload };
+      } else {
+        appData.timeBlocks.push(payload);
+      }
+      closeTimeBlockModal();
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function handleDeleteCurrentTimeBlock() {
+      const id = document.getElementById('tbId').value;
+      if (!id) return;
+      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
+      closeTimeBlockModal();
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function wentAsPlanned() {
+      document.getElementById('tbActualStartTime').value = document.getElementById('tbStartTime').value;
+      document.getElementById('tbActualEndTime').value = document.getElementById('tbEndTime').value;
+      document.getElementById('tbStatus').value = 'Completed';
+    }
+
+    function handleHourSlotClick(hour, side) {
+      const start = `${String(hour).padStart(2, '0')}:00`;
+      const end = `${String((hour + 1) % 24).padStart(2, '0')}:00`;
+      if (side === 'left') {
+        openAddTimeBlockModal();
+        document.getElementById('tbTitle').value = 'New Plan Block';
+        document.getElementById('tbStartTime').value = start;
+        document.getElementById('tbEndTime').value = end;
+      } else {
+        openCreateScheduledTaskModal(start, end);
+      }
+    }
+
+    function scrollToCurrentTimeOrStart() {
+      const container = document.getElementById('plannerScrollContainer');
+      if (!container) return;
+      const now = new Date();
+      const currentMinute = now.getHours() * 60 + now.getMinutes();
+      container.scrollTop = Math.max(0, currentMinute - 180);
+    }
+
+    function updateLiveTimeIndicator() {
+      const indicator = document.getElementById('currentTimeIndicator');
+      if (!indicator) return;
+      const now = new Date();
+      const currentMinute = now.getHours() * 60 + now.getMinutes();
+      indicator.style.top = `${Math.max(0, Math.min(currentMinute, 1440))}px`;
+      indicator.classList.remove('hidden');
+    }
+
+    function openCreateHabitModal() {
+      const modal = document.getElementById('habitModal');
+      const form = document.getElementById('habitForm');
+      if (modal) modal.classList.remove('hidden');
+      if (form) form.reset();
+      const id = document.getElementById('hmHabitId');
+      if (id) id.value = '';
+      const type = document.getElementById('hmType');
+      if (type) type.value = 'yesno';
+      const numberFields = document.getElementById('hmNumberFields');
+      if (numberFields) numberFields.classList.add('hidden');
+    }
+
+    function closeHabitModal() {
+      const modal = document.getElementById('habitModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function onHabitTypeChange(type) {
+      const numberFields = document.getElementById('hmNumberFields');
+      if (numberFields) numberFields.classList.toggle('hidden', type !== 'number');
+    }
+
+    function handleSaveHabit(event) {
+      event.preventDefault();
+      const id = document.getElementById('hmHabitId').value;
+      const name = document.getElementById('hmName').value.trim();
+      const type = document.getElementById('hmType').value;
+      const target = Number(document.getElementById('hmTarget').value || 0);
+      const unit = document.getElementById('hmUnit').value.trim();
+      if (!name) return;
+      const payload = {
+        id: id || Date.now(),
+        name,
+        type: normalizeHabitType(type),
+        target: type === 'number' ? target : 1,
+        unit: type === 'number' ? unit : ''
+      };
+      if (id) {
+        const idx = appData.habits.findIndex(h => String(h.id) === String(id));
+        if (idx >= 0) appData.habits[idx] = payload;
+      } else {
+        appData.habits.push(payload);
+      }
+      closeHabitModal();
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function renderHabits() {
+      const container = document.getElementById('habitCardsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!appData.habits || !appData.habits.length) {
+        container.innerHTML = '<div class="text-[11px] text-slate-500 italic">No habits yet.</div>';
         return;
       }
 
-      setSyncStatus('syncing');
-      console.log("🔄 FetchRemoteData starting with URL:", appData.apiUrl.substring(0, 80));
-
-      try {
-        const res = await fetch(appData.apiUrl, { method: "GET", redirect: "follow" });
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
-
-        console.log("Fetch Debug - Remote data received:", {
-          habitCount: json.habits ? json.habits.length : 0,
-          habits: json.habits
-        });
-
-        // 1. Planner
-        if (json.planner && Array.isArray(json.planner)) {
-          const seenPlan = new Set();
-          const cleanPlanner = [];
-          json.planner.forEach(b => {
-            const planId = String(b.id).trim();
-            if (!planId || seenPlan.has(planId)) return;
-            seenPlan.add(planId);
-            const times = extractTimesFromItem(b);
-            const sTime = times.start || "09:00";
-            const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
-            cleanPlanner.push({
-              id: isNaN(planId) ? planId : Number(planId),
-              date: normalizeDateString(b.date),
-              title: b.title || "Untitled Block",
-              startTime: sTime,
-              endTime: eTime,
-              timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
-              timeBlock: b.timeBlock || getTimeBlockName(sTime),
-              color: b.color || "indigo",
-              notes: b.notes || "",
-              actualStartTime: normalizeTimeString(b.actualStartTime) || "",
-              actualEndTime: normalizeTimeString(b.actualEndTime) || "",
-              actualNotes: b.actualNotes || "",
-              status: b.status || "Planned",
-              taskId: b.taskId ? Number(b.taskId) : null,
-              routineId: b.routineId ? Number(b.routineId) : null
-            });
-          });
-          appData.timeBlocks = cleanPlanner;
-        }
-
-        // 2. Routines
-        if (json.routines && Array.isArray(json.routines)) {
-          const seenRt = new Set();
-          const cleanRoutines = [];
-          json.routines.forEach(r => {
-            const normTitle = (r.title || "").trim().toLowerCase();
-            if (!normTitle || seenRt.has(normTitle)) return;
-            seenRt.add(normTitle);
-            const times = extractTimesFromItem(r);
-            const sTime = times.start || "07:00";
-            const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
-            const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
-            cleanRoutines.push({
-              id: isNaN(rId) ? rId : Number(rId),
-              title: r.title || "Routine",
-              startTime: sTime,
-              endTime: eTime,
-              timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
-              timeBlock: r.timeBlock || getTimeBlockName(sTime),
-              color: r.color || "amber",
-              days: r.days || "Everyday"
-            });
-          });
-          appData.routines = cleanRoutines;
-        }
-
-        // 3. Habits
-        if (json.habits && Array.isArray(json.habits)) {
-          const seenHabit = new Set();
-          const cleanHabits = [];
-          json.habits.forEach(h => {
-            const normName = (h.name || "").trim().toLowerCase();
-            if (!normName || seenHabit.has(normName)) return;
-            seenHabit.add(normName);
-
-            // Parse ID: if it's numeric, convert to number; otherwise keep as string
-            let hId = h.id;
-            if (hId !== undefined && hId !== null) {
-              const strId = String(hId).trim();
-              hId = isNaN(strId) ? strId : Number(strId);
-            } else {
-              hId = "hb_" + normName.replace(/\s+/g, '_');
-            }
-
-            cleanHabits.push({
-              id: hId,
-              name: h.name || "Habit",
-              type: h.type || "yesno",
-              target: Number(h.target) || 0,
-              unit: h.unit || ""
-            });
-          });
-          // Only update if we actually received habits from remote
-          if (cleanHabits.length > 0) {
-            appData.habits = cleanHabits;
-          }
-        }
-
-        // 4. Habit Logs
-        if (json.habitLogs && Array.isArray(json.habitLogs)) {
-          const map = {};
-          json.habitLogs.forEach(l => {
-            const dateStr = normalizeDateString(l.date);
-            const key = `${String(l.habitId).trim()}_${dateStr}`;
-            const isCompleted = String(l.completed).trim().toUpperCase() === "TRUE" || 
-                                String(l.completed).trim().toLowerCase() === "yes" || 
-                                l.completed === true || 
-                                l.completed === 1;
-            map[key] = {
-              value: l.value !== undefined ? l.value : "",
-              completed: isCompleted
-            };
-          });
-          appData.habitLogs = map;
-        }
-
-        // 5. Tasks
-        if (json.tasks && Array.isArray(json.tasks)) {
-          const seenTask = new Set();
-          const cleanTasks = [];
-          json.tasks.forEach(t => {
-            const tId = String(t.id).trim();
-            if (!tId || seenTask.has(tId)) return;
-            seenTask.add(tId);
-            const times = extractTimesFromItem(t);
-            cleanTasks.push({
-              id: isNaN(tId) ? tId : Number(tId),
-              title: t.title || "Untitled Task",
-              priority: t.priority || "Med",
-              frequency: t.frequency || "once",
-              status: t.status || "Need to Start",
-              completed: String(t.completed).toUpperCase() === "TRUE",
-              date: normalizeDateString(t.date || t.scheduledDate || ""),
-              scheduledStartTime: times.start,
-              scheduledEndTime: times.end,
-              plannedMins: Number(t.plannedMins) || 30,
-              actualMins: Number(t.actualMins) || 0
-            });
-          });
-          appData.tasks = cleanTasks;
-        }
-
-        // 6. Focus Logs
-        if (json.focusLogs && Array.isArray(json.focusLogs)) {
-          appData.focusLogs = json.focusLogs.map(fl => ({
-            id: Number(fl.id) || Date.now() + Math.random(),
-            label: fl.label || "Focus Session",
-            duration: fl.duration || "00:00:00",
-            timestamp: fl.timestamp || "",
-            date: normalizeDateString(fl.date || getTodayKey())
-          }));
-        }
-
-        // 7. Daily Summaries
-        if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
-          const sMap = {};
-          json.dailySummaries.forEach(s => {
-            const d = normalizeDateString(s.date);
-            if (d) {
-              sMap[d] = {
-                date: d,
-                goodThing: s.goodThing || "",
-                disliked: s.disliked || "",
-                productive: s.productive || "",
-                betterThanYesterday: s.betterThanYesterday || "",
-                regrets: s.regrets || "",
-                emotion: s.emotion || ""
-              };
-            }
-          });
-          appData.dailySummaries = sMap;
-        }
-
-        isRemoteDataLoaded = true;
-        saveState();
-        renderAll();
-        setSyncStatus('synced');
-
-        // Trigger initial sync to push local data to Google Sheets
-        console.log("Initial sync triggered after loading remote data");
-        setTimeout(() => {
-          syncToRemote();
-        }, 500);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setSyncStatus('error');
-      }
-    }
-
-    // ---------- Planner & Timeline Render ----------
-    function shiftPlannerDate(delta) {
-      const d = new Date(selectedPlannerDate + "T00:00:00");
-      d.setDate(d.getDate() + delta);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      selectedPlannerDate = `${y}-${m}-${day}`;
-      renderAll();
-    }
-
-    function goToPlannerToday() {
-      selectedPlannerDate = getTodayKey();
-      renderAll();
-      scrollToCurrentTimeOrStart();
-    }
-
-    function onPlannerDateSelected(val) {
-      if (val) {
-        selectedPlannerDate = val;
-        renderAll();
-      }
-    }
-
-    function buildHourlyBackgroundGrid() {
-      const grid = document.getElementById('hourlyGridLines');
-      if (!grid) return;
-      grid.innerHTML = '';
-
-      for (let h = 0; h < 24; h++) {
-        const timeStr = `${String(h).padStart(2, '0')}:00`;
+      appData.habits.forEach((habit) => {
+        const habitKey = `${String(habit.id)}_${selectedPlannerDate}`;
+        const log = appData.habitLogs[habitKey] || {};
+        const isDone = Boolean(log.completed || (normalizeHabitType(habit.type) === 'yesno' && String(log.value).toLowerCase() === 'yes'));
         const row = document.createElement('div');
-        row.className = "grid grid-cols-12 h-[60px] border-b border-slate-900/90 box-border hover:bg-slate-900/30 transition-colors";
-
+        row.className = 'flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/80 p-2.5';
         row.innerHTML = `
-          <div class="col-span-2 sm:col-span-1 text-center font-mono text-[9px] sm:text-[10px] text-slate-500 pt-1 border-r border-slate-900">
-            ${timeStr}
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <button onclick="toggleHabitCompletion('${habit.id}')" class="p-1 rounded-lg ${isDone ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
+                <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+              </button>
+              <div class="min-w-0">
+                <div class="text-[12px] font-semibold text-slate-200 truncate">${habit.name}</div>
+                <div class="text-[10px] text-slate-500 font-mono">${habit.type === 'number' ? `${habit.target || 0} ${habit.unit || ''}` : 'Daily check-in'}</div>
+              </div>
+            </div>
           </div>
-          <div onclick="handleHourSlotClick(${h}, 'left')" title="Add Plan Block at ${timeStr}" 
-               class="col-span-5 sm:col-span-5 border-r border-slate-900/80 cursor-pointer hover:bg-indigo-950/20 active:bg-indigo-900/30 transition"></div>
-          <div onclick="handleHourSlotClick(${h}, 'right')" title="Schedule Task at ${timeStr}" 
-               class="col-span-5 sm:col-span-6 cursor-pointer hover:bg-emerald-950/20 active:bg-emerald-900/30 transition"></div>
+          <button onclick="deleteHabit('${habit.id}')" class="text-slate-500 hover:text-rose-400 transition">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
         `;
-        grid.appendChild(row);
-      }
-    }
-
-    function render24HourPlanner() {
-      const datePicker = document.getElementById('plannerDatePicker');
-      if (datePicker) datePicker.value = selectedPlannerDate;
-
-      const todayKey = getTodayKey();
-      const isViewingToday = (selectedPlannerDate === todayKey);
-      const dSelected = new Date(selectedPlannerDate + "T00:00:00");
-      const formattedDateStr = dSelected.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-      
-      const dToday = new Date(todayKey + "T00:00:00");
-      const dayDiff = Math.round((dSelected.getTime() - dToday.getTime()) / (1000 * 60 * 60 * 24));
-      
-      let relLabel = "Today";
-      if (dayDiff === 1) relLabel = "Tomorrow";
-      else if (dayDiff === -1) relLabel = "Yesterday";
-      else if (dayDiff > 1) relLabel = `+${dayDiff}d`;
-      else if (dayDiff < -1) relLabel = `${dayDiff}d`;
-
-      const relTag = document.getElementById('plannerDateRelativeTag');
-      const fmtText = document.getElementById('plannerDateFormattedText');
-      const todayBtn = document.getElementById('btnPlannerToday');
-
-      if (relTag) {
-        relTag.textContent = relLabel;
-        relTag.className = isViewingToday 
-          ? "px-1.5 py-0.2 rounded font-semibold text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-          : (dayDiff > 0 ? "px-1.5 py-0.2 rounded font-semibold text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30" : "px-1.5 py-0.2 rounded font-semibold text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30");
-      }
-      if (fmtText) fmtText.textContent = formattedDateStr;
-
-      if (todayBtn) {
-        todayBtn.className = isViewingToday 
-          ? "px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition"
-          : "px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition";
-      }
-
-      const manualBlocks = appData.timeBlocks.filter(b => b.date === selectedPlannerDate);
-      const routineBlocks = [];
-
-      appData.routines.forEach(r => {
-        const existing = manualBlocks.find(b => b.routineId === r.id);
-        if (!existing) {
-          routineBlocks.push({
-            id: `ROUTINE_${r.id}_${selectedPlannerDate}`,
-            isVirtualRoutine: true,
-            routineId: r.id,
-            date: selectedPlannerDate,
-            title: r.title,
-            startTime: r.startTime,
-            endTime: r.endTime,
-            color: r.color || "amber",
-            notes: "Recurring Routine",
-            actualStartTime: "",
-            actualEndTime: "",
-            actualNotes: "",
-            status: "Planned"
-          });
-        }
-      });
-
-      const allPlannedBlocks = [...manualBlocks, ...routineBlocks];
-      const routineBadge = document.getElementById('activeRoutineCountBadge');
-      if (routineBadge) routineBadge.textContent = appData.routines.length;
-
-      const scheduledTasks = appData.tasks.filter(t => {
-        return isTaskActiveForDate(t, selectedPlannerDate) && t.scheduledStartTime;
-      });
-
-      let totalPlannedMins = 0;
-      let totalActualMins = 0;
-      let completedCount = 0;
-
-      allPlannedBlocks.forEach(b => {
-        const pStart = timeToMinutes(b.startTime);
-        const pEnd = timeToMinutes(b.endTime);
-        if (pEnd > pStart) totalPlannedMins += (pEnd - pStart);
-
-        if (b.actualStartTime && b.actualEndTime) {
-          const aStart = timeToMinutes(b.actualStartTime);
-          const aEnd = timeToMinutes(b.actualEndTime);
-          if (aEnd > aStart) totalActualMins += (aEnd - aStart);
-        }
-
-        if (b.status === "Completed" || b.status === "Partial / Deviated") completedCount++;
-      });
-
-      scheduledTasks.forEach(t => {
-        const pStart = timeToMinutes(t.scheduledStartTime);
-        const pEnd = timeToMinutes(t.scheduledEndTime);
-        const dur = (pEnd > pStart) ? (pEnd - pStart) : (t.plannedMins || 30);
-        totalPlannedMins += dur;
-
-        if (t.actualMins > 0) {
-          totalActualMins += t.actualMins;
-        } else if (t.completed) {
-          totalActualMins += dur;
-        }
-
-        if (t.completed || t.status === "Completed") completedCount++;
-      });
-
-      const totalItems = allPlannedBlocks.length + scheduledTasks.length;
-      const pHours = (totalPlannedMins / 60).toFixed(1);
-      const aHours = (totalActualMins / 60).toFixed(1);
-      const adherence = totalPlannedMins > 0 ? Math.min(100, Math.round((totalActualMins / totalPlannedMins) * 100)) : 0;
-      const diffHours = (totalActualMins / 60) - (totalPlannedMins / 60);
-
-      document.getElementById('scorePlannedHours').textContent = `${pHours}h`;
-      document.getElementById('scorePlannedCount').textContent = `${totalItems} items`;
-      document.getElementById('scoreActualHours').textContent = `${aHours}h`;
-      document.getElementById('scoreActualCount').textContent = `${allPlannedBlocks.filter(b => b.actualStartTime).length + scheduledTasks.filter(t => t.actualMins > 0).length} logged`;
-      document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
-      document.getElementById('scoreStatusCount').textContent = `${completedCount}/${totalItems} done`;
-
-      // FEATURE #10: Update progress bars
-      // Tasks Progress
-      const totalTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate)).length;
-      const completedTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate) && t.completed).length;
-      const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-      const taskPBar = document.getElementById('taskProgressBar');
-      const taskPPercent = document.getElementById('taskProgressPercent');
-      const taskPLabel = document.getElementById('taskProgressLabel');
-      if (taskPBar && taskPPercent && taskPLabel) {
-        taskPBar.style.width = `${taskProgress}%`;
-        taskPPercent.textContent = `${taskProgress}%`;
-        taskPLabel.textContent = `${completedTasks}/${totalTasks} completed`;
-      }
-
-      // Habits Progress
-      const totalHabits = appData.habits.length;
-      const completedHabits = appData.habits.filter(h => {
-        const hId = String(h.id);
-        const normType = normalizeHabitType(h.type);
-        const key = `${hId}_${selectedPlannerDate}`;
-        const log = appData.habitLogs[key];
-        return log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
-      }).length;
-      const habitProgress = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
-      const habitPBar = document.getElementById('habitProgressBar');
-      const habitPPercent = document.getElementById('habitProgressPercent');
-      const habitPLabel = document.getElementById('habitProgressLabel');
-      if (habitPBar && habitPPercent && habitPLabel) {
-        habitPBar.style.width = `${habitProgress}%`;
-        habitPPercent.textContent = `${habitProgress}%`;
-        habitPLabel.textContent = `${completedHabits}/${totalHabits} logged`;
-      }
-
-      // Planner Progress
-      const totalPlannerBlocks = allPlannedBlocks.length;
-      const completedPlannerBlocks = allPlannedBlocks.filter(b => b.status === 'Completed' || b.status === 'Partial / Deviated').length;
-      const plannerProgress = totalPlannerBlocks > 0 ? Math.round((completedPlannerBlocks / totalPlannerBlocks) * 100) : 0;
-      const planPBar = document.getElementById('plannerProgressBar');
-      const planPPercent = document.getElementById('plannerProgressPercent');
-      const planPLabel = document.getElementById('plannerProgressLabel');
-      if (planPBar && planPPercent && planPLabel) {
-        planPBar.style.width = `${plannerProgress}%`;
-        planPPercent.textContent = `${plannerProgress}%`;
-        planPLabel.textContent = `${completedPlannerBlocks}/${totalPlannerBlocks} blocks`;
-      }
-
-      const varBadge = document.getElementById('scoreVarianceBadge');
-      if (varBadge) {
-        if (diffHours === 0) {
-          varBadge.textContent = "0.0h on track";
-          varBadge.className = "text-[10px] sm:text-xs font-mono font-semibold text-slate-300";
-        } else if (diffHours > 0) {
-          varBadge.textContent = `+${diffHours.toFixed(1)}h over`;
-          varBadge.className = "text-[10px] sm:text-xs font-mono font-semibold text-amber-400";
-        } else {
-          varBadge.textContent = `${diffHours.toFixed(1)}h diff`;
-          varBadge.className = "text-[10px] sm:text-xs font-mono font-semibold text-rose-400";
-        }
-      }
-
-      const container = document.getElementById('scheduledBlocksContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const colorMap = {
-        indigo: { border: 'border-indigo-500/80', planBg: 'bg-indigo-950/90', text: 'text-indigo-200' },
-        emerald: { border: 'border-emerald-500/80', planBg: 'bg-emerald-950/90', text: 'text-emerald-200' },
-        amber: { border: 'border-amber-500/80', planBg: 'bg-amber-950/90', text: 'text-amber-200' },
-        cyan: { border: 'border-cyan-500/80', planBg: 'bg-cyan-950/90', text: 'text-cyan-200' },
-        purple: { border: 'border-purple-500/80', planBg: 'bg-purple-950/90', text: 'text-purple-200' }
-      };
-
-      const statusBadges = {
-        "Planned": "bg-slate-800 text-slate-300 border-slate-700",
-        "In Progress": "bg-cyan-950 text-cyan-300 border-cyan-700 animate-pulse",
-        "Completed": "bg-emerald-950 text-emerald-300 border-emerald-700",
-        "Partial / Deviated": "bg-amber-950 text-amber-300 border-amber-700",
-        "Missed": "bg-rose-950 text-rose-300 border-rose-700"
-      };
-
-      allPlannedBlocks.forEach(block => {
-        const theme = colorMap[block.color] || colorMap.indigo;
-        const pStartM = timeToMinutes(block.startTime);
-        let pEndM = timeToMinutes(block.endTime);
-        if (pEndM <= pStartM) pEndM = Math.min(1440, pStartM + 60);
-
-        const pDur = Math.max(15, pEndM - pStartM);
-        const cardHeight = Math.max(18, pDur - 2);
-        const cardTop = pStartM + 1;
-
-        const isRoutine = Boolean(block.routineId || block.isVirtualRoutine);
-        const hasEvaluated = Boolean((block.actualStartTime && block.actualEndTime) || (block.status && block.status !== "Planned"));
-        const isCompact = pDur < 42;
-
-        const planCard = document.createElement('div');
-        planCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-indigo-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${theme.planBg} ${theme.border}`;
-        planCard.style.left = 'calc(16.667% + 0.5px)';
-        planCard.style.width = 'calc(41.667% - 1px)';
-        planCard.style.top = `${cardTop}px`;
-        planCard.style.height = `${cardHeight}px`;
-
-        planCard.onclick = (e) => {
-          e.stopPropagation();
-          openEditTimeBlockModal(block);
-        };
-
-        let evalHtml = "";
-        if (hasEvaluated) {
-          const stClass = statusBadges[block.status] || statusBadges["Planned"];
-          const aDurStr = (block.actualStartTime && block.actualEndTime) ? `${block.actualStartTime}-${block.actualEndTime}` : `${block.status}`;
-          evalHtml = `
-            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
-              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${stClass}">
-                ${block.status || 'Done'}
-              </span>
-              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
-                ${aDurStr}
-              </span>
-            </div>
-          `;
-        }
-
-        if (isCompact) {
-          planCard.innerHTML = `
-            <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
-              <div class="flex items-center gap-1 min-w-0 flex-1">
-                <span class="text-[10px] sm:text-[11px] font-bold ${theme.text} truncate">${block.title}</span>
-              </div>
-            </div>
-          `;
-        } else {
-          planCard.innerHTML = `
-            <div class="flex items-start justify-between gap-1">
-              <div class="min-w-0 flex-1">
-                <span class="text-[11px] sm:text-xs font-bold ${theme.text} truncate block">${block.title}</span>
-                ${block.notes ? `<p class="text-[9px] text-slate-300/80 truncate mt-0.5">${block.notes}</p>` : ''}
-                ${evalHtml}
-              </div>
-              ${!isRoutine ? `
-                <button onclick="handleQuickDeleteTimeBlock('${block.id}', event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
-                  <i data-lucide="trash-2" class="w-3 h-3"></i>
-                </button>
-              ` : ''}
-            </div>
-          `;
-        }
-
-        container.appendChild(planCard);
-      });
-
-      // BUG FIX #1: Render scheduled tasks as time blocks in the planner (not just in task list)
-      scheduledTasks.forEach(task => {
-        const tStartM = timeToMinutes(task.scheduledStartTime);
-        let tEndM = timeToMinutes(task.scheduledEndTime);
-        if (!tEndM || tEndM <= tStartM) tEndM = tStartM + Math.max(15, task.plannedMins || 30);
-
-        const tDur = Math.max(15, tEndM - tStartM);
-        const taskHeight = Math.max(18, tDur - 2);
-        const taskTop = tStartM + 1;
-
-        const isDone = Boolean(task.completed || task.status === "Completed");
-        const isCompact = tDur < 42;
-
-        const priorityBorder = {
-          High: 'border-rose-500/70 bg-rose-950/30',
-          Med: 'border-amber-500/70 bg-amber-950/30',
-          Low: 'border-slate-700/80 bg-slate-900/80'
-        }[task.priority] || 'border-indigo-500/70 bg-indigo-950/30';
-
-        const taskCard = document.createElement('div');
-        taskCard.className = `absolute rounded-xl border shadow-md backdrop-blur-md transition hover:ring-2 hover:ring-emerald-400/50 cursor-pointer pointer-events-auto flex flex-col justify-between overflow-hidden box-border ${isCompact ? 'p-1' : 'p-1.5 sm:p-2.5'} ${isDone ? 'bg-slate-950/85 border-emerald-500/80 opacity-80' : priorityBorder}`;
-        taskCard.style.left = 'calc(58.334% + 0.5px)';
-        taskCard.style.width = 'calc(41.667% - 1px)';
-        taskCard.style.top = `${taskTop}px`;
-        taskCard.style.height = `${taskHeight}px`;
-
-        taskCard.onclick = (e) => {
-          e.stopPropagation();
-          openEditTaskModal(task.id);
-        };
-
-        let evalHtml = "";
-        if (task.actualMins > 0 || task.actualStartTime) {
-          const isDoneClass = isDone ? 'bg-emerald-950 text-emerald-300 border-emerald-600/50' : 'bg-slate-800 text-slate-300 border-slate-700';
-          evalHtml = `
-            <div class="mt-0.5 flex items-center gap-1 flex-wrap pt-0.5 border-t border-slate-800/80">
-              <span class="text-[7px] uppercase font-mono px-1 py-0.2 rounded border ${isDoneClass}">
-                ${task.status || 'Done'}
-              </span>
-              <span class="text-[8px] font-mono text-emerald-300 font-semibold truncate">
-                ${task.actualMins > 0 ? task.actualMins + 'm act' : (task.actualStartTime ? task.actualStartTime : 'Logged')}
-              </span>
-            </div>
-          `;
-        }
-
-        if (isCompact) {
-          taskCard.innerHTML = `
-            <div class="flex items-center justify-between gap-1 w-full h-full leading-none">
-              <div class="flex items-center gap-1 min-w-0 flex-1">
-                <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
-                  <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
-                </button>
-                <span class="text-[10px] sm:text-[11px] font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
-              </div>
-            </div>
-          `;
-        } else {
-          taskCard.innerHTML = `
-            <div class="flex items-start justify-between gap-1">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1">
-                  <button onclick="event.stopPropagation(); toggleTaskCompletion('${task.id}')" class="p-0.5 rounded text-emerald-400">
-                    <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
-                  </button>
-                  <span class="text-[11px] sm:text-xs font-bold truncate ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${task.title}</span>
-                </div>
-                ${evalHtml}
-              </div>
-            </div>
-          `;
-        }
-
-        container.appendChild(taskCard);
+        container.appendChild(row);
       });
       lucide.createIcons();
+    }
+
+    function toggleHabitCompletion(habitId) {
+      const habit = appData.habits.find(h => String(h.id) === String(habitId));
+      if (!habit) return;
+      const normType = normalizeHabitType(habit.type);
+      const key = `${String(habit.id)}_${selectedPlannerDate}`;
+      if (normType === 'number') {
+        const current = Number(appData.habitLogs[key]?.value || 0);
+        const nextValue = Number(prompt(`Enter value for ${habit.name}:`, current || habit.target || 0));
+        if (Number.isNaN(nextValue)) return;
+        appData.habitLogs[key] = { value: nextValue, completed: nextValue >= (Number(habit.target) || 0) };
+      } else {
+        const current = appData.habitLogs[key] || { value: '', completed: false };
+        const next = !current.completed;
+        appData.habitLogs[key] = { value: next ? 'yes' : '', completed: next };
+      }
+      captureHabitAnalytics(habit);
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function deleteHabit(habitId) {
+      appData.habits = appData.habits.filter(h => String(h.id) !== String(habitId));
+      Object.keys(appData.habitLogs).forEach(key => {
+        if (key.startsWith(`${String(habitId)}_`)) delete appData.habitLogs[key];
+      });
+      saveState();
+      renderAll();
+      syncToRemote();
+    }
+
+    function getHabitMetrics(habitId, days = 30) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      let streak = 0;
+      let completionCount = 0;
+      let totalExpected = 0;
+      let lastCompletedDate = '';
+      const habit = appData.habits.find(h => String(h.id) === String(habitId));
+      const normType = normalizeHabitType(habit ? habit.type : 'yesno');
+      const uniqueDates = [...new Set(Object.keys(appData.habitLogs || {})
+        .filter(key => key.startsWith(`${String(habitId)}_`))
+        .map(key => key.replace(`${String(habitId)}_`, ''))
+        .filter(date => {
+          const d = new Date(normalizeDateString(date) + 'T00:00:00');
+          return !isNaN(d.getTime()) && d >= cutoff;
+        }))].sort();
+
+      for (let i = uniqueDates.length - 1; i >= 0; i--) {
+        const dateValue = uniqueDates[i];
+        const log = appData.habitLogs[`${String(habitId)}_${dateValue}`];
+        totalExpected++;
+        if (log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'))) {
+          completionCount++;
+          streak++;
+          lastCompletedDate = dateValue;
+        } else {
+          break;
+        }
+      }
+
+      const completionPercentage = totalExpected ? Math.round((completionCount / totalExpected) * 100) : 0;
+      return {
+        streak,
+        completionPercentage,
+        totalCompleted: completionCount,
+        totalExpected,
+        daysMissedRecently: Math.max(0, totalExpected - completionCount),
+        lastCompletedDate,
+      };
     }
 
     function openEditTaskModal(id) {
@@ -2107,6 +1541,7 @@
       document.getElementById('tmActualMins').value = task.actualMins || 0;
 
       document.getElementById('taskModal').classList.remove('hidden');
+      attachTaskAutoCalculate();
       lucide.createIcons();
     }
 
@@ -2123,6 +1558,7 @@
       document.getElementById('tmActualMins').value = 0;
 
       document.getElementById('taskModal').classList.remove('hidden');
+      attachTaskAutoCalculate();
       lucide.createIcons();
     }
 
