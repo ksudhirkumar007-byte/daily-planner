@@ -13,22 +13,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daily Flow">
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Tailwind CSS Local - Minified (pre-compiled) -->
+  <link rel="stylesheet" href="vendor/tailwind.min.css">
+  <!-- Lucide Icons Local - v0.552.0 -->
+  <script src="vendor/lucide.min.js"></script>
   <style>
     body {
       -webkit-tap-highlight-color: transparent;
