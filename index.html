@@ -968,9 +968,7 @@
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
-    let lastSyncTimestamp = 0;
-    let pendingSyncQueue = null;
-    let lastSyncedState = null;
+    let needsSync = false;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1210,14 +1208,8 @@
       }
     }
 
-   // ---------- Bullet-Proof Sync Engine ----------
-    let isSyncInProgress = false;
-    let needsSync = false;
-    let syncDebounceTimer = null;
-
     function syncToRemote() {
-      saveState(); // Always preserve local state first
-      
+      saveState();
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
         return;
@@ -1229,13 +1221,17 @@
 
       needsSync = true;
 
-      // Always debounce rapid clicks (e.g. 500ms after last click)
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       syncDebounceTimer = setTimeout(() => {
         if (!isSyncInProgress) {
           executeSyncPayload();
         }
       }, 500);
+    }
+
+    function requestManualSync() {
+      if (isSyncInProgress) return;
+      fetchRemoteData();
     }
 
     async function executeSyncPayload() {
@@ -1246,11 +1242,10 @@
       }
 
       isSyncInProgress = true;
-      needsSync = false; // Reset flag for this pass
+      needsSync = false;
       setSyncStatus('syncing');
 
       try {
-        // Build payload from the latest appData at this exact moment
         const allTimeBlocks = (appData.timeBlocks || []).map(b => ({
           id: String(b.id).trim(),
           date: normalizeDateString(b.date),
@@ -1318,7 +1313,6 @@
           ...(appData.dailySummaries[date] || {})
         }));
 
-        // Send full or changed state reliably without dropping fast clicks
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -1341,7 +1335,7 @@
           setSyncStatus('synced');
         } else {
           setSyncStatus('error');
-          needsSync = true; // Retry on next event if failed
+          needsSync = true;
         }
       } catch (err) {
         console.error("Sync error:", err);
@@ -1349,7 +1343,6 @@
         needsSync = true;
       } finally {
         isSyncInProgress = false;
-        // If a new click occurred while the fetch was in-flight, run again immediately!
         if (needsSync) {
           setTimeout(executeSyncPayload, 200);
         }
@@ -2174,7 +2167,7 @@
         const y = checkDate.getFullYear();
         const m = String(checkDate.getMonth() + 1).padStart(2, '0');
         const d = String(checkDate.getDate()).padStart(2, '0');
-        const dateStr = `${y}-${m}-${d}`;
+        const dateStr = `${y}-${m}-${day}`;
 
         const key = `${hId}_${dateStr}`;
         const log = appData.habitLogs[key];
@@ -3620,8 +3613,6 @@
       closeConfigModal();
       setTimeout(() => {
         isRemoteDataLoaded = false;
-        pendingSyncQueue = null;
-        lastSyncedState = null;
         fetchRemoteData();
       }, 100);
     }
