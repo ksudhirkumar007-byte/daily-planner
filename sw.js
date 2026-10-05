@@ -4,7 +4,7 @@ const ASSETS = [
   './index.html',
   './manifest.json',
   'https://cdn.tailwindcss.com',
-  'https://unpkg.com/lucide@latest'
+  './vendor/lucide.min.js'
 ];
 
 self.addEventListener('install', (e) => {
