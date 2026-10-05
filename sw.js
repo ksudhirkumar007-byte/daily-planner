@@ -3,7 +3,7 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  'https://cdn.tailwindcss.com',
+  './vendor/tailwind.min.css',
   './vendor/lucide.min.js'
 ];
 
