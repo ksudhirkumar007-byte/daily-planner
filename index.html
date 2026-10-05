@@ -1210,6 +1210,9 @@
       }
     }
 
+    // Track the state at sync start to detect user edits during sync
+    let syncStartSnapshot = null;
+
     function syncToRemote() {
       saveState();
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
@@ -1222,7 +1225,8 @@
       }
 
       if (isSyncInProgress) {
-        pendingSyncQueue = JSON.parse(JSON.stringify(appData));
+        // Mark that a sync is pending; don't capture full state
+        pendingSyncQueue = true;
         return;
       }
 
@@ -1260,10 +1264,22 @@
     async function executeSyncPayload() {
       if (isSyncInProgress) return;
       isSyncInProgress = true;
+
+      // Capture snapshot BEFORE marking as syncing to preserve edits made during sync
+      syncStartSnapshot = {
+        timeBlocks: JSON.parse(JSON.stringify(appData.timeBlocks)),
+        routines: JSON.parse(JSON.stringify(appData.routines)),
+        habits: JSON.parse(JSON.stringify(appData.habits)),
+        habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)),
+        tasks: JSON.parse(JSON.stringify(appData.tasks)),
+        focusLogs: JSON.parse(JSON.stringify(appData.focusLogs)),
+        dailySummaries: JSON.parse(JSON.stringify(appData.dailySummaries))
+      };
+
       setSyncStatus('syncing');
 
       try {
-        const allTimeBlocks = appData.timeBlocks.map(b => ({
+        const allTimeBlocks = syncStartSnapshot.timeBlocks.map(b => ({
           id: String(b.id).trim(),
           date: normalizeDateString(b.date),
           title: b.title || "Untitled Block",
@@ -1281,7 +1297,7 @@
 
         const seenRt = new Set();
         const allRoutines = [];
-        appData.routines.forEach(r => {
+        syncStartSnapshot.routines.forEach(r => {
           const normTitle = (r.title || "").trim().toLowerCase();
           if (!normTitle || seenRt.has(normTitle)) return;
           seenRt.add(normTitle);
@@ -1295,7 +1311,7 @@
           });
         });
 
-        const allHabits = appData.habits.map(h => ({
+        const allHabits = syncStartSnapshot.habits.map(h => ({
           id: String(h.id).trim(),
           name: h.name || "Habit",
           type: h.type || "yesno",
@@ -1306,7 +1322,7 @@
         const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
         const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
         const habitsPayload = getChangedItems(allHabits, lastSyncedState?.habits, 'id');
-        const habitLogsChanges = getChangedHabitLogs(appData.habitLogs, lastSyncedState?.habitLogs);
+        const habitLogsChanges = getChangedHabitLogs(syncStartSnapshot.habitLogs, lastSyncedState?.habitLogs);
         const habitLogsArray = Object.keys(habitLogsChanges).map(key => ({
           id: key,
           habitId: key.split('_')[0],
@@ -1315,7 +1331,7 @@
           completed: habitLogsChanges[key].completed ? "TRUE" : "FALSE"
         }));
 
-        const allTasks = appData.tasks.map(t => ({
+        const allTasks = syncStartSnapshot.tasks.map(t => ({
           id: String(t.id).trim(),
           title: t.title || "Untitled Task",
           priority: t.priority || "Med",
@@ -1330,10 +1346,10 @@
         }));
 
         const tasksPayload = getChangedItems(allTasks, lastSyncedState?.tasks, 'id');
-        const focusLogsPayload = getChangedItems(appData.focusLogs, lastSyncedState?.focusLogs, 'id');
-        const summariesArray = Object.keys(appData.dailySummaries).map(date => ({
+        const focusLogsPayload = getChangedItems(syncStartSnapshot.focusLogs, lastSyncedState?.focusLogs, 'id');
+        const summariesArray = Object.keys(syncStartSnapshot.dailySummaries).map(date => ({
           date: normalizeDateString(date),
-          ...(appData.dailySummaries[date] || {})
+          ...(syncStartSnapshot.dailySummaries[date] || {})
         }));
         const summariesPayload = getChangedItems(summariesArray, lastSyncedState?.dailySummaries, 'date');
 
@@ -1345,6 +1361,7 @@
         if (!hasChanges && lastSyncedState) {
           setSyncStatus('synced');
           isSyncInProgress = false;
+          syncStartSnapshot = null;
           return;
         }
 
@@ -1371,9 +1388,9 @@
             timeBlocks: allTimeBlocks,
             routines: allRoutines,
             habits: allHabits,
-            habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)),
+            habitLogs: JSON.parse(JSON.stringify(syncStartSnapshot.habitLogs)),
             tasks: allTasks,
-            focusLogs: appData.focusLogs,
+            focusLogs: syncStartSnapshot.focusLogs,
             dailySummaries: summariesArray
           };
           setSyncStatus('synced');
@@ -1386,10 +1403,11 @@
       } finally {
         isSyncInProgress = false;
         lastSyncTimestamp = Date.now();
-        if (pendingSyncQueue) {
-          appData = JSON.parse(JSON.stringify(pendingSyncQueue));
+        syncStartSnapshot = null;
+
+        // If sync was requested during execution, queue another sync
+        if (pendingSyncQueue === true) {
           pendingSyncQueue = null;
-          saveState();
           if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
           syncDebounceTimer = setTimeout(executeSyncPayload, 400);
         }
@@ -1409,7 +1427,23 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Planner
+        // Save local state before merging remote
+        const localTimeBlocksMap = {};
+        appData.timeBlocks.forEach(b => { localTimeBlocksMap[String(b.id).trim()] = b; });
+
+        const localRoutinesMap = {};
+        appData.routines.forEach(r => { localRoutinesMap[String(r.id).trim()] = r; });
+
+        const localHabitsMap = {};
+        appData.habits.forEach(h => { localHabitsMap[String(h.id).trim()] = h; });
+
+        const localTasksMap = {};
+        appData.tasks.forEach(t => { localTasksMap[String(t.id).trim()] = t; });
+
+        const localFocusLogsMap = {};
+        appData.focusLogs.forEach(fl => { localFocusLogsMap[fl.id] = fl; });
+
+        // 1. Planner - Merge with local changes
         if (json.planner && Array.isArray(json.planner)) {
           const seenPlan = new Set();
           const cleanPlanner = [];
@@ -1417,31 +1451,45 @@
             const planId = String(b.id).trim();
             if (!planId || seenPlan.has(planId)) return;
             seenPlan.add(planId);
+
+            const localBlock = localTimeBlocksMap[planId];
             const times = extractTimesFromItem(b);
             const sTime = times.start || "09:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
-            cleanPlanner.push({
-              id: isNaN(planId) ? planId : Number(planId),
-              date: normalizeDateString(b.date),
-              title: b.title || "Untitled Block",
-              startTime: sTime,
-              endTime: eTime,
-              timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
-              timeBlock: b.timeBlock || getTimeBlockName(sTime),
-              color: b.color || "indigo",
-              notes: b.notes || "",
-              actualStartTime: normalizeTimeString(b.actualStartTime) || "",
-              actualEndTime: normalizeTimeString(b.actualEndTime) || "",
-              actualNotes: b.actualNotes || "",
-              status: b.status || "Planned",
-              taskId: b.taskId ? Number(b.taskId) : null,
-              routineId: b.routineId ? Number(b.routineId) : null
-            });
+
+            // Use local version if it exists and is more recent (was edited locally), otherwise use remote
+            if (localBlock && localBlock.actualStartTime) {
+              cleanPlanner.push(localBlock);
+            } else {
+              cleanPlanner.push({
+                id: isNaN(planId) ? planId : Number(planId),
+                date: normalizeDateString(b.date),
+                title: b.title || "Untitled Block",
+                startTime: sTime,
+                endTime: eTime,
+                timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
+                timeBlock: b.timeBlock || getTimeBlockName(sTime),
+                color: b.color || "indigo",
+                notes: b.notes || "",
+                actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+                actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+                actualNotes: b.actualNotes || "",
+                status: b.status || "Planned",
+                taskId: b.taskId ? Number(b.taskId) : null,
+                routineId: b.routineId ? Number(b.routineId) : null
+              });
+            }
+          });
+          // Keep any local-only items that aren't in remote
+          Object.values(localTimeBlocksMap).forEach(localBlock => {
+            if (!seenPlan.has(String(localBlock.id).trim())) {
+              cleanPlanner.push(localBlock);
+            }
           });
           appData.timeBlocks = cleanPlanner;
         }
 
-        // 2. Routines
+        // 2. Routines - Merge with local changes
         if (json.routines && Array.isArray(json.routines)) {
           const seenRt = new Set();
           const cleanRoutines = [];
@@ -1449,25 +1497,39 @@
             const normTitle = (r.title || "").trim().toLowerCase();
             if (!normTitle || seenRt.has(normTitle)) return;
             seenRt.add(normTitle);
+
+            const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
+            const localRoutine = localRoutinesMap[rId];
             const times = extractTimesFromItem(r);
             const sTime = times.start || "07:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
-            const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
-            cleanRoutines.push({
-              id: isNaN(rId) ? rId : Number(rId),
-              title: r.title || "Routine",
-              startTime: sTime,
-              endTime: eTime,
-              timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
-              timeBlock: r.timeBlock || getTimeBlockName(sTime),
-              color: r.color || "amber",
-              days: r.days || "Everyday"
-            });
+
+            // Prefer local if it exists
+            if (localRoutine) {
+              cleanRoutines.push(localRoutine);
+            } else {
+              cleanRoutines.push({
+                id: isNaN(rId) ? rId : Number(rId),
+                title: r.title || "Routine",
+                startTime: sTime,
+                endTime: eTime,
+                timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
+                timeBlock: r.timeBlock || getTimeBlockName(sTime),
+                color: r.color || "amber",
+                days: r.days || "Everyday"
+              });
+            }
+          });
+          // Keep any local-only routines
+          Object.values(localRoutinesMap).forEach(localRoutine => {
+            if (!seenRt.has(String(localRoutine.id).trim())) {
+              cleanRoutines.push(localRoutine);
+            }
           });
           appData.routines = cleanRoutines;
         }
 
-        // 3. Habits
+        // 3. Habits - Merge with local changes
         if (json.habits && Array.isArray(json.habits)) {
           const seenHabit = new Set();
           const cleanHabits = [];
@@ -1484,20 +1546,31 @@
               hId = "hb_" + normName.replace(/\s+/g, '_');
             }
 
-            cleanHabits.push({
-              id: hId,
-              name: h.name || "Habit",
-              type: normalizeHabitType(h.type),
-              target: Number(h.target) || 0,
-              unit: h.unit || ""
-            });
+            const localHabit = localHabitsMap[String(hId).trim()];
+            if (localHabit) {
+              cleanHabits.push(localHabit);
+            } else {
+              cleanHabits.push({
+                id: hId,
+                name: h.name || "Habit",
+                type: normalizeHabitType(h.type),
+                target: Number(h.target) || 0,
+                unit: h.unit || ""
+              });
+            }
+          });
+          // Keep any local-only habits
+          Object.values(localHabitsMap).forEach(localHabit => {
+            if (!seenHabit.has((localHabit.name || "").trim().toLowerCase())) {
+              cleanHabits.push(localHabit);
+            }
           });
           if (cleanHabits.length > 0) appData.habits = cleanHabits;
         }
 
-        // 4. Habit Logs
+        // 4. Habit Logs - Merge with local (local takes precedence)
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
-          const map = {};
+          const remoteMap = {};
           json.habitLogs.forEach(l => {
             const dateStr = normalizeDateString(l.date);
             const key = `${String(l.habitId).trim()}_${dateStr}`;
@@ -1505,15 +1578,17 @@
                                 String(l.completed).trim().toLowerCase() === "yes" || 
                                 l.completed === true || 
                                 l.completed === 1;
-            map[key] = {
+            remoteMap[key] = {
               value: l.value !== undefined ? l.value : "",
               completed: isCompleted
             };
           });
-          appData.habitLogs = map;
+          // Merge: local takes precedence over remote
+          const merged = Object.assign({}, remoteMap, appData.habitLogs);
+          appData.habitLogs = merged;
         }
 
-        // 5. Tasks
+        // 5. Tasks - Merge with local changes
         if (json.tasks && Array.isArray(json.tasks)) {
           const seenTask = new Set();
           const cleanTasks = [];
@@ -1521,42 +1596,64 @@
             const tId = String(t.id).trim();
             if (!tId || seenTask.has(tId)) return;
             seenTask.add(tId);
+
+            const localTask = localTasksMap[tId];
             const times = extractTimesFromItem(t);
-            cleanTasks.push({
-              id: isNaN(tId) ? tId : Number(tId),
-              title: t.title || "Untitled Task",
-              priority: t.priority || "Med",
-              frequency: t.frequency || "once",
-              status: t.status || "Need to Start",
-              completed: String(t.completed).toUpperCase() === "TRUE",
-              date: normalizeDateString(t.date || t.scheduledDate || ""),
-              scheduledStartTime: times.start,
-              scheduledEndTime: times.end,
-              plannedMins: Number(t.plannedMins) || 30,
-              actualMins: Number(t.actualMins) || 0
-            });
+
+            // Prefer local if exists
+            if (localTask) {
+              cleanTasks.push(localTask);
+            } else {
+              cleanTasks.push({
+                id: isNaN(tId) ? tId : Number(tId),
+                title: t.title || "Untitled Task",
+                priority: t.priority || "Med",
+                frequency: t.frequency || "once",
+                status: t.status || "Need to Start",
+                completed: String(t.completed).toUpperCase() === "TRUE",
+                date: normalizeDateString(t.date || t.scheduledDate || ""),
+                scheduledStartTime: times.start,
+                scheduledEndTime: times.end,
+                plannedMins: Number(t.plannedMins) || 30,
+                actualMins: Number(t.actualMins) || 0
+              });
+            }
+          });
+          // Keep any local-only tasks
+          Object.values(localTasksMap).forEach(localTask => {
+            if (!seenTask.has(String(localTask.id).trim())) {
+              cleanTasks.push(localTask);
+            }
           });
           appData.tasks = cleanTasks;
         }
 
-        // 6. Focus Logs
+        // 6. Focus Logs - Merge with local
         if (json.focusLogs && Array.isArray(json.focusLogs)) {
-          appData.focusLogs = json.focusLogs.map(fl => ({
+          const remoteFocusLogs = json.focusLogs.map(fl => ({
             id: Number(fl.id) || Date.now() + Math.random(),
             label: fl.label || "Focus Session",
             duration: fl.duration || "00:00:00",
             timestamp: fl.timestamp || "",
             date: normalizeDateString(fl.date || getTodayKey())
           }));
+
+          const mergedFocusLogs = [...remoteFocusLogs];
+          Object.values(localFocusLogsMap).forEach(localLog => {
+            if (!remoteFocusLogs.find(rl => rl.id === localLog.id)) {
+              mergedFocusLogs.push(localLog);
+            }
+          });
+          appData.focusLogs = mergedFocusLogs;
         }
 
-        // 7. Daily Summaries
+        // 7. Daily Summaries - Merge with local
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
-          const sMap = {};
+          const remoteMap = {};
           json.dailySummaries.forEach(s => {
             const d = normalizeDateString(s.date);
             if (d) {
-              sMap[d] = {
+              remoteMap[d] = {
                 date: d,
                 goodThing: s.goodThing || "",
                 disliked: s.disliked || "",
@@ -1567,7 +1664,8 @@
               };
             }
           });
-          appData.dailySummaries = sMap;
+          // Merge: local takes precedence
+          appData.dailySummaries = Object.assign({}, remoteMap, appData.dailySummaries);
         }
 
         isRemoteDataLoaded = true;
@@ -2101,10 +2199,10 @@
         } else {
           controlHtml = `
             <div class="flex items-center gap-2 w-full sm:w-80">
-              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
-                     onchange="saveDescriptiveHabit('${hId}', this.value)" 
-                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)" 
-                     placeholder="Notes / routine details..." 
+              <input type="text" id="desc_input_${hId}" value="${log.value || ''}"
+                     onchange="saveDescriptiveHabit('${hId}', this.value)"
+                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)"
+                     placeholder="Notes / routine details..."
                      class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
               <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
                 ${isCompleted ? 'Done ✓' : 'Save'}
