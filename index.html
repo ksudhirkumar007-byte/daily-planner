@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-title" content="Daily Flow">
 
   <!-- Tailwind CSS CDN -->
-<link rel="stylesheet" href="./vendor/tailwind.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
-  <script src="./vendor/lucide.min.js"></script>
-  <!-- <script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -28,7 +28,7 @@
         }
       }
     }
-  </script> -->
+  </script>
   <style>
     body {
       -webkit-tap-highlight-color: transparent;
@@ -968,7 +968,9 @@
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
-    let needsSync = false;
+    let lastSyncTimestamp = 0;
+    let pendingSyncQueue = null;
+    let lastSyncedState = null;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1219,14 +1221,13 @@
         return;
       }
 
-      needsSync = true;
+      if (isSyncInProgress) {
+        pendingSyncQueue = JSON.parse(JSON.stringify(appData));
+        return;
+      }
 
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-      syncDebounceTimer = setTimeout(() => {
-        if (!isSyncInProgress) {
-          executeSyncPayload();
-        }
-      }, 500);
+      syncDebounceTimer = setTimeout(executeSyncPayload, 400);
     }
 
     function requestManualSync() {
@@ -1234,19 +1235,35 @@
       fetchRemoteData();
     }
 
+    function getChangedItems(current, previous, keyField = 'id') {
+      if (!previous) return current;
+      const prevMap = {};
+      (previous || []).forEach(item => { prevMap[item[keyField]] = item; });
+      return current.filter(item => {
+        const prevItem = prevMap[item[keyField]];
+        if (!prevItem) return true;
+        return JSON.stringify(item) !== JSON.stringify(prevItem);
+      });
+    }
+
+    function getChangedHabitLogs(current, previous) {
+      if (!previous) return current;
+      const changedLogs = {};
+      Object.keys(current).forEach(key => {
+        if (!previous[key] || JSON.stringify(current[key]) !== JSON.stringify(previous[key])) {
+          changedLogs[key] = current[key];
+        }
+      });
+      return changedLogs;
+    }
+
     async function executeSyncPayload() {
       if (isSyncInProgress) return;
-      if (!needsSync) {
-        setSyncStatus('synced');
-        return;
-      }
-
       isSyncInProgress = true;
-      needsSync = false;
       setSyncStatus('syncing');
 
       try {
-        const allTimeBlocks = (appData.timeBlocks || []).map(b => ({
+        const allTimeBlocks = appData.timeBlocks.map(b => ({
           id: String(b.id).trim(),
           date: normalizeDateString(b.date),
           title: b.title || "Untitled Block",
@@ -1264,7 +1281,7 @@
 
         const seenRt = new Set();
         const allRoutines = [];
-        (appData.routines || []).forEach(r => {
+        appData.routines.forEach(r => {
           const normTitle = (r.title || "").trim().toLowerCase();
           if (!normTitle || seenRt.has(normTitle)) return;
           seenRt.add(normTitle);
@@ -1278,7 +1295,7 @@
           });
         });
 
-        const allHabits = (appData.habits || []).map(h => ({
+        const allHabits = appData.habits.map(h => ({
           id: String(h.id).trim(),
           name: h.name || "Habit",
           type: h.type || "yesno",
@@ -1286,15 +1303,19 @@
           unit: h.unit || ""
         }));
 
-        const habitLogsArray = Object.keys(appData.habitLogs || {}).map(key => ({
+        const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
+        const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
+        const habitsPayload = getChangedItems(allHabits, lastSyncedState?.habits, 'id');
+        const habitLogsChanges = getChangedHabitLogs(appData.habitLogs, lastSyncedState?.habitLogs);
+        const habitLogsArray = Object.keys(habitLogsChanges).map(key => ({
           id: key,
           habitId: key.split('_')[0],
           date: key.split('_').slice(1).join('_'),
-          value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
-          completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
+          value: habitLogsChanges[key].value !== undefined ? String(habitLogsChanges[key].value) : "",
+          completed: habitLogsChanges[key].completed ? "TRUE" : "FALSE"
         }));
 
-        const allTasks = (appData.tasks || []).map(t => ({
+        const allTasks = appData.tasks.map(t => ({
           id: String(t.id).trim(),
           title: t.title || "Untitled Task",
           priority: t.priority || "Med",
@@ -1308,10 +1329,24 @@
           actualMins: Number(t.actualMins) || 0
         }));
 
-        const summariesArray = Object.keys(appData.dailySummaries || {}).map(date => ({
+        const tasksPayload = getChangedItems(allTasks, lastSyncedState?.tasks, 'id');
+        const focusLogsPayload = getChangedItems(appData.focusLogs, lastSyncedState?.focusLogs, 'id');
+        const summariesArray = Object.keys(appData.dailySummaries).map(date => ({
           date: normalizeDateString(date),
           ...(appData.dailySummaries[date] || {})
         }));
+        const summariesPayload = getChangedItems(summariesArray, lastSyncedState?.dailySummaries, 'date');
+
+        const hasChanges = plannerPayload.length > 0 || routinesPayload.length > 0 ||
+                          habitsPayload.length > 0 || habitLogsArray.length > 0 ||
+                          tasksPayload.length > 0 || focusLogsPayload.length > 0 ||
+                          summariesPayload.length > 0;
+
+        if (!hasChanges && lastSyncedState) {
+          setSyncStatus('synced');
+          isSyncInProgress = false;
+          return;
+        }
 
         const res = await fetch(appData.apiUrl, {
           method: "POST",
@@ -1320,31 +1355,43 @@
           body: JSON.stringify({
             action: "syncAll",
             data: {
-              planner: allTimeBlocks,
-              routines: allRoutines,
-              habits: allHabits,
+              planner: plannerPayload,
+              routines: routinesPayload,
+              habits: habitsPayload,
               habitLogs: habitLogsArray,
-              tasks: allTasks,
-              focusLogs: appData.focusLogs || [],
-              dailySummaries: summariesArray
+              tasks: tasksPayload,
+              focusLogs: focusLogsPayload,
+              dailySummaries: summariesPayload
             }
           })
         });
 
         if (res.ok) {
+          lastSyncedState = {
+            timeBlocks: allTimeBlocks,
+            routines: allRoutines,
+            habits: allHabits,
+            habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)),
+            tasks: allTasks,
+            focusLogs: appData.focusLogs,
+            dailySummaries: summariesArray
+          };
           setSyncStatus('synced');
         } else {
           setSyncStatus('error');
-          needsSync = true;
         }
       } catch (err) {
         console.error("Sync error:", err);
         setSyncStatus('error');
-        needsSync = true;
       } finally {
         isSyncInProgress = false;
-        if (needsSync) {
-          setTimeout(executeSyncPayload, 200);
+        lastSyncTimestamp = Date.now();
+        if (pendingSyncQueue) {
+          appData = JSON.parse(JSON.stringify(pendingSyncQueue));
+          pendingSyncQueue = null;
+          saveState();
+          if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+          syncDebounceTimer = setTimeout(executeSyncPayload, 400);
         }
       }
     }
@@ -3613,6 +3660,8 @@
       closeConfigModal();
       setTimeout(() => {
         isRemoteDataLoaded = false;
+        pendingSyncQueue = null;
+        lastSyncedState = null;
         fetchRemoteData();
       }, 100);
     }
