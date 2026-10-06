@@ -1351,7 +1351,7 @@
       }
     }
 
-    async function fetchRemoteData() {
+   async function fetchRemoteData() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
         return;
@@ -1364,69 +1364,43 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // Save local state before merging remote
-        const localTimeBlocksMap = {};
-        appData.timeBlocks.forEach(b => { localTimeBlocksMap[String(b.id).trim()] = b; });
-
-        const localRoutinesMap = {};
-        appData.routines.forEach(r => { localRoutinesMap[String(r.id).trim()] = r; });
-
-        const localHabitsMap = {};
-        appData.habits.forEach(h => { localHabitsMap[String(h.id).trim()] = h; });
-
-        const localTasksMap = {};
-        appData.tasks.forEach(t => { localTasksMap[String(t.id).trim()] = t; });
-
-        const localFocusLogsMap = {};
-        appData.focusLogs.forEach(fl => { localFocusLogsMap[fl.id] = fl; });
-
-        // 1. Planner - Merge with local changes
+        // 1. Planner - Overwrite cleanly from Sheets
         if (json.planner && Array.isArray(json.planner)) {
           const seenPlan = new Set();
           const cleanPlanner = [];
           json.planner.forEach(b => {
-            const planId = String(b.id).trim();
+            const planId = String(b.id || "").trim();
             if (!planId || seenPlan.has(planId)) return;
             seenPlan.add(planId);
 
-            const localBlock = localTimeBlocksMap[planId];
             const times = extractTimesFromItem(b);
             const sTime = times.start || "09:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
 
-            // Use local version if it exists and is more recent (was edited locally), otherwise use remote
-            if (localBlock && localBlock.actualStartTime) {
-              cleanPlanner.push(localBlock);
-            } else {
-              cleanPlanner.push({
-                id: isNaN(planId) ? planId : Number(planId),
-                date: normalizeDateString(b.date),
-                title: b.title || "Untitled Block",
-                startTime: sTime,
-                endTime: eTime,
-                timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
-                timeBlock: b.timeBlock || getTimeBlockName(sTime),
-                color: b.color || "indigo",
-                notes: b.notes || "",
-                actualStartTime: normalizeTimeString(b.actualStartTime) || "",
-                actualEndTime: normalizeTimeString(b.actualEndTime) || "",
-                actualNotes: b.actualNotes || "",
-                status: b.status || "Planned",
-                taskId: b.taskId ? Number(b.taskId) : null,
-                routineId: b.routineId ? Number(b.routineId) : null
-              });
-            }
-          });
-          // Keep any local-only items that aren't in remote
-          Object.values(localTimeBlocksMap).forEach(localBlock => {
-            if (!seenPlan.has(String(localBlock.id).trim())) {
-              cleanPlanner.push(localBlock);
-            }
+            cleanPlanner.push({
+              id: isNaN(planId) ? planId : Number(planId),
+              date: normalizeDateString(b.date),
+              title: b.title || "Untitled Block",
+              startTime: sTime,
+              endTime: eTime,
+              timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
+              timeBlock: b.timeBlock || getTimeBlockName(sTime),
+              color: b.color || "indigo",
+              notes: b.notes || "",
+              actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+              actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+              actualNotes: b.actualNotes || "",
+              status: b.status || "Planned",
+              taskId: b.taskId ? Number(b.taskId) : null,
+              routineId: b.routineId ? Number(b.routineId) : null
+            });
           });
           appData.timeBlocks = cleanPlanner;
+        } else {
+          appData.timeBlocks = [];
         }
 
-        // 2. Routines - Merge with local changes
+        // 2. Routines - Overwrite cleanly from Sheets
         if (json.routines && Array.isArray(json.routines)) {
           const seenRt = new Set();
           const cleanRoutines = [];
@@ -1436,37 +1410,27 @@
             seenRt.add(normTitle);
 
             const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
-            const localRoutine = localRoutinesMap[rId];
             const times = extractTimesFromItem(r);
             const sTime = times.start || "07:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
 
-            // Prefer local if it exists
-            if (localRoutine) {
-              cleanRoutines.push(localRoutine);
-            } else {
-              cleanRoutines.push({
-                id: isNaN(rId) ? rId : Number(rId),
-                title: r.title || "Routine",
-                startTime: sTime,
-                endTime: eTime,
-                timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
-                timeBlock: r.timeBlock || getTimeBlockName(sTime),
-                color: r.color || "amber",
-                days: r.days || "Everyday"
-              });
-            }
-          });
-          // Keep any local-only routines
-          Object.values(localRoutinesMap).forEach(localRoutine => {
-            if (!seenRt.has(String(localRoutine.id).trim())) {
-              cleanRoutines.push(localRoutine);
-            }
+            cleanRoutines.push({
+              id: isNaN(rId) ? rId : Number(rId),
+              title: r.title || "Routine",
+              startTime: sTime,
+              endTime: eTime,
+              timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
+              timeBlock: r.timeBlock || getTimeBlockName(sTime),
+              color: r.color || "amber",
+              days: r.days || "Everyday"
+            });
           });
           appData.routines = cleanRoutines;
+        } else {
+          appData.routines = [];
         }
 
-        // 3. Habits - Merge with local changes
+        // 3. Habits - Overwrite cleanly from Sheets
         if (json.habits && Array.isArray(json.habits)) {
           const seenHabit = new Set();
           const cleanHabits = [];
@@ -1483,29 +1447,20 @@
               hId = "hb_" + normName.replace(/\s+/g, '_');
             }
 
-            const localHabit = localHabitsMap[String(hId).trim()];
-            if (localHabit) {
-              cleanHabits.push(localHabit);
-            } else {
-              cleanHabits.push({
-                id: hId,
-                name: h.name || "Habit",
-                type: normalizeHabitType(h.type),
-                target: Number(h.target) || 0,
-                unit: h.unit || ""
-              });
-            }
+            cleanHabits.push({
+              id: hId,
+              name: h.name || "Habit",
+              type: normalizeHabitType(h.type),
+              target: Number(h.target) || 0,
+              unit: h.unit || ""
+            });
           });
-          // Keep any local-only habits
-          Object.values(localHabitsMap).forEach(localHabit => {
-            if (!seenHabit.has((localHabit.name || "").trim().toLowerCase())) {
-              cleanHabits.push(localHabit);
-            }
-          });
-          if (cleanHabits.length > 0) appData.habits = cleanHabits;
+          appData.habits = cleanHabits;
+        } else {
+          appData.habits = [];
         }
 
-        // 4. Habit Logs - Merge with local (local takes precedence)
+        // 4. Habit Logs - Overwrite cleanly from Sheets
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
           const remoteMap = {};
           json.habitLogs.forEach(l => {
@@ -1520,71 +1475,53 @@
               completed: isCompleted
             };
           });
-          // Merge: local takes precedence over remote
-          const merged = Object.assign({}, remoteMap, appData.habitLogs);
-          appData.habitLogs = merged;
+          appData.habitLogs = remoteMap;
+        } else {
+          appData.habitLogs = {};
         }
 
-        // 5. Tasks - Merge with local changes
+        // 5. Tasks - Overwrite cleanly from Sheets
         if (json.tasks && Array.isArray(json.tasks)) {
           const seenTask = new Set();
           const cleanTasks = [];
           json.tasks.forEach(t => {
-            const tId = String(t.id).trim();
+            const tId = String(t.id || "").trim();
             if (!tId || seenTask.has(tId)) return;
             seenTask.add(tId);
 
-            const localTask = localTasksMap[tId];
             const times = extractTimesFromItem(t);
 
-            // Prefer local if exists
-            if (localTask) {
-              cleanTasks.push(localTask);
-            } else {
-              cleanTasks.push({
-                id: isNaN(tId) ? tId : Number(tId),
-                title: t.title || "Untitled Task",
-                priority: t.priority || "Med",
-                frequency: t.frequency || "once",
-                status: t.status || "Need to Start",
-                completed: String(t.completed).toUpperCase() === "TRUE",
-                date: normalizeDateString(t.date || t.scheduledDate || ""),
-                scheduledStartTime: times.start,
-                scheduledEndTime: times.end,
-                plannedMins: Number(t.plannedMins) || 30,
-                actualMins: Number(t.actualMins) || 0
-              });
-            }
-          });
-          // Keep any local-only tasks
-          Object.values(localTasksMap).forEach(localTask => {
-            if (!seenTask.has(String(localTask.id).trim())) {
-              cleanTasks.push(localTask);
-            }
+            cleanTasks.push({
+              id: isNaN(tId) ? tId : Number(tId),
+              title: t.title || "Untitled Task",
+              priority: t.priority || "Med",
+              frequency: t.frequency || "once",
+              status: t.status || "Need to Start",
+              completed: String(t.completed).toUpperCase() === "TRUE",
+              date: normalizeDateString(t.date || t.scheduledDate || ""),
+              scheduledStartTime: times.start,
+              scheduledEndTime: times.end,
+              plannedMins: Number(t.plannedMins) || 30,
+              actualMins: Number(t.actualMins) || 0
+            });
           });
           appData.tasks = cleanTasks;
+        } else {
+          appData.tasks = [];
         }
 
-        // 6. Focus Logs - Merge with local
+        // 6. Focus Logs
         if (json.focusLogs && Array.isArray(json.focusLogs)) {
-          const remoteFocusLogs = json.focusLogs.map(fl => ({
+          appData.focusLogs = json.focusLogs.map(fl => ({
             id: Number(fl.id) || Date.now() + Math.random(),
             label: fl.label || "Focus Session",
             duration: fl.duration || "00:00:00",
             timestamp: fl.timestamp || "",
             date: normalizeDateString(fl.date || getTodayKey())
           }));
-
-          const mergedFocusLogs = [...remoteFocusLogs];
-          Object.values(localFocusLogsMap).forEach(localLog => {
-            if (!remoteFocusLogs.find(rl => rl.id === localLog.id)) {
-              mergedFocusLogs.push(localLog);
-            }
-          });
-          appData.focusLogs = mergedFocusLogs;
         }
 
-        // 7. Daily Summaries - Merge with local
+        // 7. Daily Summaries
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
           const remoteMap = {};
           json.dailySummaries.forEach(s => {
@@ -1601,8 +1538,7 @@
               };
             }
           });
-          // Merge: local takes precedence
-          appData.dailySummaries = Object.assign({}, remoteMap, appData.dailySummaries);
+          appData.dailySummaries = remoteMap;
         }
 
         isRemoteDataLoaded = true;
