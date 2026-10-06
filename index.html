@@ -2617,19 +2617,19 @@ const sTime = normalizeTimeString(task.scheduledStartTime || "");
   if (sTime && !eTime) {
     eTime = minutesToTime((timeToMinutes(sTime) + pMins) % 1440);
   }
-      document.getElementById('tmTaskId').value = task.id;
-      document.getElementById('tmTitle').value = task.title || "";
-      document.getElementById('tmPriority').value = task.priority || "Med";
-      document.getElementById('tmFrequency').value = (task.frequency || "once").toLowerCase();
-      document.getElementById('tmStatus').value = task.status || "Need to Start";
-      document.getElementById('tmDate').value = task.date || selectedPlannerDate;
-      document.getElementById('tmStartTime').value = task.scheduledStartTime || "";
-      document.getElementById('tmEndTime').value = task.scheduledEndTime || "";
-      document.getElementById('tmPlannedMins').value = task.plannedMins || 30;
-      document.getElementById('tmActualMins').value = task.actualMins || 0;
+     document.getElementById('tmTaskId').value = task.id;
+  document.getElementById('tmTitle').value = task.title || "";
+  document.getElementById('tmPriority').value = task.priority || "Med";
+  document.getElementById('tmFrequency').value = (task.frequency || "once").toLowerCase();
+  document.getElementById('tmStatus').value = task.status || "Need to Start";
+  document.getElementById('tmDate').value = task.date || selectedPlannerDate;
+  document.getElementById('tmStartTime').value = sTime;
+  document.getElementById('tmEndTime').value = eTime;
+  document.getElementById('tmPlannedMins').value = pMins;
+  document.getElementById('tmActualMins').value = task.actualMins || 0;
 
-      document.getElementById('taskModal').classList.remove('hidden');
-      lucide.createIcons();
+  document.getElementById('taskModal').classList.remove('hidden');
+  lucide.createIcons();
     }
 
     function openCreateScheduledTaskModal(startTime, endTime) {
