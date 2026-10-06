@@ -3,11 +3,11 @@ name: Build Tailwind CSS
 on:
   push:
     branches:
-      - main  # change to 'master' if your default branch is master
+      - main
     paths:
       - 'index.html'
       - 'src/**'
-
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
