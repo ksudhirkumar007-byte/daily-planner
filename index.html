@@ -971,64 +971,14 @@
       return 'yesno';
     }
 
+   // ---------- Core State & Defaults (Clean, Empty State) ----------
     const defaultState = {
       apiUrl: localStorage.getItem('daily_flow_api_url') || "",
-      timeBlocks: [
-        {
-          id: 1,
-          date: getTodayKey(),
-          title: "Deep Work Session",
-          startTime: "09:00",
-          endTime: "11:30",
-          color: "indigo",
-          notes: "Architecture and feature builds",
-          actualStartTime: "09:05",
-          actualEndTime: "11:30",
-          actualNotes: "On schedule, high focus",
-          status: "Completed",
-          taskId: null,
-          routineId: null
-        }
-      ],
-      routines: [
-        { id: 101, title: "Morning Workout & Stretch", startTime: "07:00", endTime: "08:00", color: "emerald", days: "Everyday" },
-        { id: 102, title: "Evening Shutdown & Plan", startTime: "18:00", endTime: "18:30", color: "purple", days: "Everyday" }
-      ],
-      habits: [
-        { id: 1, name: "Strength Training", type: "descriptive", unit: "", target: 0 },
-        { id: 2, name: "Water Intake", type: "number", unit: "liters", target: 3 },
-        { id: 3, name: "Reading", type: "number", unit: "pages", target: 20 },
-        { id: 4, name: "Cold Shower", type: "yesno", unit: "", target: 1 }
-      ],
+      timeBlocks: [],
+      routines: [],
+      habits: [],
       habitLogs: {},
-      tasks: [
-        {
-          id: 1001,
-          title: "Review Sprint Pull Requests",
-          priority: "High",
-          frequency: "weekdays",
-          status: "Need to Start",
-          completed: false,
-          date: getTodayKey(),
-          scheduledStartTime: "14:30",
-          scheduledEndTime: "15:30",
-          plannedMins: 60,
-          actualMins: 0
-        },
-        {
-          id: 1002,
-          title: "Respond to Client Inquiries",
-          priority: "Med",
-          frequency: "daily",
-          status: "Need to Start",
-          completed: false,
-          date: getTodayKey(),
-          scheduledStartTime: "16:00",
-          scheduledEndTime: "17:00",
-          plannedMins: 60,
-          actualMins: 0
-        }
-      ],
+      tasks: [],
       taskAnalytics: [],
       habitAnalytics: [],
       focusLogs: [],
@@ -1037,12 +987,11 @@
 
     let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
 
-    if (!appData.timeBlocks) appData.timeBlocks = defaultState.timeBlocks;
-    if (!appData.routines) appData.routines = defaultState.routines;
-    if (!Array.isArray(appData.habits)) appData.habits = defaultState.habits;
-    if (appData.habits.length === 0) appData.habits = JSON.parse(JSON.stringify(defaultState.habits));
+    if (!Array.isArray(appData.timeBlocks)) appData.timeBlocks = [];
+    if (!Array.isArray(appData.routines)) appData.routines = [];
+    if (!Array.isArray(appData.habits)) appData.habits = [];
     if (!appData.habitLogs) appData.habitLogs = {};
-    if (!appData.tasks) appData.tasks = defaultState.tasks;
+    if (!Array.isArray(appData.tasks)) appData.tasks = [];
     if (!appData.taskAnalytics) appData.taskAnalytics = [];
     if (!appData.habitAnalytics) appData.habitAnalytics = [];
     if (!appData.focusLogs) appData.focusLogs = [];
