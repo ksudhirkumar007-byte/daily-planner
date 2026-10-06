@@ -1186,7 +1186,6 @@ function autoCalculateTaskPlannedMins() {
     }
 
     let syncPending = false;
-    let syncDebounceTimer = null;
 
     function syncToRemote() {
       // 1. Instantly persist to device localStorage first (guarantees offline safety)
