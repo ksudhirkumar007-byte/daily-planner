@@ -725,6 +725,12 @@
   </div>
 
   <!-- MODAL: Task Detail -->
+  <!-- In MODAL: Task Detail -->
+<input type="time" id="tmStartTime" oninput="autoCalculateTaskEndTime()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+
+<input type="time" id="tmEndTime" oninput="autoCalculateTaskPlannedMins()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+
+<input type="number" id="tmPlannedMins" oninput="autoCalculateTaskEndTime()" placeholder="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
   <div id="taskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -1124,6 +1130,38 @@
       }
       return s;
     }
+    function autoCalculateTaskEndTime() {
+  const startEl = document.getElementById('tmStartTime');
+  const durEl = document.getElementById('tmPlannedMins');
+  const endEl = document.getElementById('tmEndTime');
+  
+  if (!startEl || !durEl || !endEl) return;
+  const startVal = startEl.value;
+  const dur = Number(durEl.value) || 0;
+  
+  if (startVal && dur > 0) {
+    const sMins = timeToMinutes(normalizeTimeString(startVal));
+    const eMins = (sMins + dur) % 1440; // clamp within 24h
+    endEl.value = minutesToTime(eMins);
+  }
+}
+
+function autoCalculateTaskPlannedMins() {
+  const startEl = document.getElementById('tmStartTime');
+  const endEl = document.getElementById('tmEndTime');
+  const durEl = document.getElementById('tmPlannedMins');
+  
+  if (!startEl || !durEl || !endEl) return;
+  const startVal = startEl.value;
+  const endVal = endEl.value;
+  
+  if (startVal && endVal) {
+    const sMins = timeToMinutes(normalizeTimeString(startVal));
+    let eMins = timeToMinutes(normalizeTimeString(endVal));
+    if (eMins < sMins) eMins += 1440;
+    durEl.value = eMins - sMins;
+  }
+}
 
     // ---------- Sync Engine ----------
     function setSyncStatus(state) {
@@ -2571,7 +2609,14 @@
     function openEditTaskModal(id) {
       const task = appData.tasks.find(t => String(t.id) === String(id));
       if (!task) return;
+const sTime = normalizeTimeString(task.scheduledStartTime || "");
+  let eTime = normalizeTimeString(task.scheduledEndTime || "");
+  const pMins = Number(task.plannedMins) || 30;
 
+  // Auto-fill end time if start time exists but end time was missing
+  if (sTime && !eTime) {
+    eTime = minutesToTime((timeToMinutes(sTime) + pMins) % 1440);
+  }
       document.getElementById('tmTaskId').value = task.id;
       document.getElementById('tmTitle').value = task.title || "";
       document.getElementById('tmPriority').value = task.priority || "Med";
