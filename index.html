@@ -1147,26 +1147,26 @@
       }
     }
 
-    // Track the state at sync start to detect user edits during sync
-    let syncStartSnapshot = null;
+   let isSyncInProgress = false;
+    let syncPending = false;
+    let syncDebounceTimer = null;
 
     function syncToRemote() {
+      // 1. Instantly persist to device localStorage first (guarantees offline safety)
       saveState();
+
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
         return;
       }
-      if (!isRemoteDataLoaded) {
-        fetchRemoteData();
-        return;
-      }
 
+      // 2. If a sync request is actively in the air, queue the next one
       if (isSyncInProgress) {
-        // Mark that a sync is pending; don't capture full state
-        pendingSyncQueue = true;
+        syncPending = true;
         return;
       }
 
+      // 3. Clear existing debounce timer and schedule execution (400ms)
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       syncDebounceTimer = setTimeout(executeSyncPayload, 400);
     }
@@ -1199,109 +1199,92 @@
     }
 
     async function executeSyncPayload() {
-      if (isSyncInProgress) return;
+      if (isSyncInProgress) {
+        syncPending = true;
+        return;
+      }
+
       isSyncInProgress = true;
-
-      // Capture snapshot BEFORE marking as syncing to preserve edits made during sync
-      syncStartSnapshot = {
-        timeBlocks: JSON.parse(JSON.stringify(appData.timeBlocks)),
-        routines: JSON.parse(JSON.stringify(appData.routines)),
-        habits: JSON.parse(JSON.stringify(appData.habits)),
-        habitLogs: JSON.parse(JSON.stringify(appData.habitLogs)),
-        tasks: JSON.parse(JSON.stringify(appData.tasks)),
-        focusLogs: JSON.parse(JSON.stringify(appData.focusLogs)),
-        dailySummaries: JSON.parse(JSON.stringify(appData.dailySummaries))
-      };
-
+      syncPending = false;
       setSyncStatus('syncing');
 
-      try {
-        const allTimeBlocks = syncStartSnapshot.timeBlocks.map(b => ({
-          id: String(b.id).trim(),
-          date: normalizeDateString(b.date),
-          title: b.title || "Untitled Block",
-          startTime: normalizeTimeString(b.startTime) || "09:00",
-          endTime: normalizeTimeString(b.endTime) || "10:00",
-          color: b.color || "indigo",
-          notes: b.notes || "",
-          actualStartTime: normalizeTimeString(b.actualStartTime) || "",
-          actualEndTime: normalizeTimeString(b.actualEndTime) || "",
-          actualNotes: b.actualNotes || "",
-          status: b.status || "Planned",
-          taskId: b.taskId ? String(b.taskId).trim() : "",
-          routineId: b.routineId ? String(b.routineId).trim() : ""
-        }));
+      // Always snapshot current appData at execution time
+      const timeBlocksPayload = (appData.timeBlocks || []).map(b => ({
+        id: String(b.id || "").trim(),
+        date: normalizeDateString(b.date),
+        title: b.title || "Untitled Block",
+        startTime: normalizeTimeString(b.startTime) || "09:00",
+        endTime: normalizeTimeString(b.endTime) || "10:00",
+        color: b.color || "indigo",
+        notes: b.notes || "",
+        actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+        actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+        actualNotes: b.actualNotes || "",
+        status: b.status || "Planned",
+        taskId: b.taskId ? String(b.taskId).trim() : "",
+        routineId: b.routineId ? String(b.routineId).trim() : ""
+      }));
 
-        const seenRt = new Set();
-        const allRoutines = [];
-        syncStartSnapshot.routines.forEach(r => {
-          const normTitle = (r.title || "").trim().toLowerCase();
-          if (!normTitle || seenRt.has(normTitle)) return;
-          seenRt.add(normTitle);
-          allRoutines.push({
-            id: String(r.id),
-            title: r.title || "Routine",
-            startTime: normalizeTimeString(r.startTime) || "07:00",
-            endTime: normalizeTimeString(r.endTime) || "08:00",
-            color: r.color || "amber",
-            days: r.days || "Everyday"
-          });
+      const seenRt = new Set();
+      const routinesPayload = [];
+      (appData.routines || []).forEach(r => {
+        const normTitle = (r.title || "").trim().toLowerCase();
+        if (!normTitle || seenRt.has(normTitle)) return;
+        seenRt.add(normTitle);
+        routinesPayload.push({
+          id: String(r.id || ""),
+          title: r.title || "Routine",
+          startTime: normalizeTimeString(r.startTime) || "07:00",
+          endTime: normalizeTimeString(r.endTime) || "08:00",
+          color: r.color || "amber",
+          days: r.days || "Everyday"
         });
+      });
 
-        const allHabits = syncStartSnapshot.habits.map(h => ({
-          id: String(h.id).trim(),
-          name: h.name || "Habit",
-          type: h.type || "yesno",
-          target: Number(h.target) || 0,
-          unit: h.unit || ""
-        }));
+      const habitsPayload = (appData.habits || []).map(h => ({
+        id: String(h.id || "").trim(),
+        name: h.name || "Habit",
+        type: h.type || "yesno",
+        target: Number(h.target) || 0,
+        unit: h.unit || ""
+      }));
 
-        const plannerPayload = getChangedItems(allTimeBlocks, lastSyncedState?.timeBlocks, 'id');
-        const routinesPayload = getChangedItems(allRoutines, lastSyncedState?.routines, 'id');
-        const habitsPayload = getChangedItems(allHabits, lastSyncedState?.habits, 'id');
-        const habitLogsChanges = getChangedHabitLogs(syncStartSnapshot.habitLogs, lastSyncedState?.habitLogs);
-        const habitLogsArray = Object.keys(habitLogsChanges).map(key => ({
-          id: key,
-          habitId: key.split('_')[0],
-          date: key.split('_').slice(1).join('_'),
-          value: habitLogsChanges[key].value !== undefined ? String(habitLogsChanges[key].value) : "",
-          completed: habitLogsChanges[key].completed ? "TRUE" : "FALSE"
-        }));
+      const habitLogsArray = Object.keys(appData.habitLogs || {}).map(key => ({
+        id: key,
+        habitId: key.split('_')[0],
+        date: key.split('_').slice(1).join('_'),
+        value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
+        completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
+      }));
 
-        const allTasks = syncStartSnapshot.tasks.map(t => ({
-          id: String(t.id).trim(),
-          title: t.title || "Untitled Task",
-          priority: t.priority || "Med",
-          frequency: t.frequency || "once",
-          status: t.status || "Need to Start",
-          completed: t.completed ? "TRUE" : "FALSE",
-          scheduledDate: normalizeDateString(t.date || t.scheduledDate || ""),
-          scheduledStartTime: normalizeTimeString(t.scheduledStartTime || ""),
-          scheduledEndTime: normalizeTimeString(t.scheduledEndTime || ""),
-          plannedMins: Number(t.plannedMins) || 30,
-          actualMins: Number(t.actualMins) || 0
-        }));
+      const tasksPayload = (appData.tasks || []).map(t => ({
+        id: String(t.id || "").trim(),
+        title: t.title || "Untitled Task",
+        priority: t.priority || "Med",
+        frequency: t.frequency || "once",
+        status: t.status || "Need to Start",
+        completed: t.completed ? "TRUE" : "FALSE",
+        scheduledDate: normalizeDateString(t.date || t.scheduledDate || ""),
+        scheduledStartTime: normalizeTimeString(t.scheduledStartTime || ""),
+        scheduledEndTime: normalizeTimeString(t.scheduledEndTime || ""),
+        plannedMins: Number(t.plannedMins) || 30,
+        actualMins: Number(t.actualMins) || 0
+      }));
 
-        const tasksPayload = getChangedItems(allTasks, lastSyncedState?.tasks, 'id');
-        const focusLogsPayload = getChangedItems(syncStartSnapshot.focusLogs, lastSyncedState?.focusLogs, 'id');
-        const summariesArray = Object.keys(syncStartSnapshot.dailySummaries).map(date => ({
-          date: normalizeDateString(date),
-          ...(syncStartSnapshot.dailySummaries[date] || {})
-        }));
-        const summariesPayload = getChangedItems(summariesArray, lastSyncedState?.dailySummaries, 'date');
+      const focusLogsPayload = (appData.focusLogs || []).map(fl => ({
+        id: String(fl.id || ""),
+        label: fl.label || "Focus Session",
+        duration: fl.duration || "00:00:00",
+        timestamp: fl.timestamp || "",
+        date: normalizeDateString(fl.date || getTodayKey())
+      }));
 
-        const hasChanges = plannerPayload.length > 0 || routinesPayload.length > 0 ||
-                          habitsPayload.length > 0 || habitLogsArray.length > 0 ||
-                          tasksPayload.length > 0 || focusLogsPayload.length > 0 ||
-                          summariesPayload.length > 0;
+      const summariesPayload = Object.keys(appData.dailySummaries || {}).map(date => ({
+        date: normalizeDateString(date),
+        ...(appData.dailySummaries[date] || {})
+      }));
 
-        if (!hasChanges && lastSyncedState) {
-          setSyncStatus('synced');
-          isSyncInProgress = false;
-          syncStartSnapshot = null;
-          return;
-        }
-
+      try {
         const res = await fetch(appData.apiUrl, {
           method: "POST",
           redirect: "follow",
@@ -1309,7 +1292,7 @@
           body: JSON.stringify({
             action: "syncAll",
             data: {
-              planner: plannerPayload,
+              planner: timeBlocksPayload,
               routines: routinesPayload,
               habits: habitsPayload,
               habitLogs: habitLogsArray,
@@ -1321,32 +1304,21 @@
         });
 
         if (res.ok) {
-          lastSyncedState = {
-            timeBlocks: allTimeBlocks,
-            routines: allRoutines,
-            habits: allHabits,
-            habitLogs: JSON.parse(JSON.stringify(syncStartSnapshot.habitLogs)),
-            tasks: allTasks,
-            focusLogs: syncStartSnapshot.focusLogs,
-            dailySummaries: summariesArray
-          };
           setSyncStatus('synced');
         } else {
           setSyncStatus('error');
         }
       } catch (err) {
-        console.error("Sync error:", err);
         setSyncStatus('error');
       } finally {
         isSyncInProgress = false;
-        lastSyncTimestamp = Date.now();
-        syncStartSnapshot = null;
 
-        // If sync was requested during execution, queue another sync
-        if (pendingSyncQueue === true) {
-          pendingSyncQueue = null;
+        // If the user made any clicks/edits while this network call was active,
+        // fire another sync immediately so no mid-flight changes are lost.
+        if (syncPending) {
+          syncPending = false;
           if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-          syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+          syncDebounceTimer = setTimeout(executeSyncPayload, 200);
         }
       }
     }
