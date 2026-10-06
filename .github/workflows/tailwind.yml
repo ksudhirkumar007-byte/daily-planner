@@ -1,41 +1,8 @@
-name: Build Tailwind CSS
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'index.html'
-      - 'src/**'
-  workflow_dispatch:
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Build Minified Tailwind CSS
+- name: Build Minified Tailwind CSS
         run: |
-          mkdir -p vendor
-          npx tailwindcss -i ./src/input.css -o ./vendor/tailwind.min.css --content "./index.html" --minify
-
-      - name: Commit and Push Compiled CSS
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add vendor/tailwind.min.css
-          if git diff --staged --quiet; then
-            echo "No CSS changes to commit"
-          else
-            git commit -m "Auto-compiled vendor/tailwind.min.css [skip ci]"
-            git push
-          fi
+          mkdir -p src vendor
+          # Generate input CSS directives if missing
+          echo -e "@tailwind base;\n@tailwind components;\n@tailwind utilities;" > src/input.css
+          # Install Tailwind CLI v3 explicitly, then build
+          npm install -g tailwindcss@3
+          tailwindcss -i ./src/input.css -o ./vendor/tailwind.min.css --content "./index.html" --minify
