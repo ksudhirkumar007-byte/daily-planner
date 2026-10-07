@@ -2653,63 +2653,75 @@ const sTime = normalizeTimeString(task.scheduledStartTime || "");
     }
 
     function handleSaveTaskDetail(e) {
-      e.preventDefault();
-      const rawId = document.getElementById('tmTaskId').value;
-      const title = document.getElementById('tmTitle').value.trim();
-      const priority = document.getElementById('tmPriority').value;
-      const frequency = document.getElementById('tmFrequency').value;
-      const status = document.getElementById('tmStatus').value;
-      const date = document.getElementById('tmDate').value;
-      const scheduledStartTime = document.getElementById('tmStartTime').value;
-      const scheduledEndTime = document.getElementById('tmEndTime').value;
-      const plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
-      const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
+  e.preventDefault();
+  const rawId = document.getElementById('tmTaskId').value;
+  const title = document.getElementById('tmTitle').value.trim();
+  const priority = document.getElementById('tmPriority').value;
+  const frequency = document.getElementById('tmFrequency').value;
+  const status = document.getElementById('tmStatus').value;
+  const date = document.getElementById('tmDate').value;
+  let scheduledStartTime = normalizeTimeString(document.getElementById('tmStartTime').value);
+  let scheduledEndTime = normalizeTimeString(document.getElementById('tmEndTime').value);
+  let plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
+  const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
 
-      if (!title) return;
+  if (!title) return;
 
-      if (rawId) {
-        const t = appData.tasks.find(x => String(x.id) === String(rawId));
-        if (t) {
-          t.title = title;
-          t.priority = priority;
-          t.frequency = frequency;
-          t.status = status;
-          t.completed = (status === "Completed");
-          t.date = date;
-          t.scheduledStartTime = scheduledStartTime;
-          t.scheduledEndTime = scheduledEndTime;
-          t.plannedMins = plannedMins;
-          t.actualMins = actualMins;
-        }
-      } else {
-        appData.tasks.unshift({
-          id: Date.now(),
-          title,
-          priority,
-          frequency,
-          status,
-          completed: (status === "Completed"),
-          date,
-          scheduledStartTime,
-          scheduledEndTime,
-          plannedMins,
-          actualMins
-        });
-      }
-
-      closeTaskModal();
-
-      const savedTask = rawId ?
-        appData.tasks.find(x => String(x.id) === String(rawId)) :
-        appData.tasks[0];
-
-      if (savedTask) captureTaskAnalytics(savedTask);
-
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
+  // Compute and persist endTime if startTime is set
+  if (scheduledStartTime) {
+    if (!scheduledEndTime) {
+      scheduledEndTime = minutesToTime((timeToMinutes(scheduledStartTime) + plannedMins) % 1440);
+    } else {
+      const sM = timeToMinutes(scheduledStartTime);
+      let eM = timeToMinutes(scheduledEndTime);
+      if (eM <= sM) eM += 1440;
+      plannedMins = eM - sM;
     }
+  }
+
+  if (rawId) {
+    const t = appData.tasks.find(x => String(x.id) === String(rawId));
+    if (t) {
+      t.title = title;
+      t.priority = priority;
+      t.frequency = frequency;
+      t.status = status;
+      t.completed = (status === "Completed");
+      t.date = date;
+      t.scheduledStartTime = scheduledStartTime;
+      t.scheduledEndTime = scheduledEndTime; // 👈 Persisted permanently
+      t.plannedMins = plannedMins;
+      t.actualMins = actualMins;
+    }
+  } else {
+    appData.tasks.unshift({
+      id: Date.now(),
+      title,
+      priority,
+      frequency,
+      status,
+      completed: (status === "Completed"),
+      date,
+      scheduledStartTime,
+      scheduledEndTime, // 👈 Persisted permanently
+      plannedMins,
+      actualMins
+    });
+  }
+
+  closeTaskModal();
+
+  const savedTask = rawId ?
+    appData.tasks.find(x => String(x.id) === String(rawId)) :
+    appData.tasks[0];
+
+  if (savedTask) captureTaskAnalytics(savedTask);
+
+  renderTasks();
+  render24HourPlanner();
+  renderAnalytics();
+  syncToRemote();
+}
 
     function deleteTask(id) {
       appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
