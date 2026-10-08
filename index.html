@@ -720,17 +720,11 @@
             </button>
           </div>
         </div>
-      </form>
+     </form>
     </div>
   </div>
 
   <!-- MODAL: Task Detail -->
-  <!-- In MODAL: Task Detail -->
-<input type="time" id="tmStartTime" oninput="autoCalculateTaskEndTime()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
-
-<input type="time" id="tmEndTime" oninput="autoCalculateTaskPlannedMins()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
-
-<input type="number" id="tmPlannedMins" oninput="autoCalculateTaskEndTime()" placeholder="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
   <div id="taskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -792,17 +786,17 @@
           <div class="grid grid-cols-2 gap-2.5">
             <div>
               <label class="block text-[10px] text-slate-500 mb-1">Start Time</label>
-              <input type="time" id="tmStartTime" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+              <input type="time" id="tmStartTime" oninput="autoCalculateTaskEndTime()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
             </div>
             <div>
               <label class="block text-[10px] text-slate-500 mb-1">End Time</label>
-              <input type="time" id="tmEndTime" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+              <input type="time" id="tmEndTime" oninput="autoCalculateTaskPlannedMins()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2.5">
             <div>
               <label class="block text-[10px] text-slate-500 mb-1">Planned Mins</label>
-              <input type="number" id="tmPlannedMins" placeholder="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+              <input type="number" id="tmPlannedMins" oninput="autoCalculateTaskEndTime()" placeholder="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
             </div>
             <div>
               <label class="block text-[10px] text-slate-500 mb-1">Actual Mins</label>
@@ -815,57 +809,6 @@
           <button type="button" onclick="closeTaskModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
           <button type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
             Save Task
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: Habits -->
-  <div id="habitModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
-      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-        <h3 id="habitModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> New Habit
-        </h3>
-        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="habitForm" onsubmit="handleSaveHabit(event)" class="space-y-3.5">
-        <input type="hidden" id="hmHabitId" value="">
-
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Habit Name</label>
-          <input type="text" id="hmName" required placeholder="e.g. Morning Workout, Drink Water, Read 20 Pages" 
-                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Tracking Type</label>
-          <select id="hmType" onchange="onHabitTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none">
-            <option value="yesno">Yes / No (Completion Check)</option>
-            <option value="number">Numeric (e.g. 8 Glasses, 20 Pages, 2.5 Liters)</option>
-            <option value="descriptive">Descriptive / Notes (e.g. Workout Details, Journaling)</option>
-          </select>
-        </div>
-
-        <div id="hmNumberFields" class="hidden grid grid-cols-2 gap-2.5 p-3 bg-slate-950 rounded-xl border border-slate-800">
-          <div>
-            <label class="block text-[10px] text-slate-500 mb-1">Target Number</label>
-            <input type="number" step="any" inputmode="decimal" id="hmTarget" placeholder="e.g. 3, 20" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-500 mb-1">Unit Label</label>
-            <input type="text" id="hmUnit" placeholder="liters, pages, mins" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-          <button type="button" onclick="closeHabitModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
-          <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
-            Save Habit
           </button>
         </div>
       </form>
