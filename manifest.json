@@ -1,9 +1,9 @@
 {
-  "id": "./",
+  "id": "/daily-planner/",
   "name": "Daily Flow Planner",
   "short_name": "DailyFlow",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/daily-planner/",
+  "scope": "/daily-planner/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#020617",
