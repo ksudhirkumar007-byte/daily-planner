@@ -13,9 +13,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daily Flow">
 
-  <!-- Tailwind CSS Local - Minified (pre-compiled) -->
+  <!-- Tailwind CSS Local - Minified -->
   <link rel="stylesheet" href="vendor/tailwind.min.css">
-  <!-- Lucide Icons Local - v0.552.0 -->
+  <!-- Lucide Icons Local -->
   <script src="vendor/lucide.min.js"></script>
   <style>
     body {
@@ -335,15 +335,20 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-2 border-b border-slate-800/80">
         <div>
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Priority & Schedule Tasks
+            <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Tasks Manager
           </h2>
-          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Timebound, priority-ranked, and recurring focus tasks.</p>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Pending, overdue backlog, and timebound schedule tasks.</p>
         </div>
 
+        <!-- Distinct Tabs: Pending, Backlog, Timebound, All -->
         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-          <button id="taskFilterBtn_ACTIVE" onclick="setTaskFilter('ACTIVE')" class="px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">Pending</button>
-          <button id="taskFilterBtn_ALL" onclick="setTaskFilter('ALL')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All</button>
+          <button id="taskFilterBtn_PENDING" onclick="setTaskFilter('PENDING')" class="px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">Pending</button>
+          <button id="taskFilterBtn_BACKLOG" onclick="setTaskFilter('BACKLOG')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95 flex items-center gap-1">
+            <span>Backlog</span>
+            <span id="backlogCountBadge" class="px-1 py-0.2 rounded-full text-[9px] font-mono bg-rose-950/80 text-rose-300 border border-rose-800/60 hidden">0</span>
+          </button>
           <button id="taskFilterBtn_SCHEDULED" onclick="setTaskFilter('SCHEDULED')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">Timebound</button>
+          <button id="taskFilterBtn_ALL" onclick="setTaskFilter('ALL')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All</button>
         </div>
       </div>
 
@@ -537,7 +542,7 @@
             <div class="mb-4 pb-4 border-b border-slate-800/50">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-[11px] font-mono font-semibold text-amber-400 flex items-center gap-1">
-                  <i data-lucide="alert-triangle" class="w-3 h-3"></i> Friction Points
+                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Friction Points
                 </span>
                 <span class="text-[9px] text-slate-500 font-mono">Most Missed</span>
               </div>
@@ -547,7 +552,7 @@
             <div>
               <div class="flex items-center justify-between mb-3">
                 <span class="text-[11px] font-mono font-semibold text-emerald-400 flex items-center gap-1">
-                  <i data-lucide="trending-up" class="w-3 h-3"></i> Individual Performance
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Individual Performance
                 </span>
                 <span class="text-[9px] text-slate-500 font-mono">Detailed View</span>
               </div>
@@ -720,56 +725,6 @@
             </button>
           </div>
         </div>
-     </form>
-    </div>
-  </div>
-  <!-- MODAL: Habits -->
-  <div id="habitModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
-      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-        <h3 id="habitModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> New Habit
-        </h3>
-        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="habitForm" onsubmit="handleSaveHabit(event)" class="space-y-3.5">
-        <input type="hidden" id="hmHabitId" value="">
-
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Habit Name</label>
-          <input type="text" id="hmName" required placeholder="e.g. Morning Workout, Drink Water" 
-                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Tracking Type</label>
-          <select id="hmType" onchange="onHabitTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none">
-            <option value="yesno">Yes / No (Completion Check)</option>
-            <option value="number">Numeric (e.g. 8 Glasses, 20 Pages)</option>
-            <option value="descriptive">Descriptive / Notes</option>
-          </select>
-        </div>
-
-        <div id="hmNumberFields" class="hidden grid grid-cols-2 gap-2.5 p-3 bg-slate-950 rounded-xl border border-slate-800">
-          <div>
-            <label class="block text-[10px] text-slate-500 mb-1">Target Number</label>
-            <input type="number" step="any" inputmode="decimal" id="hmTarget" placeholder="e.g. 3, 20" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-500 mb-1">Unit Label</label>
-            <input type="text" id="hmUnit" placeholder="liters, pages, mins" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-          <button type="button" onclick="closeHabitModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
-          <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
-            Save Habit
-          </button>
-        </div>
       </form>
     </div>
   </div>
@@ -865,6 +820,57 @@
     </div>
   </div>
 
+  <!-- MODAL: Habits -->
+  <div id="habitModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <h3 id="habitModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> New Habit
+        </h3>
+        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="habitForm" onsubmit="handleSaveHabit(event)" class="space-y-3.5">
+        <input type="hidden" id="hmHabitId" value="">
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Habit Name</label>
+          <input type="text" id="hmName" required placeholder="e.g. Morning Workout, Drink Water" 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Tracking Type</label>
+          <select id="hmType" onchange="onHabitTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none">
+            <option value="yesno">Yes / No (Completion Check)</option>
+            <option value="number">Numeric (e.g. 8 Glasses, 20 Pages)</option>
+            <option value="descriptive">Descriptive / Notes</option>
+          </select>
+        </div>
+
+        <div id="hmNumberFields" class="hidden grid grid-cols-2 gap-2.5 p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div>
+            <label class="block text-[10px] text-slate-500 mb-1">Target Number</label>
+            <input type="number" step="any" inputmode="decimal" id="hmTarget" placeholder="e.g. 3, 20" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-500 mb-1">Unit Label</label>
+            <input type="text" id="hmUnit" placeholder="liters, pages, mins" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeHabitModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
+            Save Habit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: Routines -->
   <div id="routineModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
@@ -950,14 +956,12 @@
     };
 
     let selectedPlannerDate = getTodayKey();
-    let currentTaskFilter = 'ACTIVE';
+    let currentTaskFilter = 'PENDING';
     let currentAnalyticsWindow = 7;
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
-    let lastSyncTimestamp = 0;
-    let pendingSyncQueue = null;
-    let lastSyncedState = null;
+    let syncPending = false;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -970,7 +974,6 @@
       return 'yesno';
     }
 
-   // ---------- Core State & Defaults (Clean, Empty State) ----------
     const defaultState = {
       apiUrl: localStorage.getItem('daily_flow_api_url') || "",
       timeBlocks: [],
@@ -1007,28 +1010,42 @@
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ---------- Recurrence Matcher ----------
+    // ---------- Recurrence Spawner & Matcher ----------
+    function computeNextRecurrenceDate(fromDateStr, frequency) {
+      const d = new Date(fromDateStr + "T00:00:00");
+      const freq = (frequency || "once").toLowerCase();
+
+      if (freq === "daily") {
+        d.setDate(d.getDate() + 1);
+      } else if (freq === "weekdays") {
+        const day = d.getDay();
+        if (day === 5) d.setDate(d.getDate() + 3);
+        else if (day === 6) d.setDate(d.getDate() + 2);
+        else d.setDate(d.getDate() + 1);
+      } else if (freq === "weekends") {
+        const day = d.getDay();
+        if (day === 6) d.setDate(d.getDate() + 1);
+        else if (day === 0) d.setDate(d.getDate() + 6);
+        else d.setDate(d.getDate() + (6 - day));
+      } else if (freq === "weekly") {
+        d.setDate(d.getDate() + 7);
+      } else {
+        return null;
+      }
+
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
     function isTaskActiveForDate(task, dateStr) {
-      const freq = (task.frequency || 'once').toLowerCase();
-      const taskDate = normalizeDateString(task.scheduledDate || task.date);
+      const taskDate = normalizeDateString(task.date || task.scheduledDate);
       const activeDate = normalizeDateString(dateStr);
-
-      if (freq === 'once') {
-        return taskDate === activeDate || (!taskDate && activeDate === selectedPlannerDate);
+      if (taskDate) {
+        return taskDate === activeDate;
       }
-      
-      const d = new Date(activeDate + 'T00:00:00');
-      const dayOfWeek = d.getDay();
-
-      if (freq === 'daily') return true;
-      if (freq === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
-      if (freq === 'weekends') return dayOfWeek === 0 || dayOfWeek === 6;
-      if (freq === 'weekly') {
-        if (!taskDate) return dayOfWeek === 1;
-        const origD = new Date(taskDate + 'T00:00:00');
-        return origD.getDay() === dayOfWeek;
-      }
-      return taskDate === activeDate;
+      return !task.completed;
     }
 
     // ---------- Normalizers ----------
@@ -1118,43 +1135,44 @@
       if (!isNaN(parsed.getTime())) {
         const y = parsed.getFullYear();
         const m = String(parsed.getMonth() + 1).padStart(2, '0');
-        const d = String(parsed.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
       }
       return s;
     }
-    function autoCalculateTaskEndTime() {
-  const startEl = document.getElementById('tmStartTime');
-  const durEl = document.getElementById('tmPlannedMins');
-  const endEl = document.getElementById('tmEndTime');
-  
-  if (!startEl || !durEl || !endEl) return;
-  const startVal = startEl.value;
-  const dur = Number(durEl.value) || 0;
-  
-  if (startVal && dur > 0) {
-    const sMins = timeToMinutes(normalizeTimeString(startVal));
-    const eMins = (sMins + dur) % 1440; // clamp within 24h
-    endEl.value = minutesToTime(eMins);
-  }
-}
 
-function autoCalculateTaskPlannedMins() {
-  const startEl = document.getElementById('tmStartTime');
-  const endEl = document.getElementById('tmEndTime');
-  const durEl = document.getElementById('tmPlannedMins');
-  
-  if (!startEl || !durEl || !endEl) return;
-  const startVal = startEl.value;
-  const endVal = endEl.value;
-  
-  if (startVal && endVal) {
-    const sMins = timeToMinutes(normalizeTimeString(startVal));
-    let eMins = timeToMinutes(normalizeTimeString(endVal));
-    if (eMins < sMins) eMins += 1440;
-    durEl.value = eMins - sMins;
-  }
-}
+    function autoCalculateTaskEndTime() {
+      const startEl = document.getElementById('tmStartTime');
+      const durEl = document.getElementById('tmPlannedMins');
+      const endEl = document.getElementById('tmEndTime');
+      
+      if (!startEl || !durEl || !endEl) return;
+      const startVal = startEl.value;
+      const dur = Number(durEl.value) || 0;
+      
+      if (startVal && dur > 0) {
+        const sMins = timeToMinutes(normalizeTimeString(startVal));
+        const eMins = (sMins + dur) % 1440;
+        endEl.value = minutesToTime(eMins);
+      }
+    }
+
+    function autoCalculateTaskPlannedMins() {
+      const startEl = document.getElementById('tmStartTime');
+      const endEl = document.getElementById('tmEndTime');
+      const durEl = document.getElementById('tmPlannedMins');
+      
+      if (!startEl || !durEl || !endEl) return;
+      const startVal = startEl.value;
+      const endVal = endEl.value;
+      
+      if (startVal && endVal) {
+        const sMins = timeToMinutes(normalizeTimeString(startVal));
+        let eMins = timeToMinutes(normalizeTimeString(endVal));
+        if (eMins < sMins) eMins += 1440;
+        durEl.value = eMins - sMins;
+      }
+    }
 
     // ---------- Sync Engine ----------
     function setSyncStatus(state) {
@@ -1178,10 +1196,7 @@ function autoCalculateTaskPlannedMins() {
       }
     }
 
-    let syncPending = false;
-
     function syncToRemote() {
-      // 1. Instantly persist to device localStorage first (guarantees offline safety)
       saveState();
 
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
@@ -1189,13 +1204,11 @@ function autoCalculateTaskPlannedMins() {
         return;
       }
 
-      // 2. If a sync request is actively in the air, queue the next one
       if (isSyncInProgress) {
         syncPending = true;
         return;
       }
 
-      // 3. Clear existing debounce timer and schedule execution (400ms)
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       syncDebounceTimer = setTimeout(executeSyncPayload, 400);
     }
@@ -1203,28 +1216,6 @@ function autoCalculateTaskPlannedMins() {
     function requestManualSync() {
       if (isSyncInProgress) return;
       fetchRemoteData();
-    }
-
-    function getChangedItems(current, previous, keyField = 'id') {
-      if (!previous) return current;
-      const prevMap = {};
-      (previous || []).forEach(item => { prevMap[item[keyField]] = item; });
-      return current.filter(item => {
-        const prevItem = prevMap[item[keyField]];
-        if (!prevItem) return true;
-        return JSON.stringify(item) !== JSON.stringify(prevItem);
-      });
-    }
-
-    function getChangedHabitLogs(current, previous) {
-      if (!previous) return current;
-      const changedLogs = {};
-      Object.keys(current).forEach(key => {
-        if (!previous[key] || JSON.stringify(current[key]) !== JSON.stringify(previous[key])) {
-          changedLogs[key] = current[key];
-        }
-      });
-      return changedLogs;
     }
 
     async function executeSyncPayload() {
@@ -1237,7 +1228,6 @@ function autoCalculateTaskPlannedMins() {
       syncPending = false;
       setSyncStatus('syncing');
 
-      // Always snapshot current appData at execution time
       const timeBlocksPayload = (appData.timeBlocks || []).map(b => ({
         id: String(b.id || "").trim(),
         date: normalizeDateString(b.date),
@@ -1341,9 +1331,6 @@ function autoCalculateTaskPlannedMins() {
         setSyncStatus('error');
       } finally {
         isSyncInProgress = false;
-
-        // If the user made any clicks/edits while this network call was active,
-        // fire another sync immediately so no mid-flight changes are lost.
         if (syncPending) {
           syncPending = false;
           if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
@@ -1352,7 +1339,7 @@ function autoCalculateTaskPlannedMins() {
       }
     }
 
-   async function fetchRemoteData() {
+    async function fetchRemoteData() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
         setSyncStatus('error');
         return;
@@ -1365,7 +1352,7 @@ function autoCalculateTaskPlannedMins() {
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Planner - Overwrite cleanly from Sheets
+        // 1. Planner
         if (json.planner && Array.isArray(json.planner)) {
           const seenPlan = new Set();
           const cleanPlanner = [];
@@ -1401,7 +1388,7 @@ function autoCalculateTaskPlannedMins() {
           appData.timeBlocks = [];
         }
 
-        // 2. Routines - Overwrite cleanly from Sheets
+        // 2. Routines
         if (json.routines && Array.isArray(json.routines)) {
           const seenRt = new Set();
           const cleanRoutines = [];
@@ -1431,7 +1418,7 @@ function autoCalculateTaskPlannedMins() {
           appData.routines = [];
         }
 
-        // 3. Habits - Overwrite cleanly from Sheets
+        // 3. Habits
         if (json.habits && Array.isArray(json.habits)) {
           const seenHabit = new Set();
           const cleanHabits = [];
@@ -1461,7 +1448,7 @@ function autoCalculateTaskPlannedMins() {
           appData.habits = [];
         }
 
-        // 4. Habit Logs - Overwrite cleanly from Sheets
+        // 4. Habit Logs
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
           const remoteMap = {};
           json.habitLogs.forEach(l => {
@@ -1481,7 +1468,7 @@ function autoCalculateTaskPlannedMins() {
           appData.habitLogs = {};
         }
 
-        // 5. Tasks - Overwrite cleanly from Sheets
+        // 5. Tasks
         if (json.tasks && Array.isArray(json.tasks)) {
           const seenTask = new Set();
           const cleanTasks = [];
@@ -1576,7 +1563,6 @@ function autoCalculateTaskPlannedMins() {
       }
     }
 
-    // Direct Click Slot Handlers (Clean Tap-to-Create)
     function handleHourSlotClick(hour, track) {
       const startStr = `${String(hour).padStart(2, '0')}:00`;
       const endStr = `${String(Math.min(23, hour + 1)).padStart(2, '0')}:00`;
@@ -1726,8 +1712,9 @@ function autoCalculateTaskPlannedMins() {
       document.getElementById('scoreStatusCount').textContent = `${completedCount}/${totalItems} done`;
 
       // Progress Bars
-      const totalTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate)).length;
-      const completedTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate) && t.completed).length;
+      const dayTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate));
+      const totalTasks = dayTasks.length;
+      const completedTasks = dayTasks.filter(t => t.completed || t.status === 'Completed').length;
       const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
       const taskPBar = document.getElementById('taskProgressBar');
       const taskPPercent = document.getElementById('taskProgressPercent');
@@ -1862,7 +1849,7 @@ function autoCalculateTaskPlannedMins() {
               </div>
               ${!isRoutine ? `
                 <button onclick="handleQuickDeleteTimeBlock('${block.id}', event)" title="Delete" class="text-slate-500 hover:text-rose-400 p-0.5 rounded flex-shrink-0">
-                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               ` : ''}
             </div>
@@ -2026,7 +2013,6 @@ function autoCalculateTaskPlannedMins() {
 
         const streak = calculateStreak(hId);
 
-        // 7-day Mini Heatmap Dots
         let weekDots = '';
         const dRef = new Date(selectedPlannerDate + 'T00:00:00');
         for (let i = 6; i >= 0; i--) {
@@ -2073,10 +2059,10 @@ function autoCalculateTaskPlannedMins() {
         } else {
           controlHtml = `
             <div class="flex items-center gap-2 w-full sm:w-80">
-              <input type="text" id="desc_input_${hId}" value="${log.value || ''}"
-                     onchange="saveDescriptiveHabit('${hId}', this.value)"
-                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)"
-                     placeholder="Notes / routine details..."
+              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
+                     onchange="saveDescriptiveHabit('${hId}', this.value)" 
+                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)" 
+                     placeholder="Notes / routine details..." 
                      class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
               <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
                 ${isCompleted ? 'Done ✓' : 'Save'}
@@ -2146,8 +2132,8 @@ function autoCalculateTaskPlannedMins() {
       for (let i = 0; i < 365; i++) {
         const y = checkDate.getUTCFullYear();
         const m = String(checkDate.getUTCMonth() + 1).padStart(2, '0');
-        const d = String(checkDate.getUTCDate()).padStart(2, '0');
-        const dStr = `${y}-${m}-${d}`;
+        const day = String(checkDate.getUTCDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${day}`;
 
         const pastLog = appData.habitLogs[`${habitId}_${dStr}`];
         const pastDone = pastLog && (pastLog.completed || (normType === 'yesno' && String(pastLog.value).toLowerCase() === 'yes'));
@@ -2185,8 +2171,8 @@ function autoCalculateTaskPlannedMins() {
 
         const y = checkDate.getFullYear();
         const m = String(checkDate.getMonth() + 1).padStart(2, '0');
-        const d = String(checkDate.getDate()).padStart(2, '0');
-        const dateStr = `${y}-${m}-${d}`;
+        const day = String(checkDate.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${day}`;
 
         const key = `${hId}_${dateStr}`;
         const log = appData.habitLogs[key];
@@ -2426,16 +2412,16 @@ function autoCalculateTaskPlannedMins() {
       return `${Math.floor(days / 30)}mo pending`;
     }
 
-    // ---------- Tasks Manager ----------
+    // ---------- Tasks Manager (Spawn-Next & Backlog Tabs) ----------
     function setTaskFilter(filter) {
       currentTaskFilter = filter;
-      ['ALL', 'ACTIVE', 'SCHEDULED'].forEach(f => {
+      ['PENDING', 'BACKLOG', 'SCHEDULED', 'ALL'].forEach(f => {
         const btn = document.getElementById(`taskFilterBtn_${f}`);
         if (!btn) return;
         if (f === filter) {
-          btn.className = "px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition";
+          btn.className = "px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95";
         } else {
-          btn.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition";
+          btn.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
         }
       });
       renderTasks();
@@ -2450,7 +2436,7 @@ function autoCalculateTaskPlannedMins() {
 
       if (!title) return;
 
-      appData.tasks.unshift({
+      const newTask = {
         id: Date.now(),
         title,
         priority: prioritySelect.value,
@@ -2462,9 +2448,10 @@ function autoCalculateTaskPlannedMins() {
         scheduledEndTime: "",
         plannedMins: 30,
         actualMins: 0
-      });
+      };
 
-      captureTaskAnalytics(appData.tasks[0]);
+      appData.tasks.unshift(newTask);
+      captureTaskAnalytics(newTask);
       titleInput.value = '';
       renderTasks();
       render24HourPlanner();
@@ -2474,15 +2461,51 @@ function autoCalculateTaskPlannedMins() {
 
     function toggleTaskCompletion(id) {
       const task = appData.tasks.find(t => String(t.id) === String(id));
-      if (task) {
-        task.completed = !task.completed;
-        task.status = task.completed ? "Completed" : "Need to Start";
-        captureTaskAnalytics(task);
-        renderTasks();
-        render24HourPlanner();
-        renderAnalytics();
-        syncToRemote();
+      if (!task) return;
+
+      task.completed = !task.completed;
+      task.status = task.completed ? "Completed" : "Need to Start";
+
+      const freq = (task.frequency || "once").toLowerCase();
+
+      // SPAWN NEXT INSTANCE APPROACH
+      if (task.completed && freq !== "once") {
+        const taskDate = normalizeDateString(task.date || task.scheduledDate) || selectedPlannerDate;
+        const nextDate = computeNextRecurrenceDate(taskDate, freq);
+
+        if (nextDate) {
+          const existingNextTask = appData.tasks.find(t => 
+            t.title.trim().toLowerCase() === task.title.trim().toLowerCase() &&
+            (normalizeDateString(t.date || t.scheduledDate) === nextDate) &&
+            (t.frequency || "once").toLowerCase() === freq
+          );
+
+          if (!existingNextTask) {
+            const nextTask = {
+              id: Date.now() + Math.floor(Math.random() * 1000),
+              title: task.title,
+              priority: task.priority || "Med",
+              frequency: task.frequency,
+              status: "Need to Start",
+              completed: false,
+              date: nextDate,
+              scheduledStartTime: task.scheduledStartTime || "",
+              scheduledEndTime: task.scheduledEndTime || "",
+              plannedMins: Number(task.plannedMins) || 30,
+              actualMins: 0
+            };
+
+            appData.tasks.unshift(nextTask);
+            captureTaskAnalytics(nextTask);
+          }
+        }
       }
+
+      captureTaskAnalytics(task);
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
     }
 
     function renderTasks() {
@@ -2490,11 +2513,44 @@ function autoCalculateTaskPlannedMins() {
       if (!container) return;
       container.innerHTML = '';
 
-      let list = [...appData.tasks];
-      if (currentTaskFilter === 'ACTIVE') {
-        list = list.filter(t => !t.completed && t.status !== "Completed");
+      const todayStr = getTodayKey();
+      const currentSelectedDate = normalizeDateString(selectedPlannerDate);
+
+      // Calculate Backlog Count Badge
+      const backlogTasks = appData.tasks.filter(t => {
+        if (t.completed || t.status === 'Completed') return false;
+        const tDate = normalizeDateString(t.date || t.scheduledDate);
+        return tDate && tDate < todayStr;
+      });
+
+      const badge = document.getElementById('backlogCountBadge');
+      if (badge) {
+        if (backlogTasks.length > 0) {
+          badge.textContent = backlogTasks.length;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      let list = [];
+
+      if (currentTaskFilter === 'PENDING') {
+        // Pending = tasks for the viewed planner date that are uncompleted, or undated tasks
+        list = appData.tasks.filter(t => {
+          if (t.completed || t.status === "Completed") return false;
+          const tDate = normalizeDateString(t.date || t.scheduledDate);
+          return tDate === currentSelectedDate || !tDate;
+        });
+      } else if (currentTaskFilter === 'BACKLOG') {
+        // Backlog = tasks from past days that remain uncompleted
+        list = backlogTasks;
       } else if (currentTaskFilter === 'SCHEDULED') {
-        list = list.filter(t => Boolean(t.scheduledStartTime && t.scheduledEndTime));
+        // Timebound scheduled tasks
+        list = appData.tasks.filter(t => Boolean(t.scheduledStartTime && t.scheduledEndTime));
+      } else {
+        // ALL tasks
+        list = [...appData.tasks];
       }
 
       list.sort((a, b) => {
@@ -2514,8 +2570,13 @@ function autoCalculateTaskPlannedMins() {
       });
 
       if (!list.length) {
-        const emptyLabel = currentTaskFilter === 'ACTIVE' ? 'pending' : (currentTaskFilter === 'SCHEDULED' ? 'scheduled' : '');
-        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">No ${emptyLabel} tasks found. Add one above!</div>`;
+        const labels = {
+          'PENDING': 'pending tasks for this date',
+          'BACKLOG': 'overdue backlog items. You are fully caught up!',
+          'SCHEDULED': 'timebound scheduled tasks',
+          'ALL': 'tasks'
+        };
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-5">No ${labels[currentTaskFilter] || 'tasks'}.</div>`;
         return;
       }
 
@@ -2526,8 +2587,10 @@ function autoCalculateTaskPlannedMins() {
       };
 
       list.forEach(task => {
+        const isDone = Boolean(task.completed || task.status === "Completed");
         const isScheduled = Boolean(task.scheduledStartTime && task.scheduledEndTime);
-        const isToday = isTaskActiveForDate(task, selectedPlannerDate);
+        const tDate = normalizeDateString(task.date || task.scheduledDate);
+        const isOverdue = tDate && tDate < todayStr && !isDone;
         const freq = (task.frequency || 'once').toLowerCase();
         const freqLabel = freq === 'daily' ? 'Daily' : freq === 'weekdays' ? 'Weekdays' : freq === 'weekends' ? 'Weekends' : freq === 'weekly' ? 'Weekly' : '';
 
@@ -2536,8 +2599,8 @@ function autoCalculateTaskPlannedMins() {
         let pendingBgClass = 'bg-slate-950/60 text-slate-300 border-slate-800/50';
         let pendingIcon = '📌';
 
-        if (!task.completed) {
-          if (pendingMetrics.status === 'critical') {
+        if (!isDone) {
+          if (isOverdue || pendingMetrics.status === 'critical') {
             pendingBgClass = 'bg-rose-950/80 text-rose-300 border-rose-800/60';
             pendingIcon = '🔴';
           } else if (pendingMetrics.status === 'overdue') {
@@ -2553,20 +2616,19 @@ function autoCalculateTaskPlannedMins() {
         }
 
         const card = document.createElement('div');
-        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${task.completed ? 'opacity-60' : (isToday ? 'ring-1 ring-indigo-500/20' : pendingMetrics.status === 'critical' ? 'ring-1 ring-rose-500/30' : '')}`;
+        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${isDone ? 'opacity-60' : (isOverdue ? 'ring-1 ring-rose-500/30' : '')}`;
 
         card.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0 flex-1">
             <button onclick="toggleTaskCompletion('${task.id}')" class="p-1 rounded text-emerald-400 active:scale-90 transition flex-shrink-0">
-              <i data-lucide="${task.completed ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+              <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
             </button>
             <div class="min-w-0 flex-1 cursor-pointer" onclick="openEditTaskModal('${task.id}')">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs sm:text-sm font-semibold ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
+                <span class="text-xs sm:text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
                 <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${priorityClasses[task.priority] || priorityClasses.Med}">${task.priority}</span>
-                ${!task.completed ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${pendingBgClass}">${pendingIcon} ${pendingMetrics.daysLabel}</span>` : ''}
+                ${!isDone ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${pendingBgClass}">${pendingIcon} ${isOverdue ? 'Backlog: ' + tDate : pendingMetrics.daysLabel}</span>` : ''}
                 ${freqLabel ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-sky-950/60 text-sky-300 border-sky-800/50">${freqLabel}</span>` : ''}
-                ${isToday ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-indigo-950/60 text-indigo-300 border-indigo-800/50">Today</span>` : ''}
                 ${isScheduled ? `
                   <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
                     ⏱ ${task.scheduledStartTime}-${task.scheduledEndTime}
@@ -2574,7 +2636,7 @@ function autoCalculateTaskPlannedMins() {
                 ` : ''}
               </div>
               <div class="text-[10px] text-slate-500 font-mono mt-0.5">
-                ${pendingMetrics.type === 'scheduled' ? pendingMetrics.pendingFrom : `Created: ${new Date(Number(task.id)).toLocaleDateString()}`} • ${task.actualMins > 0 ? `${task.actualMins}m act` : `${task.plannedMins || 30}m plan`}
+                ${tDate ? `Scheduled: ${tDate}` : 'Unscheduled'} • ${task.actualMins > 0 ? `${task.actualMins}m act` : `${task.plannedMins || 30}m plan`}
               </div>
             </div>
           </div>
@@ -2600,27 +2662,28 @@ function autoCalculateTaskPlannedMins() {
     function openEditTaskModal(id) {
       const task = appData.tasks.find(t => String(t.id) === String(id));
       if (!task) return;
-const sTime = normalizeTimeString(task.scheduledStartTime || "");
-  let eTime = normalizeTimeString(task.scheduledEndTime || "");
-  const pMins = Number(task.plannedMins) || 30;
 
-  // Auto-fill end time if start time exists but end time was missing
-  if (sTime && !eTime) {
-    eTime = minutesToTime((timeToMinutes(sTime) + pMins) % 1440);
-  }
-     document.getElementById('tmTaskId').value = task.id;
-  document.getElementById('tmTitle').value = task.title || "";
-  document.getElementById('tmPriority').value = task.priority || "Med";
-  document.getElementById('tmFrequency').value = (task.frequency || "once").toLowerCase();
-  document.getElementById('tmStatus').value = task.status || "Need to Start";
-  document.getElementById('tmDate').value = task.date || selectedPlannerDate;
-  document.getElementById('tmStartTime').value = sTime;
-  document.getElementById('tmEndTime').value = eTime;
-  document.getElementById('tmPlannedMins').value = pMins;
-  document.getElementById('tmActualMins').value = task.actualMins || 0;
+      const sTime = normalizeTimeString(task.scheduledStartTime || "");
+      let eTime = normalizeTimeString(task.scheduledEndTime || "");
+      const pMins = Number(task.plannedMins) || 30;
 
-  document.getElementById('taskModal').classList.remove('hidden');
-  lucide.createIcons();
+      if (sTime && !eTime) {
+        eTime = minutesToTime((timeToMinutes(sTime) + pMins) % 1440);
+      }
+
+      document.getElementById('tmTaskId').value = task.id;
+      document.getElementById('tmTitle').value = task.title || "";
+      document.getElementById('tmPriority').value = task.priority || "Med";
+      document.getElementById('tmFrequency').value = (task.frequency || "once").toLowerCase();
+      document.getElementById('tmStatus').value = task.status || "Need to Start";
+      document.getElementById('tmDate').value = task.date || selectedPlannerDate;
+      document.getElementById('tmStartTime').value = sTime;
+      document.getElementById('tmEndTime').value = eTime;
+      document.getElementById('tmPlannedMins').value = pMins;
+      document.getElementById('tmActualMins').value = task.actualMins || 0;
+
+      document.getElementById('taskModal').classList.remove('hidden');
+      lucide.createIcons();
     }
 
     function openCreateScheduledTaskModal(startTime, endTime) {
@@ -2646,75 +2709,74 @@ const sTime = normalizeTimeString(task.scheduledStartTime || "");
     }
 
     function handleSaveTaskDetail(e) {
-  e.preventDefault();
-  const rawId = document.getElementById('tmTaskId').value;
-  const title = document.getElementById('tmTitle').value.trim();
-  const priority = document.getElementById('tmPriority').value;
-  const frequency = document.getElementById('tmFrequency').value;
-  const status = document.getElementById('tmStatus').value;
-  const date = document.getElementById('tmDate').value;
-  let scheduledStartTime = normalizeTimeString(document.getElementById('tmStartTime').value);
-  let scheduledEndTime = normalizeTimeString(document.getElementById('tmEndTime').value);
-  let plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
-  const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
+      e.preventDefault();
+      const rawId = document.getElementById('tmTaskId').value;
+      const title = document.getElementById('tmTitle').value.trim();
+      const priority = document.getElementById('tmPriority').value;
+      const frequency = document.getElementById('tmFrequency').value;
+      const status = document.getElementById('tmStatus').value;
+      const date = document.getElementById('tmDate').value;
+      let scheduledStartTime = normalizeTimeString(document.getElementById('tmStartTime').value);
+      let scheduledEndTime = normalizeTimeString(document.getElementById('tmEndTime').value);
+      let plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
+      const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
 
-  if (!title) return;
+      if (!title) return;
 
-  // Compute and persist endTime if startTime is set
-  if (scheduledStartTime) {
-    if (!scheduledEndTime) {
-      scheduledEndTime = minutesToTime((timeToMinutes(scheduledStartTime) + plannedMins) % 1440);
-    } else {
-      const sM = timeToMinutes(scheduledStartTime);
-      let eM = timeToMinutes(scheduledEndTime);
-      if (eM <= sM) eM += 1440;
-      plannedMins = eM - sM;
+      if (scheduledStartTime) {
+        if (!scheduledEndTime) {
+          scheduledEndTime = minutesToTime((timeToMinutes(scheduledStartTime) + plannedMins) % 1440);
+        } else {
+          const sM = timeToMinutes(scheduledStartTime);
+          let eM = timeToMinutes(scheduledEndTime);
+          if (eM <= sM) eM += 1440;
+          plannedMins = eM - sM;
+        }
+      }
+
+      if (rawId) {
+        const t = appData.tasks.find(x => String(x.id) === String(rawId));
+        if (t) {
+          t.title = title;
+          t.priority = priority;
+          t.frequency = frequency;
+          t.status = status;
+          t.completed = (status === "Completed");
+          t.date = date;
+          t.scheduledStartTime = scheduledStartTime;
+          t.scheduledEndTime = scheduledEndTime;
+          t.plannedMins = plannedMins;
+          t.actualMins = actualMins;
+        }
+      } else {
+        appData.tasks.unshift({
+          id: Date.now(),
+          title,
+          priority,
+          frequency,
+          status,
+          completed: (status === "Completed"),
+          date,
+          scheduledStartTime,
+          scheduledEndTime,
+          plannedMins,
+          actualMins
+        });
+      }
+
+      closeTaskModal();
+
+      const savedTask = rawId ?
+        appData.tasks.find(x => String(x.id) === String(rawId)) :
+        appData.tasks[0];
+
+      if (savedTask) captureTaskAnalytics(savedTask);
+
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
     }
-  }
-
-  if (rawId) {
-    const t = appData.tasks.find(x => String(x.id) === String(rawId));
-    if (t) {
-      t.title = title;
-      t.priority = priority;
-      t.frequency = frequency;
-      t.status = status;
-      t.completed = (status === "Completed");
-      t.date = date;
-      t.scheduledStartTime = scheduledStartTime;
-      t.scheduledEndTime = scheduledEndTime; // 👈 Persisted permanently
-      t.plannedMins = plannedMins;
-      t.actualMins = actualMins;
-    }
-  } else {
-    appData.tasks.unshift({
-      id: Date.now(),
-      title,
-      priority,
-      frequency,
-      status,
-      completed: (status === "Completed"),
-      date,
-      scheduledStartTime,
-      scheduledEndTime, // 👈 Persisted permanently
-      plannedMins,
-      actualMins
-    });
-  }
-
-  closeTaskModal();
-
-  const savedTask = rawId ?
-    appData.tasks.find(x => String(x.id) === String(rawId)) :
-    appData.tasks[0];
-
-  if (savedTask) captureTaskAnalytics(savedTask);
-
-  renderTasks();
-  render24HourPlanner();
-  renderAnalytics();
-  syncToRemote();
-}
 
     function deleteTask(id) {
       appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
@@ -3651,8 +3713,6 @@ const sTime = normalizeTimeString(task.scheduledStartTime || "");
       closeConfigModal();
       setTimeout(() => {
         isRemoteDataLoaded = false;
-        pendingSyncQueue = null;
-        lastSyncedState = null;
         fetchRemoteData();
       }, 100);
     }
@@ -3686,7 +3746,7 @@ const sTime = normalizeTimeString(task.scheduledStartTime || "");
 
     window.onload = () => {
       buildHourlyBackgroundGrid();
-      setTaskFilter('ACTIVE');
+      setTaskFilter('PENDING');
       setAnalyticsWindow(7);
       renderAll();
       scrollToCurrentTimeOrStart();
@@ -3707,7 +3767,7 @@ const sTime = normalizeTimeString(task.scheduledStartTime || "");
 
       // Register PWA Service Worker
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js',{ scope: '/daily-planner/' }).catch((err) => {
+        navigator.serviceWorker.register('./sw.js', { scope: '/daily-planner/' }).catch((err) => {
           console.log('SW registration skipped:', err);
         });
       }
