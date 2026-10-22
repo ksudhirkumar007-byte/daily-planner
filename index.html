@@ -199,7 +199,7 @@
       <!-- Presets -->
       <div class="px-3 py-2 bg-slate-900/60 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
         <span class="text-slate-500 text-[10px] font-mono whitespace-nowrap flex items-center gap-1 mr-1">
-          <i data-lucide="sparkles" class="w-3 h-3 text-indigo-400"></i> Presets:
+          <i data-lucide="sparkles" class="w-3h-3 text-indigo-400"></i> Presets:
         </span>
         <button onclick="addPresetBlock('Deep Work', '09:00', '12:00', 'indigo')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
           💻 Deep Work
@@ -232,7 +232,6 @@
 
       <!-- 24-Hour Scrollable Timeline Canvas -->
       <div id="plannerScrollContainer" class="relative max-h-[580px] sm:max-h-[640px] overflow-y-auto bg-slate-950 select-none">
-        <!-- Live Current Time Indicator -->
         <div id="currentTimeIndicator" class="absolute left-0 right-0 z-20 pointer-events-none hidden flex items-center">
           <div class="w-10 sm:w-16 bg-rose-600 text-white font-mono text-[8px] sm:text-[9px] font-bold text-center py-0.5 rounded-r shadow-md">NOW</div>
           <div class="flex-1 h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
@@ -259,7 +258,7 @@
 
     <!-- Habits & Focus Stopwatch Row -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-      <!-- Habits Tracker -->
+      <!-- Habits Tracker with Option C Hybrid Click-to-Inspect -->
       <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
         <div>
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -267,7 +266,7 @@
               <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Daily Habits
               </h2>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">One-tap complete, targets, and 7-day consistency view.</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card for deep analytics; use controls on right to log.</p>
             </div>
             <button onclick="openCreateHabitModal()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Habit
@@ -440,7 +439,7 @@
           <i data-lucide="pie-chart" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400"></i>
           <div>
             <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Performance Analytics & Insights</h2>
-            <p class="text-[10px] text-slate-500 mt-0">Execution adherence, habits, tasks & mood trends</p>
+            <p class="text-[10px] text-slate-500 mt-0">Execution adherence, overall habits, tasks & mood trends</p>
           </div>
         </div>
         <i id="analyticsToggleIcon" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-white transition flex-shrink-0"></i>
@@ -526,38 +525,8 @@
           </div>
         </div>
 
-        <!-- Detailed Breakdown Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
-          <!-- Habits Analytics -->
-          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-4">
-              <span class="font-semibold text-slate-200 flex items-center gap-1.5">
-                <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i> Habits Analytics
-              </span>
-              <span class="text-[10px] text-slate-500 font-mono">Performance & Friction</span>
-            </div>
-
-            <div class="mb-4 pb-4 border-b border-slate-800/50">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-mono font-semibold text-amber-400 flex items-center gap-1">
-                  <i data-lucide="alert-triangle" class="w-3 h-3"></i> Friction Points
-                </span>
-                <span class="text-[9px] text-slate-500 font-mono">Most Missed</span>
-              </div>
-              <div id="anHabitsFrictionList" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
-            </div>
-
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-mono font-semibold text-emerald-400 flex items-center gap-1">
-                  <i data-lucide="trending-up" class="w-3 h-3"></i> Individual Performance
-                </span>
-                <span class="text-[9px] text-slate-500 font-mono">Detailed View</span>
-              </div>
-              <div id="habitPerformanceDashboard" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
-            </div>
-          </div>
-
+        <!-- Task Priority & Evening Reflections Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
           <!-- Task Priority Completion Bars -->
           <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
             <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -779,7 +748,6 @@
           </div>
         </div>
 
-        <!-- Date Assignment & Rescheduling Container -->
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1">
@@ -832,7 +800,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Habits -->
+  <!-- MODAL: Habits Creation/Edit -->
   <div id="habitModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
@@ -880,6 +848,59 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: On-Demand Habit Detail & Deep-Dive Analytics (Option C) -->
+  <div id="habitDetailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800">
+        <div>
+          <h3 id="hdModalTitle" class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> Habit Insights
+          </h3>
+          <span id="hdModalSubtitle" class="text-[10px] font-mono text-slate-400"></span>
+        </div>
+        <button onclick="closeHabitDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- KPI Strip -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <span class="text-[9px] uppercase font-mono text-slate-500 block">Streak</span>
+            <span id="hdStatStreak" class="text-sm sm:text-base font-bold font-mono text-amber-400">0d 🔥</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <span class="text-[9px] uppercase font-mono text-slate-500 block">30d Success</span>
+            <span id="hdStatRate" class="text-sm sm:text-base font-bold font-mono text-emerald-400">0%</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <span class="text-[9px] uppercase font-mono text-slate-500 block">Last Done</span>
+            <span id="hdStatLastDone" class="text-[11px] sm:text-xs font-bold font-mono text-slate-200">Never</span>
+          </div>
+        </div>
+
+        <!-- Type-Specific Analytics Banner (Numeric Averages or Weekend Friction) -->
+        <div id="hdCustomInsightBanner" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs"></div>
+
+        <!-- 28-Day Consistency Matrix (7x4 grid) -->
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-mono font-semibold text-slate-300">Last 28 Days Matrix</span>
+            <span class="text-[9px] font-mono text-slate-500">Mon ➔ Sun</span>
+          </div>
+          <div id="hdMatrixGrid" class="grid grid-cols-7 gap-1.5 pt-1"></div>
+        </div>
+
+        <!-- Scrollable History Trail -->
+        <div>
+          <span class="text-[11px] font-mono font-semibold text-slate-300 block mb-1.5">Recent History Log</span>
+          <div id="hdHistoryLogList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1147,8 +1168,8 @@
       if (!isNaN(parsed.getTime())) {
         const y = parsed.getFullYear();
         const m = String(parsed.getMonth() + 1).padStart(2, '0');
-        const d = String(parsed.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
       }
       return s;
     }
@@ -1483,7 +1504,7 @@
           appData.habitLogs = {};
         }
 
-        // 5. Tasks - Overwrite cleanly and map preserved originalDate & rescheduledDate
+        // 5. Tasks
         if (json.tasks && Array.isArray(json.tasks)) {
           const seenTask = new Set();
           const cleanTasks = [];
@@ -2011,7 +2032,7 @@
       syncToRemote();
     }
 
-    // ---------- Habit Tracker ----------
+    // ---------- Habit Tracker (Option C: Hybrid Model) ----------
     function renderHabits() {
       const container = document.getElementById('habitCardsContainer');
       if (!container) return;
@@ -2034,6 +2055,7 @@
 
         const streak = calculateStreak(hId);
 
+        // 7-day Mini Heatmap Dots
         let weekDots = '';
         const dRef = new Date(selectedPlannerDate + 'T00:00:00');
         for (let i = 6; i >= 0; i--) {
@@ -2055,7 +2077,7 @@
         let controlHtml = "";
         if (normType === 'yesno') {
           controlHtml = `
-            <button onclick="toggleYesNoHabit('${hId}')" class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[44px] ${isCompleted ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
+            <button onclick="toggleYesNoHabit('${hId}', event)" class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[44px] ${isCompleted ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
               <i data-lucide="${isCompleted ? 'check-circle-2' : 'circle'}" class="w-4 h-4 ${isCompleted ? 'text-emerald-400' : 'text-slate-500'}"></i>
               <span>${isCompleted ? 'Done ✓' : 'Mark Done'}</span>
             </button>
@@ -2065,11 +2087,11 @@
           const targetVal = habit.target || 1;
           const pct = Math.min(100, Math.round((currentVal / targetVal) * 100));
           controlHtml = `
-            <div class="space-y-2 w-full sm:w-auto">
+            <div class="space-y-2 w-full sm:w-auto" onclick="event.stopPropagation()">
               <div class="flex items-center gap-2">
-                <button onclick="stepNumericHabit('${hId}', -1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
+                <button onclick="stepNumericHabit('${hId}', -1, event)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
                 <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : 0}" oninput="setNumericHabit('${hId}', this.value)" class="w-16 bg-slate-900 border border-slate-800 rounded-xl py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
-                <button onclick="stepNumericHabit('${hId}', 1)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
+                <button onclick="stepNumericHabit('${hId}', 1, event)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
                 <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit || ''}</span>
               </div>
               <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
@@ -2079,7 +2101,7 @@
           `;
         } else {
           controlHtml = `
-            <div class="flex items-center gap-2 w-full sm:w-80">
+            <div class="flex items-center gap-2 w-full sm:w-80" onclick="event.stopPropagation()">
               <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
                      onchange="saveDescriptiveHabit('${hId}', this.value)" 
                      onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)" 
@@ -2096,9 +2118,13 @@
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div>
+            <!-- Left Area: Click to inspect deep analytics -->
+            <div onclick="openHabitDetailModal('${hId}')" class="cursor-pointer min-w-0 flex-1 hover:opacity-90 transition">
               <div class="flex items-center gap-2">
-                <h4 class="text-xs sm:text-sm font-bold text-white">${habit.name}</h4>
+                <h4 class="text-xs sm:text-sm font-bold text-white truncate hover:text-amber-300 transition flex items-center gap-1.5">
+                  <span>${habit.name}</span>
+                  <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i>
+                </h4>
                 <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border bg-slate-900 border-slate-800 text-slate-400">${typeLabel}</span>
               </div>
               <div class="flex items-center gap-2 mt-1">
@@ -2111,9 +2137,10 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-2 justify-between sm:justify-end">
+            <!-- Right Area: Completion controls & actions -->
+            <div class="flex items-center gap-2 justify-between sm:justify-end flex-shrink-0">
               ${controlHtml}
-              <button onclick="deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
+              <button onclick="event.stopPropagation(); deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
@@ -2128,6 +2155,141 @@
         counter.textContent = `${completedCount}/${appData.habits.length} done`;
       }
       lucide.createIcons();
+    }
+
+    // ---------- Modal: On-Demand Habit Analytics Inspection ----------
+    function openHabitDetailModal(habitId) {
+      const habit = appData.habits.find(h => String(h.id) === String(habitId));
+      if (!habit) return;
+
+      const normType = normalizeHabitType(habit.type);
+      const metrics = getHabitMetrics(habit.id, 30);
+
+      document.getElementById('hdModalTitle').innerHTML = `<i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> ${habit.name}`;
+      document.getElementById('hdModalSubtitle').textContent = `Tracking Type: ${normType.toUpperCase()} | Target: ${habit.target || 'N/A'} ${habit.unit || ''}`;
+
+      document.getElementById('hdStatStreak').textContent = `${metrics.streak}d 🔥`;
+      document.getElementById('hdStatRate').textContent = `${metrics.completionPercentage}%`;
+      document.getElementById('hdStatLastDone').textContent = formatDateForDisplay(metrics.lastCompletedDate);
+
+      // Custom Type-Aware Analysis Banner
+      const customBanner = document.getElementById('hdCustomInsightBanner');
+      if (normType === 'number') {
+        let totalVal = 0;
+        let daysLogged = 0;
+        const ref = new Date();
+        for (let i = 0; i < 30; i++) {
+          const d = new Date(ref);
+          d.setDate(d.getDate() - i);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          const log = appData.habitLogs[`${habit.id}_${y}-${m}-${day}`];
+          if (log && log.value !== undefined && log.value !== "") {
+            totalVal += Number(log.value) || 0;
+            daysLogged++;
+          }
+        }
+        const avg = daysLogged > 0 ? (totalVal / daysLogged).toFixed(1) : 0;
+        customBanner.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">30-Day Average Daily Volume:</span>
+            <span class="font-mono font-bold text-amber-300">${avg} ${habit.unit || ''} / day</span>
+          </div>
+          <div class="text-[10px] text-slate-500 mt-1">Logged ${daysLogged} of the last 30 days against a daily target of ${habit.target} ${habit.unit || ''}.</div>
+        `;
+      } else {
+        // Weekday vs Weekend Adherence
+        let weekdayTotal = 0, weekdayDone = 0;
+        let weekendTotal = 0, weekendDone = 0;
+        const ref = new Date();
+        for (let i = 0; i < 30; i++) {
+          const d = new Date(ref);
+          d.setDate(d.getDate() - i);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          const dayOfWeek = d.getDay();
+          const log = appData.habitLogs[`${habit.id}_${y}-${m}-${day}`];
+          const isDone = log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+
+          if (dayOfWeek === 0 || dayOfWeek === 6) {
+            weekendTotal++;
+            if (isDone) weekendDone++;
+          } else {
+            weekdayTotal++;
+            if (isDone) weekdayDone++;
+          }
+        }
+        const wkdayPct = weekdayTotal > 0 ? Math.round((weekdayDone / weekdayTotal) * 100) : 0;
+        const wkendPct = weekendTotal > 0 ? Math.round((weekendDone / weekendTotal) * 100) : 0;
+        const frictionNote = wkendPct < wkdayPct 
+          ? `⚠️ Consistency drops on weekends (${wkendPct}% weekend vs ${wkdayPct}% weekday).`
+          : `✅ Balanced consistency across weekdays (${wkdayPct}%) and weekends (${wkendPct}%).`;
+
+        customBanner.innerHTML = `
+          <div class="flex items-center justify-between font-mono mb-1">
+            <span>Weekday: <b class="text-indigo-400">${wkdayPct}%</b></span>
+            <span>Weekend: <b class="text-amber-400">${wkendPct}%</b></span>
+          </div>
+          <p class="text-[11px] text-slate-400">${frictionNote}</p>
+        `;
+      }
+
+      // Render 28-Day Heatmap Matrix
+      const matrixContainer = document.getElementById('hdMatrixGrid');
+      matrixContainer.innerHTML = '';
+      const matrixRef = new Date();
+      for (let i = 27; i >= 0; i--) {
+        const d = new Date(matrixRef);
+        d.setDate(d.getDate() - i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${day}`;
+        const log = appData.habitLogs[`${habit.id}_${dStr}`];
+        const isDone = log && (log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+
+        const dayBox = document.createElement('div');
+        dayBox.className = `p-1.5 rounded-lg text-center font-mono text-[9px] border ${isDone ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold' : 'bg-slate-900 text-slate-600 border-slate-800'}`;
+        dayBox.title = `${dStr}: ${isDone ? (log.value || 'Done') : 'Missed'}`;
+        dayBox.textContent = d.getDate();
+        matrixContainer.appendChild(dayBox);
+      }
+
+      // History Trail List
+      const historyList = document.getElementById('hdHistoryLogList');
+      historyList.innerHTML = '';
+      const pastKeys = Object.keys(appData.habitLogs)
+        .filter(k => k.startsWith(`${habit.id}_`))
+        .sort().reverse().slice(0, 14);
+
+      if (pastKeys.length === 0) {
+        historyList.innerHTML = `<span class="text-slate-500 italic text-[11px]">No activity logged yet.</span>`;
+      } else {
+        pastKeys.forEach(k => {
+          const logDate = k.split('_').slice(1).join('_');
+          const entry = appData.habitLogs[k];
+          const isDone = entry && (entry.completed || (normType === 'yesno' && String(entry.value).toLowerCase() === 'yes'));
+
+          const row = document.createElement('div');
+          row.className = "flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800/80 text-[11px] font-mono";
+          row.innerHTML = `
+            <span class="text-slate-400">${logDate}</span>
+            <span class="${isDone ? 'text-emerald-400 font-bold' : 'text-slate-600'}">
+              ${isDone ? (entry.value ? entry.value : 'Done ✓') : 'Missed'}
+            </span>
+          `;
+          historyList.appendChild(row);
+        });
+      }
+
+      document.getElementById('habitDetailModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeHabitDetailModal() {
+      document.getElementById('habitDetailModal').classList.add('hidden');
     }
 
     function calculateStreak(habitId) {
@@ -2242,7 +2404,8 @@
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    function toggleYesNoHabit(id) {
+    function toggleYesNoHabit(id, event) {
+      if (event) event.stopPropagation();
       const hId = String(id);
       const key = `${hId}_${selectedPlannerDate}`;
       const log = appData.habitLogs[key] || { value: "", completed: false };
@@ -2280,7 +2443,8 @@
       syncToRemote();
     }
 
-    function stepNumericHabit(id, step) {
+    function stepNumericHabit(id, step, event) {
+      if (event) event.stopPropagation();
       const hId = String(id);
       const habit = appData.habits.find(h => String(h.id) === hId);
       if (!habit) return;
@@ -2421,7 +2585,6 @@
       const pendingMs = today - origDateObj;
       const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
 
-      // Calculate Slippage: difference between target date and original planned date
       let slipDays = 0;
       if (isRescheduled) {
         const [ay, am, ad] = activeDate.split('-');
@@ -2485,7 +2648,7 @@
         completed: false,
         date: dateKey,
         scheduledDate: dateKey,
-        originalDate: dateKey, // Locked to initial planned date
+        originalDate: dateKey,
         rescheduledDate: "",
         scheduledStartTime: "",
         scheduledEndTime: "",
@@ -2511,7 +2674,7 @@
 
       const freq = (task.frequency || "once").toLowerCase();
 
-      // SPAWN NEXT INSTANCE
+      // SPAWN NEXT INSTANCE ON COMPLETION
       if (task.completed && freq !== "once") {
         const taskDate = normalizeDateString(task.date || task.scheduledDate) || selectedPlannerDate;
         const nextDate = computeNextRecurrenceDate(taskDate, freq);
@@ -2562,7 +2725,6 @@
       const todayStr = getTodayKey();
       const currentSelectedDate = normalizeDateString(selectedPlannerDate);
 
-      // Backlog detection: not completed AND scheduled for a previous day
       const backlogTasks = appData.tasks.filter(t => {
         if (t.completed || t.status === 'Completed') return false;
         const tDate = normalizeDateString(t.date || t.scheduledDate);
@@ -2800,12 +2962,10 @@
       if (rawId) {
         const t = appData.tasks.find(x => String(x.id) === String(rawId));
         if (t) {
-          // If originalDate was empty, lock it to previous target date
           if (!originalDate) {
             originalDate = normalizeDateString(t.date || t.scheduledDate || targetDate);
           }
 
-          // If the date was changed, mark rescheduledDate
           let rescheduledDate = t.rescheduledDate || "";
           if (originalDate && targetDate && targetDate !== originalDate) {
             rescheduledDate = targetDate;
@@ -3288,7 +3448,7 @@
       if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
       if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
 
-      // 2. Habits Consistency
+      // 2. Habits Macro Adherence
       const totalHabits = appData.habits.length;
       let totalCompletedLogs = 0;
       const missedCounts = {};
@@ -3330,39 +3490,7 @@
       if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
       if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
 
-      const frictionContainer = document.getElementById('anHabitsFrictionList');
-      if (frictionContainer) {
-        if (!appData.habits.length) {
-          frictionContainer.innerHTML = `<span class="text-slate-500 italic text-[11px]">No habits configured.</span>`;
-        } else {
-          const sorted = [...appData.habits].sort((a, b) => (missedCounts[String(b.id)] || 0) - (missedCounts[String(a.id)] || 0));
-          frictionContainer.innerHTML = sorted.map(h => {
-            const mCount = missedCounts[String(h.id)] || 0;
-            const metrics = getHabitMetrics(h.id, 30);
-            const lastCompletedDisplay = formatDateForDisplay(metrics.lastCompletedDate);
-            const completionPct = metrics.completionPercentage;
-
-            let statusColor = completionPct < 50 ? 'rose' : (completionPct < 80 ? 'amber' : 'emerald');
-
-            return `
-              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800/80 text-[10px]">
-                <div class="min-w-0 flex-1 pr-2">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="font-semibold text-slate-200 truncate">${h.name}</span>
-                    <span class="font-mono text-[9px] text-${statusColor}-400 font-bold">${completionPct}%</span>
-                  </div>
-                  <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-${statusColor}-500 rounded-full" style="width: ${completionPct}%"></div>
-                  </div>
-                  <span class="text-[9px] text-slate-500 font-mono mt-1 block">Missed: ${mCount}x • Last: ${lastCompletedDisplay}</span>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-
-      // 3. Tasks Throughput & Slippage Rate
+      // 3. Tasks Throughput
       const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
       const totalTasks = scopedTasks.length;
       let completedTasksCount = 0;
