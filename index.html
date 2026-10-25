@@ -3980,34 +3980,138 @@
       lucide.createIcons();
     }
 
-    window.onload = () => {
-      buildHourlyBackgroundGrid();
-      setTaskFilter('PENDING');
-      setAnalyticsWindow(7);
-      renderAll();
-      scrollToCurrentTimeOrStart();
+    // ---------- Native PWA Notification Engine (All Features) ----------
+    const firedNotificationSet = new Set();
 
-      if (window.lucide && window.lucide.createIcons) {
-        setTimeout(() => {
-          window.lucide.createIcons();
-        }, 100);
+    async function initNotifications() {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'default') {
+        // Request on user engagement or first load
+        await Notification.requestPermission();
       }
+    }
 
-      if (appData.apiUrl) {
-        fetchRemoteData();
-      } else {
-        setSyncStatus('error');
-      }
+    function triggerNativeNotification(title, options = {}) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-      setInterval(updateLiveTimeIndicator, 60000);
+      const notifOptions = {
+        badge: 'assets/badge-72.png',
+        icon: 'assets/icon-192.png',
+        vibrate: [150, 50, 150],
+        ...options
+      };
 
-      // Register PWA Service Worker
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js', { scope: '/daily-planner/' }).catch((err) => {
-          console.log('SW registration skipped:', err);
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(title, notifOptions);
         });
+      } else {
+        new Notification(title, notifOptions);
       }
+    }
+
+    function checkSystemReminders() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      const now = new Date();
+      const todayStr = getTodayKey();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentMinsOfDay = (currentHours * 60) + currentMinutes;
+
+      // 1. TimeBlocks Pre-alert (5-minute warning)
+      (appData.timeBlocks || []).forEach(b => {
+        if (b.date !== todayStr || !b.startTime) return;
+        const startMins = timeToMinutes(b.startTime);
+        const diff = startMins - currentMinsOfDay;
+        const key = `notif_tb_${b.id}_${todayStr}`;
+
+        if (diff >= 0 && diff <= 5 && !firedNotificationSet.has(key)) {
+          firedNotificationSet.add(key);
+          triggerNativeNotification(`⏱️ Upcoming Plan: ${b.title}`, {
+            body: `Starts at ${b.startTime} (${diff === 0 ? 'Now' : 'in ' + diff + ' mins'}).`,
+            tag: key,
+            data: { targetModule: 'module_planner' }
+          });
+        }
+      });
+
+      // 2. Scheduled Tasks Alert
+      (appData.tasks || []).forEach(t => {
+        if (t.completed || t.date !== todayStr || !t.scheduledStartTime) return;
+        const startMins = timeToMinutes(t.scheduledStartTime);
+        const diff = startMins - currentMinsOfDay;
+        const key = `notif_task_${t.id}_${todayStr}`;
+
+        if (diff >= 0 && diff <= 5 && !firedNotificationSet.has(key)) {
+          firedNotificationSet.add(key);
+          triggerNativeNotification(`📋 Task Due: ${t.title}`, {
+            body: `Scheduled for ${t.scheduledStartTime} (${t.priority} Priority).`,
+            tag: key,
+            data: { targetModule: 'module_tasks' }
+          });
+        }
+      });
+
+      // 3. Daily Habits Mid-Day Check-in (Fires once at 2:00 PM if habits < 50%)
+      if (currentHours === 14 && currentMinutes === 0) {
+        const habitKey = `notif_habits_${todayStr}`;
+        if (!firedNotificationSet.has(habitKey)) {
+          const totalHabits = (appData.habits || []).length;
+          if (totalHabits > 0) {
+            const completedCount = appData.habits.filter(h => {
+              const log = appData.habitLogs[`${h.id}_${todayStr}`];
+              return log && (log.completed || String(log.value).toLowerCase() === 'yes');
+            }).length;
+
+            if (completedCount / totalHabits < 0.5) {
+              firedNotificationSet.add(habitKey);
+              triggerNativeNotification(`🔥 Daily Habit Check-in`, {
+                body: `You've completed ${completedCount}/${totalHabits} habits today. Keep your streak alive!`,
+                tag: habitKey,
+                data: { targetModule: 'module_habits' }
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Evening Reflection Reminder (Fires once at 9:00 PM if unrecorded)
+      if (currentHours === 21 && currentMinutes === 0) {
+        const reviewKey = `notif_review_${todayStr}`;
+        if (!firedNotificationSet.has(reviewKey)) {
+          const review = appData.dailySummaries[todayStr] || {};
+          const isFilled = Boolean(review.goodThing || review.productive || review.emotion);
+
+          if (!isFilled) {
+            firedNotificationSet.add(reviewKey);
+            triggerNativeNotification(`🌙 Evening Reflection Reminder`, {
+              body: `Take 2 minutes to record your wins, blockers, and mood for today.`,
+              tag: reviewKey,
+              data: { targetModule: 'module_review' }
+            });
+          }
+        }
+      }
+    }
+
+    // Listen for notification taps to scroll directly to the section
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.action === 'scrollToModule' && event.data.moduleId) {
+          scrollToModule(event.data.moduleId);
+        }
+      });
+    }
+
+    // Call notification initializer inside window.onload:
+    const originalOnLoad = window.onload;
+    window.onload = () => {
+      if (originalOnLoad) originalOnLoad();
+      initNotifications();
+      setInterval(checkSystemReminders, 30000); // Check every 30 seconds
     };
+    
   </script>
 </body>
 </html>
