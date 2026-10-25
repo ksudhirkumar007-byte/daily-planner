@@ -159,7 +159,6 @@
 
       <!-- Progress Bars Row -->
       <div class="px-3 sm:px-4 py-2.5 bg-slate-950/60 border-b border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <!-- Tasks Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-mono font-semibold text-slate-300">📋 Tasks</span>
@@ -171,7 +170,6 @@
           <span id="taskProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 completed</span>
         </div>
 
-        <!-- Habits Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-mono font-semibold text-slate-300">🔥 Habits</span>
@@ -183,7 +181,6 @@
           <span id="habitProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 logged</span>
         </div>
 
-        <!-- Planner Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-mono font-semibold text-slate-300">⏱️ Planner</span>
@@ -199,7 +196,7 @@
       <!-- Presets -->
       <div class="px-3 py-2 bg-slate-900/60 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
         <span class="text-slate-500 text-[10px] font-mono whitespace-nowrap flex items-center gap-1 mr-1">
-          <i data-lucide="sparkles" class="w-3h-3 text-indigo-400"></i> Presets:
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i> Presets:
         </span>
         <button onclick="addPresetBlock('Deep Work', '09:00', '12:00', 'indigo')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
           💻 Deep Work
@@ -220,12 +217,12 @@
         <div class="col-span-2 sm:col-span-1 text-center font-mono">Time</div>
         <div class="col-span-5 sm:col-span-5 px-1.5 flex items-center justify-between border-r border-slate-800/60">
           <span class="flex items-center gap-1 text-indigo-300 truncate">
-            <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i> Planned (Click to Plan)
+            <i data-lucide="calendar" class="w-3.5 h-3.5 flex-shrink-0"></i> Planned (Click to Plan)
           </span>
         </div>
         <div class="col-span-5 sm:col-span-6 px-1.5 flex items-center justify-between">
           <span class="flex items-center gap-1 text-emerald-300 truncate">
-            <i data-lucide="check-square" class="w-3 h-3 flex-shrink-0"></i> Scheduled (Click to Task)
+            <i data-lucide="check-square" class="w-3.5 h-3.5 flex-shrink-0"></i> Scheduled (Click to Task)
           </span>
         </div>
       </div>
@@ -251,14 +248,14 @@
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-500/80"></span> Task</span>
         </div>
         <button onclick="scrollToCurrentTimeOrStart()" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-mono transition flex items-center gap-1">
-          <i data-lucide="navigation" class="w-3 h-3"></i> Jump to Current Hour
+          <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Jump to Current Hour
         </button>
       </div>
     </section>
 
     <!-- Habits & Focus Stopwatch Row -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-      <!-- Habits Tracker with Option C Hybrid Click-to-Inspect -->
+      <!-- Habits Tracker with Option C Hybrid Mode -->
       <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
         <div>
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -266,7 +263,7 @@
               <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Daily Habits
               </h2>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card for deep analytics; use controls on right to log.</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card body for deep analytics; use controls on right to log.</p>
             </div>
             <button onclick="openCreateHabitModal()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Habit
@@ -328,7 +325,7 @@
       </section>
     </div>
 
-    <!-- Tasks Manager with Rescheduled Date Visibility & Tabs -->
+    <!-- Tasks Manager with Tabs (Pending, Backlog, Timebound, All) -->
     <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-2 border-b border-slate-800/80">
         <div>
@@ -460,7 +457,6 @@
 
         <!-- Top Metric Cards Grid -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
-          <!-- Planner Adherence -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-1">
@@ -476,7 +472,6 @@
             </div>
           </div>
 
-          <!-- Habits Consistency -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-amber-400 text-xs font-semibold mb-1">
@@ -492,7 +487,6 @@
             </div>
           </div>
 
-          <!-- Tasks Throughput -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-emerald-400 text-xs font-semibold mb-1">
@@ -508,7 +502,6 @@
             </div>
           </div>
 
-          <!-- Mood & Productivity -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-purple-400 text-xs font-semibold mb-1">
@@ -525,9 +518,7 @@
           </div>
         </div>
 
-        <!-- Task Priority & Evening Reflections Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-          <!-- Task Priority Completion Bars -->
           <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
             <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
               <span class="font-semibold text-slate-200 flex items-center gap-1.5">
@@ -538,7 +529,6 @@
             <div id="anTaskPriorityBars" class="space-y-3 mt-3"></div>
           </div>
 
-          <!-- Evening Review Highlights -->
           <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -883,10 +873,10 @@
           </div>
         </div>
 
-        <!-- Type-Specific Analytics Banner (Numeric Averages or Weekend Friction) -->
+        <!-- Custom Type-Aware Analysis Banner -->
         <div id="hdCustomInsightBanner" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs"></div>
 
-        <!-- 28-Day Consistency Matrix (7x4 grid) -->
+        <!-- 28-Day Consistency Matrix -->
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[11px] font-mono font-semibold text-slate-300">Last 28 Days Matrix</span>
@@ -895,7 +885,7 @@
           <div id="hdMatrixGrid" class="grid grid-cols-7 gap-1.5 pt-1"></div>
         </div>
 
-        <!-- Scrollable History Trail -->
+        <!-- History Trail -->
         <div>
           <span class="text-[11px] font-mono font-semibold text-slate-300 block mb-1.5">Recent History Log</span>
           <div id="hdHistoryLogList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
@@ -994,7 +984,8 @@
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
-    let syncPending = false;
+    let syncNeedsAnotherRun = false;
+    let lastSavedLocalTimestamp = 0;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1207,7 +1198,7 @@
       }
     }
 
-    // ---------- Sync Engine ----------
+    // ---------- Bulletproof Non-Destructive Sync Engine ----------
     function setSyncStatus(state) {
       const dot = document.getElementById('syncDot');
       const txt = document.getElementById('syncText');
@@ -1230,6 +1221,7 @@
     }
 
     function syncToRemote() {
+      lastSavedLocalTimestamp = Date.now();
       saveState();
 
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
@@ -1238,7 +1230,7 @@
       }
 
       if (isSyncInProgress) {
-        syncPending = true;
+        syncNeedsAnotherRun = true;
         return;
       }
 
@@ -1253,12 +1245,12 @@
 
     async function executeSyncPayload() {
       if (isSyncInProgress) {
-        syncPending = true;
+        syncNeedsAnotherRun = true;
         return;
       }
 
       isSyncInProgress = true;
-      syncPending = false;
+      syncNeedsAnotherRun = false;
       setSyncStatus('syncing');
 
       const timeBlocksPayload = (appData.timeBlocks || []).map(b => ({
@@ -1362,13 +1354,16 @@
           setSyncStatus('synced');
         } else {
           setSyncStatus('error');
+          syncNeedsAnotherRun = true;
         }
       } catch (err) {
+        console.error("Sync error:", err);
         setSyncStatus('error');
+        syncNeedsAnotherRun = true;
       } finally {
         isSyncInProgress = false;
-        if (syncPending) {
-          syncPending = false;
+        if (syncNeedsAnotherRun) {
+          syncNeedsAnotherRun = false;
           if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
           syncDebounceTimer = setTimeout(executeSyncPayload, 200);
         }
@@ -1381,6 +1376,10 @@
         return;
       }
 
+      if (Date.now() - lastSavedLocalTimestamp < 3500) {
+        return;
+      }
+
       setSyncStatus('syncing');
 
       try {
@@ -1388,20 +1387,18 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Planner
+        // 1. Planner merge
         if (json.planner && Array.isArray(json.planner)) {
-          const seenPlan = new Set();
-          const cleanPlanner = [];
+          const remotePlanMap = new Map();
           json.planner.forEach(b => {
             const planId = String(b.id || "").trim();
-            if (!planId || seenPlan.has(planId)) return;
-            seenPlan.add(planId);
+            if (!planId) return;
 
             const times = extractTimesFromItem(b);
             const sTime = times.start || "09:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
 
-            cleanPlanner.push({
+            remotePlanMap.set(planId, {
               id: isNaN(planId) ? planId : Number(planId),
               date: normalizeDateString(b.date),
               title: b.title || "Untitled Block",
@@ -1419,9 +1416,15 @@
               routineId: b.routineId ? Number(b.routineId) : null
             });
           });
-          appData.timeBlocks = cleanPlanner;
-        } else {
-          appData.timeBlocks = [];
+
+          (appData.timeBlocks || []).forEach(localBlock => {
+            const lId = String(localBlock.id || "").trim();
+            if (lId && !remotePlanMap.has(lId)) {
+              remotePlanMap.set(lId, localBlock);
+            }
+          });
+
+          appData.timeBlocks = Array.from(remotePlanMap.values());
         }
 
         // 2. Routines
@@ -1450,8 +1453,6 @@
             });
           });
           appData.routines = cleanRoutines;
-        } else {
-          appData.routines = [];
         }
 
         // 3. Habits
@@ -1479,14 +1480,12 @@
               unit: h.unit || ""
             });
           });
-          appData.habits = cleanHabits;
-        } else {
-          appData.habits = [];
+          if (cleanHabits.length > 0) appData.habits = cleanHabits;
         }
 
         // 4. Habit Logs
         if (json.habitLogs && Array.isArray(json.habitLogs)) {
-          const remoteMap = {};
+          const remoteHabitLogMap = {};
           json.habitLogs.forEach(l => {
             const dateStr = normalizeDateString(l.date);
             const key = `${String(l.habitId).trim()}_${dateStr}`;
@@ -1494,31 +1493,27 @@
                                 String(l.completed).trim().toLowerCase() === "yes" || 
                                 l.completed === true || 
                                 l.completed === 1;
-            remoteMap[key] = {
+            remoteHabitLogMap[key] = {
               value: l.value !== undefined ? l.value : "",
               completed: isCompleted
             };
           });
-          appData.habitLogs = remoteMap;
-        } else {
-          appData.habitLogs = {};
+          appData.habitLogs = { ...remoteHabitLogMap, ...appData.habitLogs };
         }
 
-        // 5. Tasks
+        // 5. Tasks merge
         if (json.tasks && Array.isArray(json.tasks)) {
-          const seenTask = new Set();
-          const cleanTasks = [];
+          const remoteTaskMap = new Map();
           json.tasks.forEach(t => {
             const tId = String(t.id || "").trim();
-            if (!tId || seenTask.has(tId)) return;
-            seenTask.add(tId);
+            if (!tId) return;
 
             const times = extractTimesFromItem(t);
             const baseDate = normalizeDateString(t.date || t.scheduledDate || "");
             const origDate = normalizeDateString(t.originalDate || baseDate);
             const reschedDate = normalizeDateString(t.rescheduledDate || "");
 
-            cleanTasks.push({
+            remoteTaskMap.set(tId, {
               id: isNaN(tId) ? tId : Number(tId),
               title: t.title || "Untitled Task",
               priority: t.priority || "Med",
@@ -1535,9 +1530,15 @@
               actualMins: Number(t.actualMins) || 0
             });
           });
-          appData.tasks = cleanTasks;
-        } else {
-          appData.tasks = [];
+
+          (appData.tasks || []).forEach(localTask => {
+            const lId = String(localTask.id || "").trim();
+            if (lId && !remoteTaskMap.has(lId)) {
+              remoteTaskMap.set(lId, localTask);
+            }
+          });
+
+          appData.tasks = Array.from(remoteTaskMap.values());
         }
 
         // 6. Focus Logs
@@ -1553,11 +1554,11 @@
 
         // 7. Daily Summaries
         if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
-          const remoteMap = {};
+          const remoteSummaryMap = {};
           json.dailySummaries.forEach(s => {
             const d = normalizeDateString(s.date);
             if (d) {
-              remoteMap[d] = {
+              remoteSummaryMap[d] = {
                 date: d,
                 goodThing: s.goodThing || "",
                 disliked: s.disliked || "",
@@ -1568,7 +1569,7 @@
               };
             }
           });
-          appData.dailySummaries = remoteMap;
+          appData.dailySummaries = remoteSummaryMap;
         }
 
         isRemoteDataLoaded = true;
@@ -1753,7 +1754,6 @@
       document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
       document.getElementById('scoreStatusCount').textContent = `${completedCount}/${totalItems} done`;
 
-      // Day Tasks Progress
       const dayTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate));
       const totalTasks = dayTasks.length;
       const completedTasks = dayTasks.filter(t => t.completed || t.status === 'Completed').length;
@@ -2012,7 +2012,7 @@
       const s = normalizeTimeString(start);
       const e = normalizeTimeString(end);
       appData.timeBlocks.push({
-        id: Date.now(),
+        id: Date.now() + Math.floor(Math.random() * 1000),
         date: selectedPlannerDate,
         title,
         startTime: s,
@@ -2055,7 +2055,6 @@
 
         const streak = calculateStreak(hId);
 
-        // 7-day Mini Heatmap Dots
         let weekDots = '';
         const dRef = new Date(selectedPlannerDate + 'T00:00:00');
         for (let i = 6; i >= 0; i--) {
@@ -2118,7 +2117,6 @@
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <!-- Left Area: Click to inspect deep analytics -->
             <div onclick="openHabitDetailModal('${hId}')" class="cursor-pointer min-w-0 flex-1 hover:opacity-90 transition">
               <div class="flex items-center gap-2">
                 <h4 class="text-xs sm:text-sm font-bold text-white truncate hover:text-amber-300 transition flex items-center gap-1.5">
@@ -2137,7 +2135,6 @@
               </div>
             </div>
 
-            <!-- Right Area: Completion controls & actions -->
             <div class="flex items-center gap-2 justify-between sm:justify-end flex-shrink-0">
               ${controlHtml}
               <button onclick="event.stopPropagation(); deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
@@ -2172,7 +2169,6 @@
       document.getElementById('hdStatRate').textContent = `${metrics.completionPercentage}%`;
       document.getElementById('hdStatLastDone').textContent = formatDateForDisplay(metrics.lastCompletedDate);
 
-      // Custom Type-Aware Analysis Banner
       const customBanner = document.getElementById('hdCustomInsightBanner');
       if (normType === 'number') {
         let totalVal = 0;
@@ -2199,7 +2195,6 @@
           <div class="text-[10px] text-slate-500 mt-1">Logged ${daysLogged} of the last 30 days against a daily target of ${habit.target} ${habit.unit || ''}.</div>
         `;
       } else {
-        // Weekday vs Weekend Adherence
         let weekdayTotal = 0, weekdayDone = 0;
         let weekendTotal = 0, weekendDone = 0;
         const ref = new Date();
@@ -2218,7 +2213,7 @@
             if (isDone) weekendDone++;
           } else {
             weekdayTotal++;
-            if (isDone) weekdayDone++;
+            if (isDone) weekendDone++;
           }
         }
         const wkdayPct = weekdayTotal > 0 ? Math.round((weekdayDone / weekdayTotal) * 100) : 0;
@@ -2236,7 +2231,6 @@
         `;
       }
 
-      // Render 28-Day Heatmap Matrix
       const matrixContainer = document.getElementById('hdMatrixGrid');
       matrixContainer.innerHTML = '';
       const matrixRef = new Date();
@@ -2257,7 +2251,6 @@
         matrixContainer.appendChild(dayBox);
       }
 
-      // History Trail List
       const historyList = document.getElementById('hdHistoryLogList');
       historyList.innerHTML = '';
       const pastKeys = Object.keys(appData.habitLogs)
@@ -3626,7 +3619,7 @@
       lucide.createIcons();
     }
 
-    // ---------- Time Block Modal Handlers ----------
+    // ---------- Modal: Edit / Add Timeblock ----------
     function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
       const titleModal = document.getElementById('timeBlockModalTitle');
       if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
@@ -3730,7 +3723,9 @@
         if (b.date === date && String(b.id) !== String(rawId)) {
           const bStart = timeToMinutes(b.startTime);
           const bEnd = timeToMinutes(b.endTime);
-          if (sMins < bEnd && eMins > bStart) conflicts.push(b);
+          if (sMins < bEnd && eMins > bStart && sMins !== bEnd && eMins !== bStart) {
+            conflicts.push(b);
+          }
         }
       });
 
@@ -3747,7 +3742,7 @@
         if (rawId.startsWith('ROUTINE_')) {
           appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
           appData.timeBlocks.push({
-            id: Date.now(),
+            id: Date.now() + Math.floor(Math.random() * 1000),
             date,
             routineId: routineId,
             taskId,
@@ -3776,7 +3771,7 @@
         }
       } else {
         appData.timeBlocks.push({
-          id: Date.now(),
+          id: Date.now() + Math.floor(Math.random() * 1000),
           date,
           routineId,
           taskId,
@@ -3884,7 +3879,7 @@
         existing.timeBlock = blockName;
       } else {
         appData.routines.push({
-          id: Date.now(),
+          id: Date.now() + Math.floor(Math.random() * 1000),
           title,
           color,
           startTime,
