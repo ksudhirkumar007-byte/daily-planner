@@ -3980,14 +3980,17 @@
       lucide.createIcons();
     }
 
-    // ---------- Native PWA Notification Engine (All Features) ----------
+// ---------- Native PWA Notification Engine (All Sections) ----------
     const firedNotificationSet = new Set();
 
     async function initNotifications() {
       if (!('Notification' in window)) return;
       if (Notification.permission === 'default') {
-        // Request on user engagement or first load
-        await Notification.requestPermission();
+        try {
+          await Notification.requestPermission();
+        } catch (e) {
+          console.log('Notification permission request skipped:', e);
+        }
       }
     }
 
@@ -4036,7 +4039,7 @@
         }
       });
 
-      // 2. Scheduled Tasks Alert
+      // 2. Scheduled Tasks Pre-alert (5-minute warning)
       (appData.tasks || []).forEach(t => {
         if (t.completed || t.date !== todayStr || !t.scheduledStartTime) return;
         const startMins = timeToMinutes(t.scheduledStartTime);
@@ -4064,7 +4067,7 @@
               return log && (log.completed || String(log.value).toLowerCase() === 'yes');
             }).length;
 
-            if (completedCount / totalHabits < 0.5) {
+            if ((completedCount / totalHabits) < 0.5) {
               firedNotificationSet.add(habitKey);
               triggerNativeNotification(`🔥 Daily Habit Check-in`, {
                 body: `You've completed ${completedCount}/${totalHabits} habits today. Keep your streak alive!`,
@@ -4095,7 +4098,7 @@
       }
     }
 
-    // Listen for notification taps to scroll directly to the section
+    // Listen for notification clicks to auto-scroll to the module
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data && event.data.action === 'scrollToModule' && event.data.moduleId) {
@@ -4104,12 +4107,38 @@
       });
     }
 
-    // Call notification initializer inside window.onload:
-    const originalOnLoad = window.onload;
+    // ---------- Application Initialization ----------
     window.onload = () => {
-      if (originalOnLoad) originalOnLoad();
+      buildHourlyBackgroundGrid();
+      setTaskFilter('PENDING');
+      setAnalyticsWindow(7);
+      renderAll();
+      scrollToCurrentTimeOrStart();
+
+      if (window.lucide && window.lucide.createIcons) {
+        setTimeout(() => {
+          window.lucide.createIcons();
+        }, 100);
+      }
+
+      if (appData.apiUrl) {
+        fetchRemoteData();
+      } else {
+        setSyncStatus('error');
+      }
+
+      setInterval(updateLiveTimeIndicator, 60000);
+
+      // Register PWA Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js', { scope: '/daily-planner/' }).catch((err) => {
+          console.log('SW registration skipped:', err);
+        });
+      }
+
+      // Initialize Native Notifications and run 30s reminder check loop
       initNotifications();
-      setInterval(checkSystemReminders, 30000); // Check every 30 seconds
+      setInterval(checkSystemReminders, 30000);
     };
     
   </script>
