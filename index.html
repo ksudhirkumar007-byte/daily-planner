@@ -67,7 +67,6 @@
         </div>
       </div>
 
-      <!-- Sync Status, Analytics Link, Settings & Backup Actions -->
       <div class="flex items-center gap-1.5">
         <button onclick="scrollToModule('module_analytics')" title="Jump to Analytics" class="px-2.5 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-700/60 text-indigo-300 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
           <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
@@ -159,7 +158,6 @@
 
       <!-- Progress Bars Row -->
       <div class="px-3 sm:px-4 py-2.5 bg-slate-950/60 border-b border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <!-- Tasks Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-mono font-semibold text-slate-300">📋 Tasks</span>
@@ -171,7 +169,6 @@
           <span id="taskProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 completed</span>
         </div>
 
-        <!-- Habits Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-mono font-semibold text-slate-300">🔥 Habits</span>
@@ -183,7 +180,6 @@
           <span id="habitProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 logged</span>
         </div>
 
-        <!-- Planner Progress -->
         <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-mono font-semibold text-slate-300">⏱️ Planner</span>
@@ -199,7 +195,7 @@
       <!-- Presets -->
       <div class="px-3 py-2 bg-slate-900/60 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
         <span class="text-slate-500 text-[10px] font-mono whitespace-nowrap flex items-center gap-1 mr-1">
-          <i data-lucide="sparkles" class="w-3h-3 text-indigo-400"></i> Presets:
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i> Presets:
         </span>
         <button onclick="addPresetBlock('Deep Work', '09:00', '12:00', 'indigo')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
           💻 Deep Work
@@ -258,7 +254,7 @@
 
     <!-- Habits & Focus Stopwatch Row -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-      <!-- Habits Tracker with Option C Hybrid Click-to-Inspect -->
+      <!-- Habits Tracker with Option C Hybrid Mode -->
       <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
         <div>
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -266,7 +262,7 @@
               <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Daily Habits
               </h2>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card for deep analytics; use controls on right to log.</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card body for deep analytics; use controls on right to log.</p>
             </div>
             <button onclick="openCreateHabitModal()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Habit
@@ -328,7 +324,7 @@
       </section>
     </div>
 
-    <!-- Tasks Manager with Rescheduled Date Visibility & Tabs -->
+    <!-- Tasks Manager with Tabs & Reschedule Support -->
     <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-2 border-b border-slate-800/80">
         <div>
@@ -460,7 +456,6 @@
 
         <!-- Top Metric Cards Grid -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
-          <!-- Planner Adherence -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-1">
@@ -476,7 +471,6 @@
             </div>
           </div>
 
-          <!-- Habits Consistency -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-amber-400 text-xs font-semibold mb-1">
@@ -492,7 +486,6 @@
             </div>
           </div>
 
-          <!-- Tasks Throughput -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-emerald-400 text-xs font-semibold mb-1">
@@ -508,7 +501,6 @@
             </div>
           </div>
 
-          <!-- Mood & Productivity -->
           <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
             <div>
               <div class="flex items-center justify-between text-purple-400 text-xs font-semibold mb-1">
@@ -525,9 +517,7 @@
           </div>
         </div>
 
-        <!-- Task Priority & Evening Reflections Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-          <!-- Task Priority Completion Bars -->
           <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
             <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
               <span class="font-semibold text-slate-200 flex items-center gap-1.5">
@@ -538,7 +528,6 @@
             <div id="anTaskPriorityBars" class="space-y-3 mt-3"></div>
           </div>
 
-          <!-- Evening Review Highlights -->
           <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -867,7 +856,6 @@
       </div>
 
       <div class="space-y-4">
-        <!-- KPI Strip -->
         <div class="grid grid-cols-3 gap-2">
           <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
             <span class="text-[9px] uppercase font-mono text-slate-500 block">Streak</span>
@@ -883,10 +871,8 @@
           </div>
         </div>
 
-        <!-- Type-Specific Analytics Banner (Numeric Averages or Weekend Friction) -->
         <div id="hdCustomInsightBanner" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs"></div>
 
-        <!-- 28-Day Consistency Matrix (7x4 grid) -->
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[11px] font-mono font-semibold text-slate-300">Last 28 Days Matrix</span>
@@ -895,7 +881,6 @@
           <div id="hdMatrixGrid" class="grid grid-cols-7 gap-1.5 pt-1"></div>
         </div>
 
-        <!-- Scrollable History Trail -->
         <div>
           <span class="text-[11px] font-mono font-semibold text-slate-300 block mb-1.5">Recent History Log</span>
           <div id="hdHistoryLogList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
@@ -994,7 +979,8 @@
     let isRemoteDataLoaded = false;
     let syncDebounceTimer = null;
     let isSyncInProgress = false;
-    let syncPending = false;
+    let syncNeedsAnotherRun = false;
+    let lastSavedLocalTimestamp = 0;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
 
@@ -1207,7 +1193,7 @@
       }
     }
 
-    // ---------- Sync Engine ----------
+    // ---------- Non-Destructive Safe Sync Engine ----------
     function setSyncStatus(state) {
       const dot = document.getElementById('syncDot');
       const txt = document.getElementById('syncText');
@@ -1230,6 +1216,7 @@
     }
 
     function syncToRemote() {
+      lastSavedLocalTimestamp = Date.now();
       saveState();
 
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
@@ -1238,7 +1225,7 @@
       }
 
       if (isSyncInProgress) {
-        syncPending = true;
+        syncNeedsAnotherRun = true;
         return;
       }
 
@@ -1253,12 +1240,12 @@
 
     async function executeSyncPayload() {
       if (isSyncInProgress) {
-        syncPending = true;
+        syncNeedsAnotherRun = true;
         return;
       }
 
       isSyncInProgress = true;
-      syncPending = false;
+      syncNeedsAnotherRun = false;
       setSyncStatus('syncing');
 
       const timeBlocksPayload = (appData.timeBlocks || []).map(b => ({
@@ -1362,13 +1349,16 @@
           setSyncStatus('synced');
         } else {
           setSyncStatus('error');
+          syncNeedsAnotherRun = true;
         }
       } catch (err) {
+        console.error("Sync error:", err);
         setSyncStatus('error');
+        syncNeedsAnotherRun = true;
       } finally {
         isSyncInProgress = false;
-        if (syncPending) {
-          syncPending = false;
+        if (syncNeedsAnotherRun) {
+          syncNeedsAnotherRun = false;
           if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
           syncDebounceTimer = setTimeout(executeSyncPayload, 200);
         }
@@ -1381,6 +1371,11 @@
         return;
       }
 
+      // If user recently interacted within the last 3 seconds, avoid blowing away local pending memory
+      if (Date.now() - lastSavedLocalTimestamp < 3000) {
+        return;
+      }
+
       setSyncStatus('syncing');
 
       try {
@@ -1388,20 +1383,18 @@
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
 
-        // 1. Planner
+        // 1. Planner merge
         if (json.planner && Array.isArray(json.planner)) {
-          const seenPlan = new Set();
-          const cleanPlanner = [];
+          const remoteMap = new Map();
           json.planner.forEach(b => {
             const planId = String(b.id || "").trim();
-            if (!planId || seenPlan.has(planId)) return;
-            seenPlan.add(planId);
+            if (!planId) return;
 
             const times = extractTimesFromItem(b);
             const sTime = times.start || "09:00";
             const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
 
-            cleanPlanner.push({
+            remoteMap.set(planId, {
               id: isNaN(planId) ? planId : Number(planId),
               date: normalizeDateString(b.date),
               title: b.title || "Untitled Block",
@@ -1419,9 +1412,16 @@
               routineId: b.routineId ? Number(b.routineId) : null
             });
           });
-          appData.timeBlocks = cleanPlanner;
-        } else {
-          appData.timeBlocks = [];
+
+          // Preserve any locally added block not yet reflected in Sheets
+          (appData.timeBlocks || []).forEach(localBlock => {
+            const localId = String(localBlock.id || "").trim();
+            if (localId && !remoteMap.has(localId)) {
+              remoteMap.set(localId, localBlock);
+            }
+          });
+
+          appData.timeBlocks = Array.from(remoteMap.values());
         }
 
         // 2. Routines
@@ -1450,8 +1450,6 @@
             });
           });
           appData.routines = cleanRoutines;
-        } else {
-          appData.routines = [];
         }
 
         // 3. Habits
@@ -1479,9 +1477,7 @@
               unit: h.unit || ""
             });
           });
-          appData.habits = cleanHabits;
-        } else {
-          appData.habits = [];
+          if (cleanHabits.length > 0) appData.habits = cleanHabits;
         }
 
         // 4. Habit Logs
@@ -1499,26 +1495,22 @@
               completed: isCompleted
             };
           });
-          appData.habitLogs = remoteMap;
-        } else {
-          appData.habitLogs = {};
+          appData.habitLogs = { ...remoteMap, ...appData.habitLogs };
         }
 
-        // 5. Tasks
+        // 5. Tasks merge
         if (json.tasks && Array.isArray(json.tasks)) {
-          const seenTask = new Set();
-          const cleanTasks = [];
+          const remoteTaskMap = new Map();
           json.tasks.forEach(t => {
             const tId = String(t.id || "").trim();
-            if (!tId || seenTask.has(tId)) return;
-            seenTask.add(tId);
+            if (!tId) return;
 
             const times = extractTimesFromItem(t);
             const baseDate = normalizeDateString(t.date || t.scheduledDate || "");
             const origDate = normalizeDateString(t.originalDate || baseDate);
             const reschedDate = normalizeDateString(t.rescheduledDate || "");
 
-            cleanTasks.push({
+            remoteTaskMap.set(tId, {
               id: isNaN(tId) ? tId : Number(tId),
               title: t.title || "Untitled Task",
               priority: t.priority || "Med",
@@ -1535,9 +1527,16 @@
               actualMins: Number(t.actualMins) || 0
             });
           });
-          appData.tasks = cleanTasks;
-        } else {
-          appData.tasks = [];
+
+          // Preserve un-synced newly added local tasks
+          (appData.tasks || []).forEach(localTask => {
+            const lId = String(localTask.id || "").trim();
+            if (lId && !remoteTaskMap.has(lId)) {
+              remoteTaskMap.set(lId, localTask);
+            }
+          });
+
+          appData.tasks = Array.from(remoteTaskMap.values());
         }
 
         // 6. Focus Logs
@@ -1753,7 +1752,6 @@
       document.getElementById('scoreAdherenceRate').textContent = `${adherence}%`;
       document.getElementById('scoreStatusCount').textContent = `${completedCount}/${totalItems} done`;
 
-      // Day Tasks Progress
       const dayTasks = appData.tasks.filter(t => isTaskActiveForDate(t, selectedPlannerDate));
       const totalTasks = dayTasks.length;
       const completedTasks = dayTasks.filter(t => t.completed || t.status === 'Completed').length;
@@ -2055,7 +2053,6 @@
 
         const streak = calculateStreak(hId);
 
-        // 7-day Mini Heatmap Dots
         let weekDots = '';
         const dRef = new Date(selectedPlannerDate + 'T00:00:00');
         for (let i = 6; i >= 0; i--) {
@@ -2118,7 +2115,6 @@
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <!-- Left Area: Click to inspect deep analytics -->
             <div onclick="openHabitDetailModal('${hId}')" class="cursor-pointer min-w-0 flex-1 hover:opacity-90 transition">
               <div class="flex items-center gap-2">
                 <h4 class="text-xs sm:text-sm font-bold text-white truncate hover:text-amber-300 transition flex items-center gap-1.5">
@@ -2137,7 +2133,6 @@
               </div>
             </div>
 
-            <!-- Right Area: Completion controls & actions -->
             <div class="flex items-center gap-2 justify-between sm:justify-end flex-shrink-0">
               ${controlHtml}
               <button onclick="event.stopPropagation(); deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
@@ -2172,7 +2167,6 @@
       document.getElementById('hdStatRate').textContent = `${metrics.completionPercentage}%`;
       document.getElementById('hdStatLastDone').textContent = formatDateForDisplay(metrics.lastCompletedDate);
 
-      // Custom Type-Aware Analysis Banner
       const customBanner = document.getElementById('hdCustomInsightBanner');
       if (normType === 'number') {
         let totalVal = 0;
@@ -2199,7 +2193,6 @@
           <div class="text-[10px] text-slate-500 mt-1">Logged ${daysLogged} of the last 30 days against a daily target of ${habit.target} ${habit.unit || ''}.</div>
         `;
       } else {
-        // Weekday vs Weekend Adherence
         let weekdayTotal = 0, weekdayDone = 0;
         let weekendTotal = 0, weekendDone = 0;
         const ref = new Date();
@@ -2236,7 +2229,6 @@
         `;
       }
 
-      // Render 28-Day Heatmap Matrix
       const matrixContainer = document.getElementById('hdMatrixGrid');
       matrixContainer.innerHTML = '';
       const matrixRef = new Date();
@@ -2257,7 +2249,6 @@
         matrixContainer.appendChild(dayBox);
       }
 
-      // History Trail List
       const historyList = document.getElementById('hdHistoryLogList');
       historyList.innerHTML = '';
       const pastKeys = Object.keys(appData.habitLogs)
@@ -2915,407 +2906,1341 @@
       document.getElementById('tmStatus').value = "Need to Start";
       document.getElementById('tmDate').value = selectedPlannerDate;
       document.getElementById('tmRescheduledFromDate').value = "";
-      document.getElementById('tmOriginalDateDisplay').textContent = "";
-      document.getElementById('tmStartTime').value = startTime;
-      document.getElementById('tmEndTime').value = endTime;
-      const sM = timeToMinutes(startTime);
-      const eM = timeToMinutes(endTime);
-      document.getElementById('tmPlannedMins').value = Math.max(15, eM - sM);
-      document.getElementById('tmActualMins').value = 0;
+      document.### Complete Updated `index.html`
 
-      document.getElementById('taskModal').classList.remove('hidden');
-      lucide.createIcons();
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Daily Flow - 24H Planner, Habits & Focus</title>
+  
+  <!-- PWA & Mobile Web App Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daily Flow">
+
+  <!-- Tailwind CSS Local - Minified -->
+  <link rel="stylesheet" href="vendor/tailwind.min.css">
+  <!-- Lucide Icons Local -->
+  <script src="vendor/lucide.min.js"></script>
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    @media screen and (max-width: 768px) {
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+    @keyframes timeIndicatorPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(244, 63, 94, 0.8); }
+      50% { box-shadow: 0 0 16px rgba(244, 63, 94, 1); }
+    }
+    #currentTimeIndicator .flex-1 {
+      animation: timeIndicatorPulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-28 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-3 py-2.5 sm:px-6">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner flex-shrink-0">
+          <i data-lucide="zap" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+            Daily Flow <span class="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">24H</span>
+          </h1>
+          <p id="headerDateSubtext" class="text-[10px] sm:text-xs text-slate-400 font-mono truncate"></p>
+        </div>
+      </div>
+
+      <!-- Sync Status, Analytics Link, Settings & Backup Actions -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="scrollToModule('module_analytics')" title="Jump to Analytics" class="px-2.5 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-700/60 text-indigo-300 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
+          <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Analytics</span>
+        </button>
+
+        <button id="syncStatusBadge" onclick="requestManualSync()" class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
+          <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="syncText" class="font-mono text-[10px] hidden sm:inline">Synced</span>
+          <i data-lucide="refresh-cw" id="syncIcon" class="w-3 h-3 text-slate-400"></i>
+        </button>
+
+        <button onclick="openConfigModal()" title="Google Sheets API URL" class="p-1.5 sm:p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 active:scale-95">
+          <i data-lucide="settings" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+        </button>
+
+        <button onclick="exportBackupData()" title="Backup JSON Data" class="p-1.5 sm:p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 active:scale-95">
+          <i data-lucide="download" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-2.5 sm:px-6 py-3 sm:py-5 space-y-5">
+
+    <!-- 24-Hour Calendar Day Planner Card -->
+    <section id="module_planner" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden scroll-mt-14">
+      <div class="p-3 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        
+        <div class="flex items-center gap-1.5 flex-wrap justify-between sm:justify-start">
+          <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 shadow-inner">
+            <button onclick="shiftPlannerDate(-1)" title="Previous Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition active:scale-90">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button id="btnPlannerToday" onclick="goToPlannerToday()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition active:scale-95">
+              Today
+            </button>
+            <button onclick="shiftPlannerDate(1)" title="Next Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition active:scale-90">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div id="plannerDateDynamicLabel" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono shadow-sm">
+            <span id="plannerDateRelativeTag" class="px-1.5 py-0.2 rounded font-semibold text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Today</span>
+            <span id="plannerDateFormattedText" class="text-slate-200 font-bold text-[11px] sm:text-xs"></span>
+          </div>
+
+          <div class="relative">
+            <input type="date" id="plannerDatePicker" onchange="onPlannerDateSelected(this.value)" 
+                   class="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500 cursor-pointer">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openRoutineManagerModal()" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
+            <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Routines (<span id="activeRoutineCountBadge">0</span>)</span>
+          </button>
+
+          <button onclick="openAddTimeBlockModal()" class="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-600/30">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Plan Block</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Planner KPIs & Adherence Banner -->
+      <div class="px-3 sm:px-4 py-2.5 bg-slate-950/40 border-b border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
+          <span class="text-slate-500 text-[9px] uppercase font-mono">Planned</span>
+          <span id="scorePlannedHours" class="text-xs sm:text-base font-bold font-mono text-indigo-300">0.0h</span>
+          <span id="scorePlannedCount" class="text-[9px] text-slate-500 font-mono">0 items</span>
+        </div>
+        <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
+          <span class="text-slate-500 text-[9px] uppercase font-mono">Actual</span>
+          <span id="scoreActualHours" class="text-xs sm:text-base font-bold font-mono text-emerald-400">0.0h</span>
+          <span id="scoreActualCount" class="text-[9px] text-slate-500 font-mono">0 logged</span>
+        </div>
+        <div class="flex flex-col bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
+          <span class="text-slate-500 text-[9px] uppercase font-mono">Adherence</span>
+          <span id="scoreAdherenceRate" class="text-xs sm:text-base font-bold font-mono text-cyan-400">0%</span>
+          <span id="scoreStatusCount" class="text-[9px] text-slate-500 font-mono">0/0 done</span>
+        </div>
+        <div class="flex flex-col justify-center bg-slate-900/40 p-1.5 rounded-lg border border-slate-800/50">
+          <span class="text-slate-500 text-[9px] uppercase font-mono">Variance</span>
+          <span id="scoreVarianceBadge" class="text-[10px] sm:text-xs font-mono font-semibold text-slate-300 truncate">0.0h on schedule</span>
+        </div>
+      </div>
+
+      <!-- Progress Bars Row -->
+      <div class="px-3 sm:px-4 py-2.5 bg-slate-950/60 border-b border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-mono font-semibold text-slate-300">📋 Tasks</span>
+            <span id="taskProgressPercent" class="text-[9px] font-mono font-bold text-emerald-400">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+            <div id="taskProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="taskProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 completed</span>
+        </div>
+
+        <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-mono font-semibold text-slate-300">🔥 Habits</span>
+            <span id="habitProgressPercent" class="text-[9px] font-mono font-bold text-amber-400">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+            <div id="habitProgressBar" class="h-full bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="habitProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 logged</span>
+        </div>
+
+        <div class="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-mono font-semibold text-slate-300">⏱️ Planner</span>
+            <span id="plannerProgressPercent" class="text-[9px] font-mono font-bold text-cyan-400">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+            <div id="plannerProgressBar" class="h-full bg-cyan-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="plannerProgressLabel" class="text-[8px] text-slate-500 mt-1.5 block">0/0 blocks</span>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="px-3 py-2 bg-slate-900/60 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+        <span class="text-slate-500 text-[10px] font-mono whitespace-nowrap flex items-center gap-1 mr-1">
+          <i data-lucide="sparkles" class="w-3 h-3 text-indigo-400"></i> Presets:
+        </span>
+        <button onclick="addPresetBlock('Deep Work', '09:00', '12:00', 'indigo')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
+          💻 Deep Work
+        </button>
+        <button onclick="addPresetBlock('Workout & Cardio', '07:00', '08:00', 'emerald')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
+          🏃 Gym
+        </button>
+        <button onclick="addPresetBlock('Lunch & Walk', '13:00', '14:00', 'amber')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
+          🥗 Lunch
+        </button>
+        <button onclick="addPresetBlock('Daily Review & Plan', '17:30', '18:15', 'purple')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/20 whitespace-nowrap transition active:scale-95 text-[11px]">
+          📋 Review
+        </button>
+      </div>
+
+      <!-- Track Column Headers -->
+      <div class="grid grid-cols-12 bg-slate-950/80 border-b border-slate-800 text-[10px] sm:text-[11px] font-semibold text-slate-400 py-1.5 px-2 sm:px-3">
+        <div class="col-span-2 sm:col-span-1 text-center font-mono">Time</div>
+        <div class="col-span-5 sm:col-span-5 px-1.5 flex items-center justify-between border-r border-slate-800/60">
+          <span class="flex items-center gap-1 text-indigo-300 truncate">
+            <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i> Planned (Click to Plan)
+          </span>
+        </div>
+        <div class="col-span-5 sm:col-span-6 px-1.5 flex items-center justify-between">
+          <span class="flex items-center gap-1 text-emerald-300 truncate">
+            <i data-lucide="check-square" class="w-3 h-3 flex-shrink-0"></i> Scheduled (Click to Task)
+          </span>
+        </div>
+      </div>
+
+      <!-- 24-Hour Scrollable Timeline Canvas -->
+      <div id="plannerScrollContainer" class="relative max-h-[580px] sm:max-h-[640px] overflow-y-auto bg-slate-950 select-none">
+        <div id="currentTimeIndicator" class="absolute left-0 right-0 z-20 pointer-events-none hidden flex items-center">
+          <div class="w-10 sm:w-16 bg-rose-600 text-white font-mono text-[8px] sm:text-[9px] font-bold text-center py-0.5 rounded-r shadow-md">NOW</div>
+          <div class="flex-1 h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
+        </div>
+
+        <div class="relative w-full" style="height: 1440px;">
+          <div id="hourlyGridLines" class="divide-y divide-slate-900 relative w-full h-full"></div>
+          <div id="scheduledBlocksContainer" class="absolute inset-0 z-10 w-full pointer-events-none"></div>
+        </div>
+      </div>
+
+      <!-- Planner Footer -->
+      <div class="p-2.5 sm:p-3 bg-slate-950/80 border-t border-slate-800 text-[10px] sm:text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-1.5">
+        <div class="flex items-center gap-2 flex-wrap text-[9px] sm:text-[10px]">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-indigo-500/80"></span> Plan</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-amber-500/80"></span> Routine</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-500/80"></span> Task</span>
+        </div>
+        <button onclick="scrollToCurrentTimeOrStart()" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-mono transition flex items-center gap-1">
+          <i data-lucide="navigation" class="w-3 h-3"></i> Jump to Current Hour
+        </button>
+      </div>
+    </section>
+
+    <!-- Habits & Focus Stopwatch Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- Habits Tracker with Option C Hybrid Mode -->
+      <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
+        <div>
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
+            <div>
+              <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Daily Habits
+              </h2>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card body for deep analytics; use controls on right to log.</p>
+            </div>
+            <button onclick="openCreateHabitModal()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Habit
+            </button>
+          </div>
+
+          <div id="habitCardsContainer" class="space-y-2.5"></div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+          <span>Consecutive streak counter</span>
+          <span id="habitsCompletedCounter" class="text-amber-400 font-bold">0/0 done</span>
+        </div>
+      </section>
+
+      <!-- Focus Stopwatch -->
+      <section id="module_timer" class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
+        <div>
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i> Focus Stopwatch
+            </h2>
+            <span id="activeFocusTaskBadge" class="text-[10px] font-mono bg-indigo-950/80 border border-indigo-800/60 text-indigo-300 px-2 py-0.5 rounded-full truncate max-w-[150px]">
+              General Focus
+            </span>
+          </div>
+
+          <div class="text-center py-4 bg-slate-950/80 rounded-2xl border border-slate-800/80 shadow-inner">
+            <div id="stopwatchDigitalDisplay" class="text-3xl sm:text-5xl font-mono font-bold text-white tracking-widest">
+              00:00:00
+            </div>
+            <div class="mt-2.5 px-3">
+              <input type="text" id="focusSessionLabelInput" placeholder="Session label (e.g. Coding, Reading...)" 
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-center font-mono">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-center gap-2 mt-3.5">
+            <button id="btnToggleStopwatch" onclick="toggleStopwatch()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-indigo-600/30 min-h-[44px]">
+              <i data-lucide="play" id="iconTimerPlay" class="w-4 h-4"></i>
+              <span id="labelTimerToggle">Start Session</span>
+            </button>
+            <button onclick="logFocusSession()" class="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition active:scale-95 flex items-center gap-1.5 shadow-md shadow-emerald-600/30 min-h-[44px]">
+              <i data-lucide="check" class="w-4 h-4"></i> Log
+            </button>
+            <button onclick="resetStopwatch()" title="Reset Timer" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-mono text-[10px] uppercase">Today's Sessions</span>
+            <button onclick="clearFocusLogs()" class="text-[10px] text-rose-400 hover:underline">Clear</button>
+          </div>
+          <div id="focusHistoryLogList" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tasks Manager with Tabs (Pending, Backlog, Timebound, All) -->
+    <section id="module_tasks" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg scroll-mt-14">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-2 border-b border-slate-800/80">
+        <div>
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Tasks Manager
+          </h2>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Pending, rescheduled backlog, and timebound agenda tasks.</p>
+        </div>
+
+        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <button id="taskFilterBtn_PENDING" onclick="setTaskFilter('PENDING')" class="px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">Pending</button>
+          <button id="taskFilterBtn_BACKLOG" onclick="setTaskFilter('BACKLOG')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95 flex items-center gap-1">
+            <span>Backlog</span>
+            <span id="backlogCountBadge" class="px-1 py-0.2 rounded-full text-[9px] font-mono bg-rose-950/80 text-rose-300 border border-rose-800/60 hidden">0</span>
+          </button>
+          <button id="taskFilterBtn_SCHEDULED" onclick="setTaskFilter('SCHEDULED')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">Timebound</button>
+          <button id="taskFilterBtn_ALL" onclick="setTaskFilter('ALL')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All</button>
+        </div>
+      </div>
+
+      <!-- Quick Add Task Bar -->
+      <form onsubmit="handleQuickAddTask(event)" class="flex flex-col md:flex-row gap-2 mb-3.5">
+        <input type="text" id="quickTaskTitleInput" placeholder="Add task (e.g. Prepare presentation, Review PR...)" required
+               class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+        
+        <div class="flex items-center gap-2">
+          <select id="quickTaskPrioritySelect" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-300 focus:outline-none">
+            <option value="High">🔥 High</option>
+            <option value="Med" selected>⚡ Medium</option>
+            <option value="Low">🌱 Low</option>
+          </select>
+
+          <select id="quickTaskFrequencySelect" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-300 focus:outline-none">
+            <option value="once" selected>Once</option>
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+            <option value="weekends">Weekends</option>
+            <option value="weekly">Weekly</option>
+          </select>
+
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 flex items-center justify-center gap-1 shadow-md shadow-indigo-600/30 min-h-[40px] whitespace-nowrap">
+            <i data-lucide="plus" class="w-4 h-4"></i> Add
+          </button>
+        </div>
+      </form>
+
+      <div id="masterTaskList" class="space-y-2"></div>
+    </section>
+
+    <!-- Evening Reflection -->
+    <section id="module_review" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-lg overflow-hidden scroll-mt-14">
+      <button onclick="toggleReviewSection()" class="w-full px-4 sm:px-6 py-3.5 flex items-center justify-between hover:bg-slate-900 transition group border-b border-slate-800/80">
+        <div class="flex items-center gap-2">
+          <i data-lucide="moon" class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400"></i>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Evening Reflection</h2>
+            <p class="text-[10px] text-slate-500 mt-0">Click to expand and evaluate your day</p>
+          </div>
+        </div>
+        <i id="reviewToggleIcon" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-white transition flex-shrink-0"></i>
+      </button>
+
+      <div id="reviewContent" class="hidden px-4 sm:px-6 py-4 sm:py-5 space-y-3.5">
+        <div class="flex items-center justify-end mb-2">
+          <button onclick="saveDailyReview()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-purple-600/30">
+            <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-emerald-400 mb-1">🌟 Good thing today</label>
+            <textarea id="rev_goodThing" rows="2" placeholder="Wins, breakthroughs, gratitude..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none resize-none"></textarea>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-rose-400 mb-1">⚡ What went wrong</label>
+            <textarea id="rev_disliked" rows="2" placeholder="Blockers, distractions..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none resize-none"></textarea>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-cyan-400 mb-1">🎯 Productive hours (1-10)</label>
+            <input type="text" id="rev_productive" placeholder="e.g. 8/10 - deep work morning" class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-indigo-400 mb-1">📈 Better than yesterday?</label>
+            <input type="text" id="rev_betterThanYesterday" placeholder="Yes, woke up early..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-amber-400 mb-1">🔄 Regrets or wasted time</label>
+            <input type="text" id="rev_regrets" placeholder="Social media browsing..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-semibold text-purple-400 mb-1">🧠 Overall Emotion & Mood</label>
+            <input type="text" id="rev_emotion" placeholder="Energized, peaceful..." class="w-full bg-transparent text-slate-200 placeholder-slate-600 focus:outline-none">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dedicated Analytics Section -->
+    <section id="module_analytics" class="bg-slate-900/90 border border-indigo-900/50 rounded-2xl shadow-2xl scroll-mt-14 overflow-hidden">
+      <button onclick="toggleAnalyticsSection()" class="w-full px-4 sm:px-6 py-3.5 flex items-center justify-between hover:bg-slate-900/50 transition group border-b border-indigo-900/30">
+        <div class="flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400"></i>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Performance Analytics & Insights</h2>
+            <p class="text-[10px] text-slate-500 mt-0">Execution adherence, overall habits, tasks & mood trends</p>
+          </div>
+        </div>
+        <i id="analyticsToggleIcon" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-white transition flex-shrink-0"></i>
+      </button>
+
+      <div id="analyticsContent" class="hidden p-4 sm:p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row items-center gap-2 justify-between">
+          <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+            <button id="anWindow_7" onclick="setAnalyticsWindow(7)" class="px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95">7 Days</button>
+            <button id="anWindow_30" onclick="setAnalyticsWindow(30)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">30 Days</button>
+            <button id="anWindow_ALL" onclick="setAnalyticsWindow(999)" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95">All Time</button>
+          </div>
+          <button id="btnSyncAnalytics" onclick="syncAnalyticsOnDemand()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-600/30">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>
+          </button>
+        </div>
+
+        <!-- Top Metric Cards Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Plan Fidelity</span>
+                <span id="anPlanFidelityRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-indigo-950/80 border border-indigo-800/60">0%</span>
+              </div>
+              <div id="anPlanHoursStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0.0h / 0.0h</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Actual vs Planned Hours</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Done: <b id="anPlanCompletedCount" class="text-emerald-400">0</b></span>
+              <span>Missed: <b id="anPlanMissedCount" class="text-rose-400">0</b></span>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-amber-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Habit Success</span>
+                <span id="anHabitSuccessRate" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-800/60">0%</span>
+              </div>
+              <div id="anHabitCompletedStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Logged vs Target Goals</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Missed: <b id="anHabitMissedTotal" class="text-rose-400">0</b></span>
+              <span>Streak: <b id="anHabitTopStreak" class="text-amber-300">0d 🔥</b></span>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-emerald-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Task Velocity</span>
+                <span id="anTasksRateBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-800/60">0%</span>
+              </div>
+              <div id="anTasksCountStat" class="text-lg sm:text-2xl font-bold font-mono text-white mt-1">0 / 0</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Tasks Cleared vs Total</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Pending: <b id="anTasksPendingCount" class="text-amber-400">0</b></span>
+              <span>High: <b id="anTasksHighRate" class="text-sky-300">0%</b></span>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between text-purple-400 text-xs font-semibold mb-1">
+                <span class="flex items-center gap-1 font-mono text-[10px] uppercase">Productivity</span>
+                <span id="anAvgProductivityBadge" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-purple-950/80 border border-purple-800/60">--/10</span>
+              </div>
+              <div id="anDominantMoodStat" class="text-sm sm:text-base font-bold font-mono text-white truncate mt-1">Steady</div>
+              <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Dominant Mood State</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-400 flex justify-between">
+              <span>Reflections: <b id="anReflectionDaysCount" class="text-purple-300">0d</b></span>
+              <span>Focus: <b id="anTotalFocusHours" class="text-indigo-300">0h</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400"></i> Priority Completion
+              </span>
+              <span class="text-[10px] text-slate-500 font-mono">Cleared / Total</span>
+            </div>
+            <div id="anTaskPriorityBars" class="space-y-3 mt-3"></div>
+          </div>
+
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> Review Highlights
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono">Gratitude vs Friction</span>
+              </div>
+              
+              <div class="mt-3 space-y-2.5">
+                <div>
+                  <span class="text-[10px] font-mono font-bold text-emerald-400 block mb-1">Key Wins & Gratitude:</span>
+                  <ul id="anReviewHappyList" class="list-disc list-inside text-slate-300 space-y-1 text-[11px] max-h-20 overflow-y-auto">
+                    <li class="text-slate-500 italic">No notes recorded in this timeframe.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <span class="text-[10px] font-mono font-bold text-rose-400 block mb-1">Friction Points & Regrets:</span>
+                  <ul id="anReviewFrictionList" class="list-disc list-inside text-slate-300 space-y-1 text-[11px] max-h-20 overflow-y-auto">
+                    <li class="text-slate-500 italic">No blockers logged in this timeframe.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Dock -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 safe-bottom px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl">
+    <button onclick="scrollToModule('module_planner')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
+      <i data-lucide="calendar" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Planner</span>
+    </button>
+    <button onclick="scrollToModule('module_habits')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-amber-400 active:scale-95 transition">
+      <i data-lucide="flame" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Habits</span>
+    </button>
+    <button onclick="scrollToModule('module_timer')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-indigo-400 active:scale-95 transition">
+      <i data-lucide="timer" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Timer</span>
+    </button>
+    <button onclick="scrollToModule('module_tasks')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-emerald-400 active:scale-95 transition">
+      <i data-lucide="check-square" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Tasks</span>
+    </button>
+    <button onclick="scrollToModule('module_analytics')" class="flex flex-col items-center py-1 px-2 rounded-xl text-indigo-400 active:scale-95 transition">
+      <i data-lucide="pie-chart" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Insights</span>
+    </button>
+    <button onclick="scrollToModule('module_review')" class="flex flex-col items-center py-1 px-2 rounded-xl text-slate-400 hover:text-purple-400 active:scale-95 transition">
+      <i data-lucide="moon" class="w-4 h-4"></i>
+      <span class="text-[9px] font-mono mt-0.5">Review</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: Add / Edit Planned Block -->
+  <div id="timeBlockModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <h3 id="timeBlockModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock & Actuals
+        </h3>
+        <button onclick="closeTimeBlockModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="timeBlockForm" onsubmit="handleSaveTimeBlock(event)" class="space-y-3.5">
+        <input type="hidden" id="tbId" value="">
+        <input type="hidden" id="tbDate" value="">
+        <input type="hidden" id="tbRoutineId" value="">
+        <input type="hidden" id="tbTaskId" value="">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-slate-400 mb-1">Block Title</label>
+            <input type="text" id="tbTitle" required placeholder="e.g. Deep Work, Strategy, Gym" 
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Color Theme</label>
+            <select id="tbColor" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="indigo">Indigo</option>
+              <option value="emerald">Emerald</option>
+              <option value="amber">Amber</option>
+              <option value="cyan">Cyan</option>
+              <option value="purple">Purple</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
+          <span class="text-[11px] font-semibold text-indigo-300 font-mono flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 1. Planned Schedule
+          </span>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Start Time</label>
+              <input type="time" id="tbStartTime" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">End Time</label>
+              <input type="time" id="tbEndTime" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+          <input type="text" id="tbNotes" placeholder="Planned objectives / notes..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none">
+        </div>
+
+        <div class="p-3 bg-slate-950 rounded-xl border border-emerald-900/50 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-300 font-mono flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 2. Actual Evaluation
+            </span>
+            <select id="tbStatus" class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-emerald-400 font-mono focus:outline-none">
+              <option value="Planned">Status: Planned</option>
+              <option value="In Progress">Status: In Progress</option>
+              <option value="Completed">Status: Completed</option>
+              <option value="Partial / Deviated">Status: Deviated</option>
+              <option value="Missed">Status: Missed</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Actual Start Time</label>
+              <input type="time" id="tbActualStartTime" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Actual End Time</label>
+              <input type="time" id="tbActualEndTime" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+          <input type="text" id="tbActualNotes" placeholder="What actually happened? (Deviations, achievements...)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 placeholder-slate-600 focus:outline-none">
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+          <button type="button" id="btnDeleteTimeBlock" onclick="handleDeleteCurrentTimeBlock()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1 min-h-[40px]">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="wentAsPlanned()" title="Copy planned times to actual" class="px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/60 text-xs font-semibold text-emerald-300 border border-emerald-700/60 transition active:scale-95 min-h-[40px] flex items-center gap-1.5">
+              <i data-lucide="check-check" class="w-4 h-4"></i> Went Planned
+            </button>
+            <button type="button" onclick="closeTimeBlockModal()" class="px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md shadow-indigo-600/30 min-h-[40px]">
+              Save Timeblock
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Task Detail with Reschedule Support -->
+  <div id="taskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <h3 id="taskModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="check-square" class="w-5 h-5 text-emerald-400"></i> Edit & Reschedule Task
+        </h3>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="taskDetailForm" onsubmit="handleSaveTaskDetail(event)" class="space-y-3.5">
+        <input type="hidden" id="tmTaskId" value="">
+        <input type="hidden" id="tmOriginalDate" value="">
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
+          <input type="text" id="tmTitle" required placeholder="What needs to be done?" 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Priority</label>
+            <select id="tmPriority" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none">
+              <option value="High">🔥 High</option>
+              <option value="Med" selected>⚡ Medium</option>
+              <option value="Low">🌱 Low</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Frequency</label>
+            <select id="tmFrequency" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none">
+              <option value="once" selected>Once</option>
+              <option value="daily">Daily</option>
+              <option value="weekdays">Weekdays</option>
+              <option value="weekends">Weekends</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Status</label>
+            <select id="tmStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-xs text-slate-200 focus:outline-none">
+              <option value="Need to Start">Need to Start</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-400 font-mono flex items-center gap-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Schedule & Reschedule Date
+            </span>
+            <span id="tmOriginalDateDisplay" class="text-[9px] font-mono text-slate-500"></span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Target Active Date</label>
+              <input type="date" id="tmDate" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Rescheduled From</label>
+              <input type="date" id="tmRescheduledFromDate" readonly class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-400 font-mono focus:outline-none cursor-not-allowed">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Start Time</label>
+              <input type="time" id="tmStartTime" oninput="autoCalculateTaskEndTime()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">End Time</label>
+              <input type="time" id="tmEndTime" oninput="autoCalculateTaskPlannedMins()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Planned Mins</label>
+              <input type="number" id="tmPlannedMins" oninput="autoCalculateTaskEndTime()" placeholder="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Actual Mins</label>
+              <input type="number" id="tmActualMins" placeholder="0" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeTaskModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
+            Save & Update Task
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Habits Creation/Edit -->
+  <div id="habitModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <h3 id="habitModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> New Habit
+        </h3>
+        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="habitForm" onsubmit="handleSaveHabit(event)" class="space-y-3.5">
+        <input type="hidden" id="hmHabitId" value="">
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Habit Name</label>
+          <input type="text" id="hmName" required placeholder="e.g. Morning Workout, Drink Water" 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Tracking Type</label>
+          <select id="hmType" onchange="onHabitTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none">
+            <option value="yesno">Yes / No (Completion Check)</option>
+            <option value="number">Numeric (e.g. 8 Glasses, 20 Pages)</option>
+            <option value="descriptive">Descriptive / Notes</option>
+          </select>
+        </div>
+
+        <div id="hmNumberFields" class="hidden grid grid-cols-2 gap-2.5 p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div>
+            <label class="block text-[10px] text-slate-500 mb-1">Target Number</label>
+            <input type="number" step="any" inputmode="decimal" id="hmTarget" placeholder="e.g. 3, 20" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-500 mb-1">Unit Label</label>
+            <input type="text" id="hmUnit" placeholder="liters, pages, mins" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeHabitModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
+            Save Habit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: On-Demand Habit Detail & Deep-Dive Analytics (Option C) -->
+  <div id="habitDetailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800">
+        <div>
+          <h3 id="hdModalTitle" class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> Habit Insights
+          </h3>
+          <span id="hdModalSubtitle" class="text-[10px] font-mono text-slate-400"></span>
+        </div>
+        <button onclick="closeHabitDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- KPI Strip -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <span class="text-[9px] uppercase font-mono text-slate-500 block">Streak</span>
+            <span id="hdStatStreak" class="text-sm sm:text-base font-bold font-mono text-amber-400">0d 🔥</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <span class="text-[9px] uppercase font-mono text-slate-500 block">30d Success</span>
+            <span id="hdStatRate" class="text-sm sm:text-base font-bold font-mono text-emerald-400">0%</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <span class="text-[9px] uppercase font-mono text-slate-500 block">Last Done</span>
+            <span id="hdStatLastDone" class="text-[11px] sm:text-xs font-bold font-mono text-slate-200">Never</span>
+          </div>
+        </div>
+
+        <!-- Custom Type-Aware Analysis Banner -->
+        <div id="hdCustomInsightBanner" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs"></div>
+
+        <!-- 28-Day Consistency Matrix -->
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-mono font-semibold text-slate-300">Last 28 Days Matrix</span>
+            <span class="text-[9px] font-mono text-slate-500">Mon ➔ Sun</span>
+          </div>
+          <div id="hdMatrixGrid" class="grid grid-cols-7 gap-1.5 pt-1"></div>
+        </div>
+
+        <!-- History Trail -->
+        <div>
+          <span class="text-[11px] font-mono font-semibold text-slate-300 block mb-1.5">Recent History Log</span>
+          <div id="hdHistoryLogList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Routines -->
+  <div id="routineModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="repeat" class="w-5 h-5 text-amber-400"></i> Recurring Routines
+        </h3>
+        <button onclick="closeRoutineModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5">
+        <form onsubmit="handleCreateRoutine(event)" class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
+          <div class="grid grid-cols-3 gap-2">
+            <input type="text" id="rtTitle" required placeholder="Routine Name" class="col-span-2 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+            <select id="rtColor" class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200">
+              <option value="amber">Amber</option>
+              <option value="emerald">Emerald</option>
+              <option value="indigo">Indigo</option>
+              <option value="cyan">Cyan</option>
+              <option value="purple">Purple</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="time" id="rtStartTime" required class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono">
+            <input type="time" id="rtEndTime" required class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono">
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[10px] text-slate-400">Days: Everyday</span>
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold active:scale-95 transition">
+              Add Routine
+            </button>
+          </div>
+        </form>
+
+        <div id="routinesListContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Settings -->
+  <div id="configModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i> Google Sheets API URL
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5">
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Paste your Google Apps Script Web App URL (<code class="font-mono text-indigo-300">.../exec</code>). Syncs your 24H Planner, Habits, Tasks, Stopwatch Sessions, and Evening Reflections across all devices.
+        </p>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Web App URL</label>
+          <input type="url" id="apiUrlInput" placeholder="[https://script.google.com/macros/s/.../exec](https://script.google.com/macros/s/.../exec)" 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeConfigModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
+          <button type="button" onclick="saveApiUrlConfig()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
+            Save & Sync
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Core State & Defaults ----------
+    const getTodayKey = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    let selectedPlannerDate = getTodayKey();
+    let currentTaskFilter = 'PENDING';
+    let currentAnalyticsWindow = 7;
+    let isRemoteDataLoaded = false;
+    let syncDebounceTimer = null;
+    let isSyncInProgress = false;
+    let syncNeedsAnotherRun = false;
+    let lastSavedLocalTimestamp = 0;
+
+    const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
+
+    function normalizeHabitType(val) {
+      if (!val) return 'yesno';
+      const s = String(val).toLowerCase().trim();
+      if (s === 'boolean' || s === 'bool' || s.includes('yes') || s.includes('check')) return 'yesno';
+      if (s === 'number' || s === 'numeric' || s === 'decimal' || s === 'integer' || s === 'int' || s.includes('hour') || s.includes('count')) return 'number';
+      if (s === 'text' || s === 'string' || s.includes('desc') || s.includes('note')) return 'descriptive';
+      return 'yesno';
     }
 
-    function closeTaskModal() {
-      document.getElementById('taskModal').classList.add('hidden');
+    const defaultState = {
+      apiUrl: localStorage.getItem('daily_flow_api_url') || "",
+      timeBlocks: [],
+      routines: [],
+      habits: [],
+      habitLogs: {},
+      tasks: [],
+      taskAnalytics: [],
+      habitAnalytics: [],
+      focusLogs: [],
+      dailySummaries: {}
+    };
+
+    let appData = JSON.parse(localStorage.getItem('daily_flow_state_v3')) || defaultState;
+
+    if (!Array.isArray(appData.timeBlocks)) appData.timeBlocks = [];
+    if (!Array.isArray(appData.routines)) appData.routines = [];
+    if (!Array.isArray(appData.habits)) appData.habits = [];
+    if (!appData.habitLogs) appData.habitLogs = {};
+    if (!Array.isArray(appData.tasks)) appData.tasks = [];
+    if (!appData.taskAnalytics) appData.taskAnalytics = [];
+    if (!appData.habitAnalytics) appData.habitAnalytics = [];
+    if (!appData.focusLogs) appData.focusLogs = [];
+    if (!appData.dailySummaries) appData.dailySummaries = {};
+
+    appData.apiUrl = localStorage.getItem('daily_flow_api_url') || "";
+
+    function saveState() {
+      localStorage.setItem('daily_flow_state_v3', JSON.stringify(appData));
     }
 
-    function handleSaveTaskDetail(e) {
-      e.preventDefault();
-      const rawId = document.getElementById('tmTaskId').value;
-      const title = document.getElementById('tmTitle').value.trim();
-      const priority = document.getElementById('tmPriority').value;
-      const frequency = document.getElementById('tmFrequency').value;
-      const status = document.getElementById('tmStatus').value;
-      const targetDate = normalizeDateString(document.getElementById('tmDate').value);
-      let originalDate = normalizeDateString(document.getElementById('tmOriginalDate').value);
+    function scrollToModule(moduleId) {
+      const el = document.getElementById(moduleId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ---------- Recurrence Spawner & Matcher ----------
+    function computeNextRecurrenceDate(fromDateStr, frequency) {
+      const d = new Date(fromDateStr + "T00:00:00");
+      const freq = (frequency || "once").toLowerCase();
+
+      if (freq === "daily") {
+        d.setDate(d.getDate() + 1);
+      } else if (freq === "weekdays") {
+        const day = d.getDay();
+        if (day === 5) d.setDate(d.getDate() + 3);
+        else if (day === 6) d.setDate(d.getDate() + 2);
+        else d.setDate(d.getDate() + 1);
+      } else if (freq === "weekends") {
+        const day = d.getDay();
+        if (day === 6) d.setDate(d.getDate() + 1);
+        else if (day === 0) d.setDate(d.getDate() + 6);
+        else d.setDate(d.getDate() + (6 - day));
+      } else if (freq === "weekly") {
+        d.setDate(d.getDate() + 7);
+      } else {
+        return null;
+      }
+
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function isTaskActiveForDate(task, dateStr) {
+      const taskDate = normalizeDateString(task.date || task.scheduledDate);
+      const activeDate = normalizeDateString(dateStr);
+      if (taskDate) {
+        return taskDate === activeDate;
+      }
+      return !task.completed;
+    }
+
+    // ---------- Normalizers ----------
+    function timeToMinutes(tStr) {
+      if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return 0;
+      const parts = tStr.split(':').map(Number);
+      return ((parts[0] || 0) * 60) + (parts[1] || 0);
+    }
+
+    function minutesToTime(totalMins) {
+      const h = Math.floor(totalMins / 60) % 24;
+      const m = totalMins % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function getTimeBlockName(timeStr) {
+      if (!timeStr) return "Morning";
+      const mins = timeToMinutes(normalizeTimeString(timeStr));
+      if (mins >= 300 && mins < 720) return "Morning";
+      if (mins >= 720 && mins < 1020) return "Afternoon";
+      if (mins >= 1020 && mins < 1320) return "Evening";
+      return "Night";
+    }
+
+    function normalizeTimeString(val) {
+      if (!val) return "";
+      const s = String(val).trim();
+      const matchStandard = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+      if (matchStandard) {
+        const h = String(matchStandard[1]).padStart(2, '0');
+        const m = matchStandard[2];
+        return `${h}:${m}`;
+      }
+      const matchAmpm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (matchAmpm) {
+        let h = parseInt(matchAmpm[1], 10);
+        const m = matchAmpm[2];
+        const isPM = matchAmpm[3].toUpperCase() === 'PM';
+        if (isPM && h < 12) h += 12;
+        if (!isPM && h === 12) h = 0;
+        return `${String(h).padStart(2, '0')}:${m}`;
+      }
+      return s;
+    }
+
+    function extractTimesFromItem(item) {
+      let start = normalizeTimeString(item.scheduledStartTime || item.startTime || "");
+      let end = normalizeTimeString(item.scheduledEndTime || item.endTime || "");
+      const slot = item.timeSlot || item.time_slot || item.timeslot || item.scheduledBlock || "";
+      if ((!start || !end) && slot) {
+        const slotClean = String(slot).replace(/–|—/g, '-');
+        if (slotClean.includes('-')) {
+          const parts = slotClean.split('-').map(s => s.trim());
+          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+        } else if (slotClean.toLowerCase().includes(' to ')) {
+          const parts = slotClean.toLowerCase().split(' to ').map(s => s.trim());
+          if (!start && parts[0]) start = normalizeTimeString(parts[0]);
+          if (!end && parts[1]) end = normalizeTimeString(parts[1]);
+        }
+      }
+      if (start && !end) {
+        const dur = Number(item.plannedMins) || 30;
+        end = minutesToTime(timeToMinutes(start) + dur);
+      }
+      return { start, end };
+    }
+
+    function normalizeDateString(val) {
+      if (!val) return "";
+      const s = String(val).trim();
+      if (s.includes('T')) return s.split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+      const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) {
+        let day = Number(dmy[1]);
+        let mon = Number(dmy[2]);
+        let yr = dmy[3];
+        if (mon > 12 && day <= 12) {
+          const tmp = day; day = mon; mon = tmp;
+        }
+        return `${yr}-${String(mon).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+
+      const parsed = new Date(s);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+      return s;
+    }
+
+    function autoCalculateTaskEndTime() {
+      const startEl = document.getElementById('tmStartTime');
+      const durEl = document.getElementById('tmPlannedMins');
+      const endEl = document.getElementById('tmEndTime');
       
-      let scheduledStartTime = normalizeTimeString(document.getElementById('tmStartTime').value);
-      let scheduledEndTime = normalizeTimeString(document.getElementById('tmEndTime').value);
-      let plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
-      const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
-
-      if (!title) return;
-
-      if (scheduledStartTime) {
-        if (!scheduledEndTime) {
-          scheduledEndTime = minutesToTime((timeToMinutes(scheduledStartTime) + plannedMins) % 1440);
-        } else {
-          const sM = timeToMinutes(scheduledStartTime);
-          let eM = timeToMinutes(scheduledEndTime);
-          if (eM <= sM) eM += 1440;
-          plannedMins = eM - sM;
-        }
+      if (!startEl || !durEl || !endEl) return;
+      const startVal = startEl.value;
+      const dur = Number(durEl.value) || 0;
+      
+      if (startVal && dur > 0) {
+        const sMins = timeToMinutes(normalizeTimeString(startVal));
+        const eMins = (sMins + dur) % 1440;
+        endEl.value = minutesToTime(eMins);
       }
+    }
 
-      if (rawId) {
-        const t = appData.tasks.find(x => String(x.id) === String(rawId));
-        if (t) {
-          if (!originalDate) {
-            originalDate = normalizeDateString(t.date || t.scheduledDate || targetDate);
-          }
+    function autoCalculateTaskPlannedMins() {
+      const startEl = document.getElementById('tmStartTime');
+      const endEl = document.getElementById('tmEndTime');
+      const durEl = document.getElementById('tmPlannedMins');
+      
+      if (!startEl || !durEl || !endEl) return;
+      const startVal = startEl.value;
+      const endVal = endEl.value;
+      
+      if (startVal && endVal) {
+        const sMins = timeToMinutes(normalizeTimeString(startVal));
+        let eMins = timeToMinutes(normalizeTimeString(endVal));
+        if (eMins < sMins) eMins += 1440;
+        durEl.value = eMins - sMins;
+      }
+    }
 
-          let rescheduledDate = t.rescheduledDate || "";
-          if (originalDate && targetDate && targetDate !== originalDate) {
-            rescheduledDate = targetDate;
-          }
+    // ---------- Bulletproof Non-Destructive Sync Engine ----------
+    function setSyncStatus(state) {
+      const dot = document.getElementById('syncDot');
+      const txt = document.getElementById('syncText');
+      const icon = document.getElementById('syncIcon');
+      if (!dot || !txt || !icon) return;
 
-          t.title = title;
-          t.priority = priority;
-          t.frequency = frequency;
-          t.status = status;
-          t.completed = (status === "Completed");
-          t.date = targetDate;
-          t.scheduledDate = targetDate;
-          t.originalDate = originalDate;
-          t.rescheduledDate = rescheduledDate;
-          t.scheduledStartTime = scheduledStartTime;
-          t.scheduledEndTime = scheduledEndTime;
-          t.plannedMins = plannedMins;
-          t.actualMins = actualMins;
-        }
+      if (state === 'syncing') {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+        txt.textContent = "Syncing...";
+        icon.classList.add('animate-spin');
+      } else if (state === 'error') {
+        dot.className = "w-2 h-2 rounded-full bg-rose-500";
+        txt.textContent = "Offline / Err";
+        icon.classList.remove('animate-spin');
       } else {
-        const newOriginalDate = targetDate || selectedPlannerDate;
-        appData.tasks.unshift({
-          id: Date.now(),
-          title,
-          priority,
-          frequency,
-          status,
-          completed: (status === "Completed"),
-          date: targetDate,
-          scheduledDate: targetDate,
-          originalDate: newOriginalDate,
-          rescheduledDate: "",
-          scheduledStartTime,
-          scheduledEndTime,
-          plannedMins,
-          actualMins
-        });
-      }
-
-      closeTaskModal();
-
-      const savedTask = rawId ?
-        appData.tasks.find(x => String(x.id) === String(rawId)) :
-        appData.tasks[0];
-
-      if (savedTask) captureTaskAnalytics(savedTask);
-
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    function deleteTask(id) {
-      appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    // ---------- Focus Stopwatch ----------
-    let timerInterval = null;
-    let timerSeconds = 0;
-    let isStopwatchRunning = false;
-    let linkedTaskId = null;
-
-    function formatStopwatchTime(sec) {
-      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
-      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
-    }
-
-    function toggleStopwatch() {
-      const btn = document.getElementById('btnToggleStopwatch');
-      const label = document.getElementById('labelTimerToggle');
-      const icon = document.getElementById('iconTimerPlay');
-
-      if (!isStopwatchRunning) {
-        isStopwatchRunning = true;
-        label.textContent = "Pause Session";
-        btn.classList.replace('bg-indigo-600', 'bg-amber-600');
-        btn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
-        icon.setAttribute('data-lucide', 'pause');
-
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          document.getElementById('stopwatchDigitalDisplay').textContent = formatStopwatchTime(timerSeconds);
-        }, 1000);
-      } else {
-        isStopwatchRunning = false;
-        clearInterval(timerInterval);
-        label.textContent = "Resume Session";
-        btn.classList.replace('bg-amber-600', 'bg-indigo-600');
-        btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
-        icon.setAttribute('data-lucide', 'play');
-      }
-      lucide.createIcons();
-    }
-
-    function resetStopwatch() {
-      isStopwatchRunning = false;
-      clearInterval(timerInterval);
-      timerSeconds = 0;
-      linkedTaskId = null;
-      document.getElementById('stopwatchDigitalDisplay').textContent = "00:00:00";
-      document.getElementById('labelTimerToggle').textContent = "Start Session";
-      document.getElementById('btnToggleStopwatch').classList.replace('bg-amber-600', 'bg-indigo-600');
-      document.getElementById('iconTimerPlay').setAttribute('data-lucide', 'play');
-      document.getElementById('activeFocusTaskBadge').textContent = "General Focus";
-      lucide.createIcons();
-    }
-
-    function linkTaskToStopwatch(taskId) {
-      const task = appData.tasks.find(t => String(t.id) === String(taskId));
-      if (!task) return;
-      linkedTaskId = taskId;
-      document.getElementById('focusSessionLabelInput').value = task.title;
-      document.getElementById('activeFocusTaskBadge').textContent = `Task: ${task.title}`;
-      scrollToModule('module_timer');
-      if (!isStopwatchRunning) toggleStopwatch();
-    }
-
-    function logFocusSession() {
-      if (timerSeconds < 5) return;
-      const label = document.getElementById('focusSessionLabelInput').value.trim() || "Deep Focus";
-      const durStr = formatStopwatchTime(timerSeconds);
-      const now = new Date();
-      const timeStamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      appData.focusLogs.unshift({
-        id: Date.now(),
-        label,
-        duration: durStr,
-        timestamp: timeStamp,
-        date: selectedPlannerDate
-      });
-
-      if (linkedTaskId) {
-        const task = appData.tasks.find(t => String(t.id) === String(linkedTaskId));
-        if (task) {
-          task.actualMins = (task.actualMins || 0) + Math.round(timerSeconds / 60);
-        }
-      }
-
-      resetStopwatch();
-      document.getElementById('focusSessionLabelInput').value = '';
-      renderFocusLogs();
-      renderTasks();
-      render24HourPlanner();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    function renderFocusLogs() {
-      const container = document.getElementById('focusHistoryLogList');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const logsToday = appData.focusLogs.filter(fl => fl.date === selectedPlannerDate || fl.date === getTodayKey());
-
-      if (!logsToday.length) {
-        container.innerHTML = `<div class="text-[11px] text-slate-500 italic">No focus sessions recorded today.</div>`;
-        return;
-      }
-
-      logsToday.slice(0, 5).forEach(l => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono";
-        row.innerHTML = `
-          <span class="text-slate-200 truncate pr-2">${l.label}</span>
-          <span class="text-indigo-400 font-bold whitespace-nowrap">${l.duration} <span class="text-slate-500 font-normal">(${l.timestamp})</span></span>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function clearFocusLogs() {
-      appData.focusLogs = [];
-      renderFocusLogs();
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    // ---------- UI Toggle Handlers ----------
-    function toggleReviewSection() {
-      const content = document.getElementById('reviewContent');
-      const icon = document.getElementById('reviewToggleIcon');
-      if (!content) return;
-
-      const isHidden = content.classList.contains('hidden');
-      if (isHidden) {
-        content.classList.remove('hidden');
-        icon.setAttribute('data-lucide', 'chevron-up');
-      } else {
-        content.classList.add('hidden');
-        icon.setAttribute('data-lucide', 'chevron-down');
-      }
-      lucide.createIcons();
-    }
-
-    function toggleAnalyticsSection() {
-      const content = document.getElementById('analyticsContent');
-      const icon = document.getElementById('analyticsToggleIcon');
-      if (!content) return;
-
-      const isHidden = content.classList.contains('hidden');
-      if (isHidden) {
-        content.classList.remove('hidden');
-        icon.setAttribute('data-lucide', 'chevron-up');
-      } else {
-        content.classList.add('hidden');
-        icon.setAttribute('data-lucide', 'chevron-down');
-      }
-      lucide.createIcons();
-    }
-
-    // ---------- Daily Review ----------
-    function renderDailyReview() {
-      const s = appData.dailySummaries[selectedPlannerDate] || {};
-      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-      setVal('rev_goodThing', s.goodThing || "");
-      setVal('rev_disliked', s.disliked || "");
-      setVal('rev_productive', s.productive || "");
-      setVal('rev_betterThanYesterday', s.betterThanYesterday || "");
-      setVal('rev_regrets', s.regrets || "");
-      setVal('rev_emotion', s.emotion || "");
-    }
-
-    function saveDailyReview() {
-      appData.dailySummaries[selectedPlannerDate] = {
-        date: selectedPlannerDate,
-        goodThing: document.getElementById('rev_goodThing').value.trim(),
-        disliked: document.getElementById('rev_disliked').value.trim(),
-        productive: document.getElementById('rev_productive').value.trim(),
-        betterThanYesterday: document.getElementById('rev_betterThanYesterday').value.trim(),
-        regrets: document.getElementById('rev_regrets').value.trim(),
-        emotion: document.getElementById('rev_emotion').value.trim()
-      };
-      renderAnalytics();
-      syncToRemote();
-    }
-
-    // ---------- Analytics & Auto-Capture Engine ----------
-    function updateAnalyticsPendingBadge() {
-      const badge = document.getElementById('btnAnalyticsPendingCount');
-      if (badge) {
-        const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
-        const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
-        const total = taskCount + habitCount;
-        badge.textContent = total;
-        badge.parentElement.style.opacity = total > 0 ? "1" : "0.7";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        txt.textContent = "Synced";
+        icon.classList.remove('animate-spin');
       }
     }
 
-    function captureHabitAnalytics(habit) {
-      const metrics = getHabitMetrics(habit.id, 30);
-      const analytics = {
-        captureId: `${habit.id}_${selectedPlannerDate}_${Date.now()}`,
-        habitId: String(habit.id),
-        habitName: habit.name,
-        habitType: habit.type || 'yesno',
-        target: habit.target || 0,
-        unit: habit.unit || '',
-        captureDate: selectedPlannerDate,
-        logDate: selectedPlannerDate,
-        streak: metrics.streak,
-        completionPercentage: metrics.completionPercentage,
-        totalCompleted: metrics.totalCompleted,
-        totalExpected: metrics.totalExpected,
-        daysMissedRecently: metrics.daysMissedRecently,
-        lastCompletedDate: metrics.lastCompletedDate,
-        daysLabel: formatDateForDisplay(metrics.lastCompletedDate),
-        captureTimestamp: new Date().toISOString()
-      };
-
-      const existingIndex = appData.habitAnalytics.findIndex(
-        a => a.habitId === String(habit.id) && a.logDate === selectedPlannerDate
-      );
-
-      if (existingIndex >= 0) {
-        appData.habitAnalytics[existingIndex] = analytics;
-      } else {
-        appData.habitAnalytics.push(analytics);
-      }
-
+    function syncToRemote() {
+      lastSavedLocalTimestamp = Date.now();
       saveState();
-      updateAnalyticsPendingBadge();
-    }
 
-    function captureTaskAnalytics(task) {
-      const metrics = getTaskPendingMetrics(task);
-      const analytics = {
-        captureId: `${task.id}_${Date.now()}`,
-        taskId: String(task.id),
-        taskTitle: task.title,
-        priority: task.priority || 'Med',
-        completed: task.completed ? "TRUE" : "FALSE",
-        status: task.status || "Need to Start",
-        pendingDays: metrics.pendingDays,
-        pendingStatus: metrics.status,
-        daysLabel: metrics.daysLabel,
-        pendingFrom: metrics.pendingFrom,
-        originalDate: metrics.originalDate,
-        rescheduledDate: task.rescheduledDate || "",
-        isRescheduled: metrics.isRescheduled,
-        slipDays: metrics.slipDays,
-        taskType: metrics.type,
-        frequency: task.frequency || 'once',
-        scheduledDate: normalizeDateString(task.date || task.scheduledDate || ""),
-        plannedMins: Number(task.plannedMins) || 0,
-        actualMins: Number(task.actualMins) || 0,
-        captureTimestamp: new Date().toISOString(),
-        captureDate: getTodayKey()
-      };
-
-      const existingIndex = appData.taskAnalytics.findIndex(
-        a => a.taskId === String(task.id) && a.captureDate === getTodayKey()
-      );
-
-      if (existingIndex >= 0) {
-        appData.taskAnalytics[existingIndex] = analytics;
-      } else {
-        appData.taskAnalytics.push(analytics);
-      }
-
-      saveState();
-      updateAnalyticsPendingBadge();
-    }
-
-    async function syncAnalyticsOnDemand() {
       if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
-        alert("❌ API URL not configured. Please set it in settings.");
+        setSyncStatus('error');
         return;
       }
 
-      const taskCount = appData.taskAnalytics ? appData.taskAnalytics.length : 0;
-      const habitCount = appData.habitAnalytics ? appData.habitAnalytics.length : 0;
-
-      if (taskCount === 0 && habitCount === 0) {
-        alert("ℹ️ No analytics data to sync. Make changes to tasks or habits first.");
+      if (isSyncInProgress) {
+        syncNeedsAnotherRun = true;
         return;
       }
 
-      const btn = document.getElementById('btnSyncAnalytics');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Syncing...</span>';
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(executeSyncPayload, 400);
+    }
+
+    function requestManualSync() {
+      if (isSyncInProgress) return;
+      fetchRemoteData();
+    }
+
+    async function executeSyncPayload() {
+      if (isSyncInProgress) {
+        syncNeedsAnotherRun = true;
+        return;
       }
+
+      isSyncInProgress = true;
+      syncNeedsAnotherRun = false;
+      setSyncStatus('syncing');
+
+      const timeBlocksPayload = (appData.timeBlocks || []).map(b => ({
+        id: String(b.id || "").trim(),
+        date: normalizeDateString(b.date),
+        title: b.title || "Untitled Block",
+        startTime: normalizeTimeString(b.startTime) || "09:00",
+        endTime: normalizeTimeString(b.endTime) || "10:00",
+        color: b.color || "indigo",
+        notes: b.notes || "",
+        actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+        actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+        actualNotes: b.actualNotes || "",
+        status: b.status || "Planned",
+        taskId: b.taskId ? String(b.taskId).trim() : "",
+        routineId: b.routineId ? String(b.routineId).trim() : ""
+      }));
+
+      const seenRt = new Set();
+      const routinesPayload = [];
+      (appData.routines || []).forEach(r => {
+        const normTitle = (r.title || "").trim().toLowerCase();
+        if (!normTitle || seenRt.has(normTitle)) return;
+        seenRt.add(normTitle);
+        routinesPayload.push({
+          id: String(r.id || ""),
+          title: r.title || "Routine",
+          startTime: normalizeTimeString(r.startTime) || "07:00",
+          endTime: normalizeTimeString(r.endTime) || "08:00",
+          color: r.color || "amber",
+          days: r.days || "Everyday"
+        });
+      });
+
+      const habitsPayload = (appData.habits || []).map(h => ({
+        id: String(h.id || "").trim(),
+        name: h.name || "Habit",
+        type: h.type || "yesno",
+        target: Number(h.target) || 0,
+        unit: h.unit || ""
+      }));
+
+      const habitLogsArray = Object.keys(appData.habitLogs || {}).map(key => ({
+        id: key,
+        habitId: key.split('_')[0],
+        date: key.split('_').slice(1).join('_'),
+        value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
+        completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
+      }));
+
+      const tasksPayload = (appData.tasks || []).map(t => ({
+        id: String(t.id || "").trim(),
+        title: t.title || "Untitled Task",
+        priority: t.priority || "Med",
+        frequency: t.frequency || "once",
+        status: t.status || "Need to Start",
+        completed: t.completed ? "TRUE" : "FALSE",
+        date: normalizeDateString(t.date || t.scheduledDate || ""),
+        scheduledDate: normalizeDateString(t.date || t.scheduledDate || ""),
+        originalDate: normalizeDateString(t.originalDate || t.date || t.scheduledDate || ""),
+        rescheduledDate: normalizeDateString(t.rescheduledDate || ""),
+        scheduledStartTime: normalizeTimeString(t.scheduledStartTime || ""),
+        scheduledEndTime: normalizeTimeString(t.scheduledEndTime || ""),
+        plannedMins: Number(t.plannedMins) || 30,
+        actualMins: Number(t.actualMins) || 0
+      }));
+
+      const focusLogsPayload = (appData.focusLogs || []).map(fl => ({
+        id: String(fl.id || ""),
+        label: fl.label || "Focus Session",
+        duration: fl.duration || "00:00:00",
+        timestamp: fl.timestamp || "",
+        date: normalizeDateString(fl.date || getTodayKey())
+      }));
+
+      const summariesPayload = Object.keys(appData.dailySummaries || {}).map(date => ({
+        date: normalizeDateString(date),
+        ...(appData.dailySummaries[date] || {})
+      }));
 
       try {
         const res = await fetch(appData.apiUrl, {
@@ -3323,310 +4248,253 @@
           redirect: "follow",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
-            action: "syncTaskAnalytics",
+            action: "syncAll",
             data: {
-              taskAnalytics: appData.taskAnalytics || [],
-              habitAnalytics: appData.habitAnalytics || [],
-              syncDate: getTodayKey(),
-              syncTime: new Date().toLocaleTimeString()
+              planner: timeBlocksPayload,
+              routines: routinesPayload,
+              habits: habitsPayload,
+              habitLogs: habitLogsArray,
+              tasks: tasksPayload,
+              focusLogs: focusLogsPayload,
+              dailySummaries: summariesPayload
             }
           })
         });
 
         if (res.ok) {
-          const totalRecords = taskCount + habitCount;
-          appData.taskAnalytics = [];
-          appData.habitAnalytics = [];
-          saveState();
-
-          if (btn) {
-            btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Synced! (${totalRecords} records)</span>`;
-            btn.classList.add('bg-emerald-700');
-            setTimeout(() => {
-              btn.disabled = false;
-              btn.classList.remove('bg-emerald-700');
-              btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>';
-              updateAnalyticsPendingBadge();
-              lucide.createIcons();
-            }, 2000);
-          }
+          setSyncStatus('synced');
         } else {
-          throw new Error("Sync failed with status " + res.status);
+          setSyncStatus('error');
+          syncNeedsAnotherRun = true;
         }
       } catch (err) {
-        console.error("Analytics sync error:", err);
-        alert("❌ Failed to sync analytics. Check API URL and try again.");
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span>Sync Failed</span>';
-          btn.classList.add('bg-rose-600');
-          setTimeout(() => {
-            btn.classList.remove('bg-rose-600');
-            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sync Analytics <span id="btnAnalyticsPendingCount" class="ml-1 px-1.5 py-0.2 rounded-md text-[10px] bg-emerald-700 font-mono">0</span></span>';
-            updateAnalyticsPendingBadge();
-            lucide.createIcons();
-          }, 3000);
+        console.error("Sync error:", err);
+        setSyncStatus('error');
+        syncNeedsAnotherRun = true;
+      } finally {
+        isSyncInProgress = false;
+        if (syncNeedsAnotherRun) {
+          syncNeedsAnotherRun = false;
+          if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+          syncDebounceTimer = setTimeout(executeSyncPayload, 200);
         }
       }
     }
 
-    function setAnalyticsWindow(days) {
-      currentAnalyticsWindow = days;
-      const b7 = document.getElementById('anWindow_7');
-      const b30 = document.getElementById('anWindow_30');
-      const bAll = document.getElementById('anWindow_ALL');
-
-      if (b7 && b30 && bAll) {
-        b7.className = days === 7 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
-        b30.className = days === 30 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
-        bAll.className = days === 999 ? "px-3 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95" : "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
+    async function fetchRemoteData() {
+      if (!appData.apiUrl || !appData.apiUrl.startsWith('http')) {
+        setSyncStatus('error');
+        return;
       }
 
-      renderAnalytics();
-    }
-
-    function getAnalyticsDateSet(days) {
-      if (days >= 900) return null;
-      const set = new Set();
-      const ref = new Date();
-      for (let i = 0; i < days; i++) {
-        const d = new Date(ref);
-        d.setDate(d.getDate() - i);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        set.add(`${y}-${m}-${day}`);
-      }
-      return set;
-    }
-
-    function renderAnalytics() {
-      const windowSet = getAnalyticsDateSet(currentAnalyticsWindow);
-      const isDateInScope = (dateStr) => {
-        if (!windowSet) return true;
-        const norm = normalizeDateString(dateStr);
-        return windowSet.has(norm);
-      };
-
-      // 1. Planner Execution
-      const scopedPlans = appData.timeBlocks.filter(b => isDateInScope(b.date));
-      let plannedMinutes = 0;
-      let actualMinutes = 0;
-      let completedBlocks = 0;
-      let missedBlocks = 0;
-
-      scopedPlans.forEach(p => {
-        const s = timeToMinutes(p.startTime);
-        const e = timeToMinutes(p.endTime);
-        const dur = Math.max(0, e - s);
-        plannedMinutes += dur;
-
-        if (p.status === 'Completed') {
-          completedBlocks++;
-          const as = p.actualStartTime ? timeToMinutes(p.actualStartTime) : s;
-          const ae = p.actualEndTime ? timeToMinutes(p.actualEndTime) : e;
-          actualMinutes += Math.max(0, ae - as);
-        } else if (p.status === 'Partial / Deviated') {
-          completedBlocks += 0.5;
-          actualMinutes += (dur * 0.5);
-        } else if (p.status === 'Missed') {
-          missedBlocks++;
-        }
-      });
-
-      const pHours = (plannedMinutes / 60).toFixed(1);
-      const aHours = (actualMinutes / 60).toFixed(1);
-      const planFidelity = plannedMinutes > 0 ? Math.round((actualMinutes / plannedMinutes) * 100) : 0;
-
-      const elPlanStat = document.getElementById('anPlanHoursStat');
-      const elPlanFidelity = document.getElementById('anPlanFidelityRate');
-      const elPlanComp = document.getElementById('anPlanCompletedCount');
-      const elPlanMiss = document.getElementById('anPlanMissedCount');
-
-      if (elPlanStat) elPlanStat.textContent = `${aHours}h / ${pHours}h`;
-      if (elPlanFidelity) elPlanFidelity.textContent = `${planFidelity}%`;
-      if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
-      if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
-
-      // 2. Habits Macro Adherence
-      const totalHabits = appData.habits.length;
-      let totalCompletedLogs = 0;
-      const missedCounts = {};
-      let topStreak = 0;
-
-      appData.habits.forEach(h => {
-        const hId = String(h.id);
-        missedCounts[hId] = 0;
-        const curStreak = calculateStreak(hId);
-        if (curStreak > topStreak) topStreak = curStreak;
-      });
-
-      Object.keys(appData.habitLogs).forEach(key => {
-        const parts = key.split('_');
-        const hId = parts[0];
-        const dateStr = parts.slice(1).join('_');
-        if (isDateInScope(dateStr)) {
-          const l = appData.habitLogs[key];
-          const isDone = l && (l.completed || String(l.value).toLowerCase() === 'yes');
-          if (isDone) totalCompletedLogs++;
-          else if (missedCounts.hasOwnProperty(hId)) {
-            missedCounts[hId]++;
-          }
-        }
-      });
-
-      const daysCount = currentAnalyticsWindow >= 900 ? 30 : currentAnalyticsWindow;
-      const totalExpectedLogs = totalHabits * daysCount;
-      const habitSuccessRate = totalExpectedLogs > 0 ? Math.min(100, Math.round((totalCompletedLogs / totalExpectedLogs) * 100)) : 0;
-      const totalMissedCount = Object.values(missedCounts).reduce((a, b) => a + b, 0);
-
-      const elHabitStat = document.getElementById('anHabitCompletedStat');
-      const elHabitRate = document.getElementById('anHabitSuccessRate');
-      const elHabitMiss = document.getElementById('anHabitMissedTotal');
-      const elHabitStreak = document.getElementById('anHabitTopStreak');
-
-      if (elHabitStat) elHabitStat.textContent = `${totalCompletedLogs} / ${totalExpectedLogs}`;
-      if (elHabitRate) elHabitRate.textContent = `${habitSuccessRate}%`;
-      if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
-      if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
-
-      // 3. Tasks Throughput
-      const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
-      const totalTasks = scopedTasks.length;
-      let completedTasksCount = 0;
-      let pendingTasksCount = 0;
-      const priTotal = { High: 0, Med: 0, Low: 0 };
-      const priCompleted = { High: 0, Med: 0, Low: 0 };
-
-      scopedTasks.forEach(t => {
-        const isDone = Boolean(t.completed || t.status === "Completed");
-        const pri = t.priority || 'Med';
-        if (priTotal.hasOwnProperty(pri)) priTotal[pri]++;
-        else priTotal['Med']++;
-
-        if (isDone) {
-          completedTasksCount++;
-          if (priCompleted.hasOwnProperty(pri)) priCompleted[pri]++;
-          else priCompleted['Med']++;
-        } else {
-          pendingTasksCount++;
-        }
-      });
-
-      const tasksRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
-      const highRate = priTotal.High > 0 ? Math.round((priCompleted.High / priTotal.High) * 100) : 0;
-
-      const elTasksStat = document.getElementById('anTasksCountStat');
-      const elTasksRate = document.getElementById('anTasksRateBadge');
-      const elTasksPend = document.getElementById('anTasksPendingCount');
-      const elTasksHigh = document.getElementById('anTasksHighRate');
-
-      if (elTasksStat) elTasksStat.textContent = `${completedTasksCount} / ${totalTasks}`;
-      if (elTasksRate) elTasksRate.textContent = `${tasksRate}%`;
-      if (elTasksPend) elTasksPend.textContent = pendingTasksCount;
-      if (elTasksHigh) elTasksHigh.textContent = `${highRate}% (${priCompleted.High}/${priTotal.High})`;
-
-      const priBarsContainer = document.getElementById('anTaskPriorityBars');
-      if (priBarsContainer) {
-        const renderPriBar = (label, colorClass, done, total) => {
-          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          return `
-            <div>
-              <div class="flex justify-between text-[11px] mb-1 font-mono">
-                <span class="text-slate-300 font-semibold">${label}</span>
-                <span class="text-slate-400">${done}/${total} (${pct}%)</span>
-              </div>
-              <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                <div class="h-full ${colorClass} rounded-full transition-all" style="width: ${pct}%"></div>
-              </div>
-            </div>
-          `;
-        };
-
-        priBarsContainer.innerHTML = `
-          ${renderPriBar('🔥 High Priority', 'bg-rose-500', priCompleted.High, priTotal.High)}
-          ${renderPriBar('⚡ Medium Priority', 'bg-amber-500', priCompleted.Med, priTotal.Med)}
-          ${renderPriBar('🌱 Low Priority', 'bg-emerald-500', priCompleted.Low, priTotal.Low)}
-        `;
+      // Avoid clobbering active local changes made within the last 3.5s
+      if (Date.now() - lastSavedLocalTimestamp < 3500) {
+        return;
       }
 
-      // 4. Daily Reviews & Sentiment
-      let totalProdScore = 0;
-      let prodScoreCount = 0;
-      const moodCounts = {};
-      const happyList = [];
-      const frictionList = [];
-      let reflectedCount = 0;
+      setSyncStatus('syncing');
 
-      Object.keys(appData.dailySummaries).forEach(d => {
-        if (isDateInScope(d)) {
-          reflectedCount++;
-          const s = appData.dailySummaries[d];
-          if (s.productive) {
-            const m = String(s.productive).match(/^(\d+(?:\.\d+)?)/);
-            if (m) {
-              totalProdScore += Number(m[1]);
-              prodScoreCount++;
+      try {
+        const res = await fetch(appData.apiUrl, { method: "GET", redirect: "follow" });
+        if (!res.ok) throw new Error("Failed to fetch");
+        const json = await res.json();
+
+        // 1. Safe Non-Destructive Merge: Planner
+        if (json.planner && Array.isArray(json.planner)) {
+          const remotePlanMap = new Map();
+          json.planner.forEach(b => {
+            const planId = String(b.id || "").trim();
+            if (!planId) return;
+
+            const times = extractTimesFromItem(b);
+            const sTime = times.start || "09:00";
+            const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
+
+            remotePlanMap.set(planId, {
+              id: isNaN(planId) ? planId : Number(planId),
+              date: normalizeDateString(b.date),
+              title: b.title || "Untitled Block",
+              startTime: sTime,
+              endTime: eTime,
+              timeSlot: b.timeSlot || `${sTime} - ${eTime}`,
+              timeBlock: b.timeBlock || getTimeBlockName(sTime),
+              color: b.color || "indigo",
+              notes: b.notes || "",
+              actualStartTime: normalizeTimeString(b.actualStartTime) || "",
+              actualEndTime: normalizeTimeString(b.actualEndTime) || "",
+              actualNotes: b.actualNotes || "",
+              status: b.status || "Planned",
+              taskId: b.taskId ? Number(b.taskId) : null,
+              routineId: b.routineId ? Number(b.routineId) : null
+            });
+          });
+
+          (appData.timeBlocks || []).forEach(localBlock => {
+            const lId = String(localBlock.id || "").trim();
+            if (lId && !remotePlanMap.has(lId)) {
+              remotePlanMap.set(lId, localBlock);
             }
-          }
-          const emo = s.emotion ? s.emotion.trim() : 'Steady';
-          if (emo) moodCounts[emo] = (moodCounts[emo] || 0) + 1;
+          });
 
-          if (s.goodThing && s.goodThing.trim()) happyList.push(s.goodThing.trim());
-          if (s.disliked && s.disliked.trim()) frictionList.push(s.disliked.trim());
+          appData.timeBlocks = Array.from(remotePlanMap.values());
         }
-      });
 
-      const avgProd = prodScoreCount > 0 ? (totalProdScore / prodScoreCount).toFixed(1) : '--';
-      let dominantMood = 'Steady';
-      let maxCnt = 0;
-      Object.entries(moodCounts).forEach(([emo, cnt]) => {
-        if (cnt > maxCnt) {
-          maxCnt = cnt;
-          dominantMood = emo;
+        // 2. Safe Merge: Routines
+        if (json.routines && Array.isArray(json.routines)) {
+          const seenRt = new Set();
+          const cleanRoutines = [];
+          json.routines.forEach(r => {
+            const normTitle = (r.title || "").trim().toLowerCase();
+            if (!normTitle || seenRt.has(normTitle)) return;
+            seenRt.add(normTitle);
+
+            const rId = r.id ? String(r.id) : "rt_" + normTitle.replace(/\s+/g, '_');
+            const times = extractTimesFromItem(r);
+            const sTime = times.start || "07:00";
+            const eTime = times.end || minutesToTime(timeToMinutes(sTime) + 60);
+
+            cleanRoutines.push({
+              id: isNaN(rId) ? rId : Number(rId),
+              title: r.title || "Routine",
+              startTime: sTime,
+              endTime: eTime,
+              timeSlot: r.timeSlot || `${sTime} - ${eTime}`,
+              timeBlock: r.timeBlock || getTimeBlockName(sTime),
+              color: r.color || "amber",
+              days: r.days || "Everyday"
+            });
+          });
+          appData.routines = cleanRoutines;
         }
-      });
 
-      const scopedFocus = appData.focusLogs.filter(fl => isDateInScope(fl.date));
-      let totalFocusSecs = 0;
-      scopedFocus.forEach(fl => {
-        const parts = String(fl.duration).split(':').map(Number);
-        if (parts.length === 3) {
-          totalFocusSecs += (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        // 3. Safe Merge: Habits
+        if (json.habits && Array.isArray(json.habits)) {
+          const seenHabit = new Set();
+          const cleanHabits = [];
+          json.habits.forEach(h => {
+            const normName = (h.name || "").trim().toLowerCase();
+            if (!normName || seenHabit.has(normName)) return;
+            seenHabit.add(normName);
+
+            let hId = h.id;
+            if (hId !== undefined && hId !== null) {
+              const strId = String(hId).trim();
+              hId = isNaN(strId) ? strId : Number(strId);
+            } else {
+              hId = "hb_" + normName.replace(/\s+/g, '_');
+            }
+
+            cleanHabits.push({
+              id: hId,
+              name: h.name || "Habit",
+              type: normalizeHabitType(h.type),
+              target: Number(h.target) || 0,
+              unit: h.unit || ""
+            });
+          });
+          appData.habits = cleanHabits;
         }
-      });
-      const focusHoursTotal = (totalFocusSecs / 3600).toFixed(1);
 
-      const elAvgProd = document.getElementById('anAvgProductivityBadge');
-      const elDomMood = document.getElementById('anDominantMoodStat');
-      const elRefDays = document.getElementById('anReflectionDaysCount');
-      const elFocHours = document.getElementById('anTotalFocusHours');
+        // 4. Safe Merge: Habit Logs
+        if (json.habitLogs && Array.isArray(json.habitLogs)) {
+          const remoteHabitLogMap = {};
+          json.habitLogs.forEach(l => {
+            const dateStr = normalizeDateString(l.date);
+            const key = `${String(l.habitId).trim()}_${dateStr}`;
+            const isCompleted = String(l.completed).trim().toUpperCase() === "TRUE" || 
+                                String(l.completed).trim().toLowerCase() === "yes" || 
+                                l.completed === true || 
+                                l.completed === 1;
+            remoteHabitLogMap[key] = {
+              value: l.value !== undefined ? l.value : "",
+              completed: isCompleted
+            };
+          });
+          appData.habitLogs = { ...remoteHabitLogMap, ...appData.habitLogs };
+        }
 
-      if (elAvgProd) elAvgProd.textContent = `${avgProd}/10`;
-      if (elDomMood) elDomMood.textContent = dominantMood;
-      if (elRefDays) elRefDays.textContent = `${reflectedCount}d`;
-      if (elFocHours) elFocHours.textContent = `${focusHoursTotal}h`;
+        // 5. Safe Non-Destructive Merge: Tasks
+        if (json.tasks && Array.isArray(json.tasks)) {
+          const remoteTaskMap = new Map();
+          json.tasks.forEach(t => {
+            const tId = String(t.id || "").trim();
+            if (!tId) return;
 
-      const happyUl = document.getElementById('anReviewHappyList');
-      const frictionUl = document.getElementById('anReviewFrictionList');
+            const times = extractTimesFromItem(t);
+            const baseDate = normalizeDateString(t.date || t.scheduledDate || "");
+            const origDate = normalizeDateString(t.originalDate || baseDate);
+            const reschedDate = normalizeDateString(t.rescheduledDate || "");
 
-      if (happyUl) {
-        happyUl.innerHTML = happyList.length > 0 
-          ? happyList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
-          : `<li class="text-slate-500 italic">No notes recorded in this timeframe.</li>`;
+            remoteTaskMap.set(tId, {
+              id: isNaN(tId) ? tId : Number(tId),
+              title: t.title || "Untitled Task",
+              priority: t.priority || "Med",
+              frequency: t.frequency || "once",
+              status: t.status || "Need to Start",
+              completed: String(t.completed).toUpperCase() === "TRUE",
+              date: baseDate,
+              scheduledDate: baseDate,
+              originalDate: origDate,
+              rescheduledDate: reschedDate,
+              scheduledStartTime: times.start,
+              scheduledEndTime: times.end,
+              plannedMins: Number(t.plannedMins) || 30,
+              actualMins: Number(t.actualMins) || 0
+            });
+          });
+
+          (appData.tasks || []).forEach(localTask => {
+            const lId = String(localTask.id || "").trim();
+            if (lId && !remoteTaskMap.has(lId)) {
+              remoteTaskMap.set(lId, localTask);
+            }
+          });
+
+          appData.tasks = Array.from(remoteTaskMap.values());
+        }
+
+        // 6. Focus Logs
+        if (json.focusLogs && Array.isArray(json.focusLogs)) {
+          appData.focusLogs = json.focusLogs.map(fl => ({
+            id: Number(fl.id) || Date.now() + Math.random(),
+            label: fl.label || "Focus Session",
+            duration: fl.duration || "00:00:00",
+            timestamp: fl.timestamp || "",
+            date: normalizeDateString(fl.date || getTodayKey())
+          }));
+        }
+
+        // 7. Daily Summaries
+        if (json.dailySummaries && Array.isArray(json.dailySummaries)) {
+          const remoteSummaryMap = {};
+          json.dailySummaries.forEach(s => {
+            const d = normalizeDateString(s.date);
+            if (d) {
+              remoteSummaryMap[d] = {
+                date: d,
+                goodThing: s.goodThing || "",
+                disliked: s.disliked || "",
+                productive: s.productive || "",
+                betterThanYesterday: s.betterThanYesterday || "",
+                regrets: s.regrets || "",
+                emotion: s.emotion || ""
+              };
+            }
+          });
+          appData.dailySummaries = remoteSummaryMap;
+        }
+
+        isRemoteDataLoaded = true;
+        saveState();
+        renderAll();
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setSyncStatus('error');
       }
-
-      if (frictionUl) {
-        frictionUl.innerHTML = frictionList.length > 0 
-          ? frictionList.slice(-3).reverse().map(text => `<li>${text}</li>`).join('')
-          : `<li class="text-slate-500 italic">No blockers logged in this timeframe.</li>`;
-      }
-
-      updateAnalyticsPendingBadge();
-      lucide.createIcons();
     }
 
-    // ---------- Time Block Modal Handlers ----------
+    // ---------- Time Block Modal Handlers with Clean Boundary Checks ----------
     function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
       const titleModal = document.getElementById('timeBlockModalTitle');
       if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
@@ -3725,12 +4593,15 @@
         endTime = minutesToTime(eMins);
       }
 
+      // Exact-boundary safe conflict check (09:00-10:00 vs 10:00-11:00 does not false trigger)
       const conflicts = [];
       appData.timeBlocks.forEach(b => {
         if (b.date === date && String(b.id) !== String(rawId)) {
           const bStart = timeToMinutes(b.startTime);
           const bEnd = timeToMinutes(b.endTime);
-          if (sMins < bEnd && eMins > bStart) conflicts.push(b);
+          if (sMins < bEnd && eMins > bStart && sMins !== bEnd && eMins !== bStart) {
+            conflicts.push(b);
+          }
         }
       });
 
@@ -3747,7 +4618,7 @@
         if (rawId.startsWith('ROUTINE_')) {
           appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
           appData.timeBlocks.push({
-            id: Date.now(),
+            id: Date.now() + Math.floor(Math.random() * 1000),
             date,
             routineId: routineId,
             taskId,
@@ -3776,7 +4647,7 @@
         }
       } else {
         appData.timeBlocks.push({
-          id: Date.now(),
+          id: Date.now() + Math.floor(Math.random() * 1000),
           date,
           routineId,
           taskId,
@@ -3884,7 +4755,7 @@
         existing.timeBlock = blockName;
       } else {
         appData.routines.push({
-          id: Date.now(),
+          id: Date.now() + Math.floor(Math.random() * 1000),
           title,
           color,
           startTime,
