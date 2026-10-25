@@ -3021,16 +3021,30 @@
     }
 
     // ---------- Focus Stopwatch ----------
+    // ---------- Focus Stopwatch (Background-Safe Timestamp Engine) ----------
     let timerInterval = null;
     let timerSeconds = 0;
     let isStopwatchRunning = false;
     let linkedTaskId = null;
+    let stopwatchStartTimestamp = 0;
+    let stopwatchAccumulatedSeconds = 0;
 
     function formatStopwatchTime(sec) {
       const h = String(Math.floor(sec / 3600)).padStart(2, '0');
       const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
       const s = String(sec % 60).padStart(2, '0');
       return `${h}:${m}:${s}`;
+    }
+
+    function updateStopwatchDisplay() {
+      if (isStopwatchRunning) {
+        const elapsedSinceStart = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+        timerSeconds = stopwatchAccumulatedSeconds + elapsedSinceStart;
+      }
+      const display = document.getElementById('stopwatchDigitalDisplay');
+      if (display) {
+        display.textContent = formatStopwatchTime(timerSeconds);
+      }
     }
 
     function toggleStopwatch() {
@@ -3040,22 +3054,26 @@
 
       if (!isStopwatchRunning) {
         isStopwatchRunning = true;
+        stopwatchStartTimestamp = Date.now();
+
         label.textContent = "Pause Session";
         btn.classList.replace('bg-indigo-600', 'bg-amber-600');
         btn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
         icon.setAttribute('data-lucide', 'pause');
 
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          document.getElementById('stopwatchDigitalDisplay').textContent = formatStopwatchTime(timerSeconds);
-        }, 1000);
+        timerInterval = setInterval(updateStopwatchDisplay, 500);
       } else {
         isStopwatchRunning = false;
         clearInterval(timerInterval);
+        const elapsedSinceStart = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+        stopwatchAccumulatedSeconds += elapsedSinceStart;
+        timerSeconds = stopwatchAccumulatedSeconds;
+
         label.textContent = "Resume Session";
         btn.classList.replace('bg-amber-600', 'bg-indigo-600');
         btn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
         icon.setAttribute('data-lucide', 'play');
+        updateStopwatchDisplay();
       }
       lucide.createIcons();
     }
@@ -3064,7 +3082,10 @@
       isStopwatchRunning = false;
       clearInterval(timerInterval);
       timerSeconds = 0;
+      stopwatchStartTimestamp = 0;
+      stopwatchAccumulatedSeconds = 0;
       linkedTaskId = null;
+
       document.getElementById('stopwatchDigitalDisplay').textContent = "00:00:00";
       document.getElementById('labelTimerToggle').textContent = "Start Session";
       document.getElementById('btnToggleStopwatch').classList.replace('bg-amber-600', 'bg-indigo-600');
@@ -3072,6 +3093,13 @@
       document.getElementById('activeFocusTaskBadge').textContent = "General Focus";
       lucide.createIcons();
     }
+
+    // Instantly catch up elapsed time when returning from background/screen lock
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && isStopwatchRunning) {
+        updateStopwatchDisplay();
+      }
+    });
 
     function linkTaskToStopwatch(taskId) {
       const task = appData.tasks.find(t => String(t.id) === String(taskId));
