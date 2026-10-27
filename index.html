@@ -2546,8 +2546,7 @@
     function getTaskPendingMetrics(task) {
       const activeDate = normalizeDateString(task.date || task.scheduledDate);
       const originalDate = normalizeDateString(task.originalDate || activeDate);
-      const isRescheduled = Boolean(originalDate && activeDate && originalDate !== activeDate);
-
+const isRescheduled = Boolean(originalDate && activeDate && originalDate !== activeDate && Boolean(task.rescheduledDate));
       const baseReference = originalDate || activeDate;
 
       if (!baseReference) {
