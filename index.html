@@ -988,7 +988,12 @@
     let lastSavedLocalTimestamp = 0;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
-
+const STATUS_ORDER = {
+  'In Progress': 1,
+  'Need to Start': 2,
+  'Pending': 3,
+  'Completed': 4
+};
     function normalizeHabitType(val) {
       if (!val) return 'yesno';
       const s = String(val).toLowerCase().trim();
@@ -2750,18 +2755,35 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       }
 
       list.sort((a, b) => {
-        const aToday = isTaskActiveForDate(a, selectedPlannerDate);
-        const bToday = isTaskActiveForDate(b, selectedPlannerDate);
-        if (aToday && !bToday) return -1;
-        if (!aToday && bToday) return 1;
+        // 1. Completion State: Incomplete tasks always precede completed tasks
+        const aDone = Boolean(a.completed || a.status === "Completed");
+        const bDone = Boolean(b.completed || b.status === "Completed");
+        if (aDone !== bDone) return aDone ? 1 : -1;
 
+        // 2. Status Rank: 'In Progress' -> 'Need to Start' -> 'Pending'
+        const aStatusRank = STATUS_ORDER[a.status] || 2;
+        const bStatusRank = STATUS_ORDER[b.status] || 2;
+        if (aStatusRank !== bStatusRank) return aStatusRank - bStatusRank;
+
+        // 3. Date Proximity (for Backlog & All tabs): Older active dates float up
+        const aDate = normalizeDateString(a.date || a.scheduledDate || "");
+        const bDate = normalizeDateString(b.date || b.scheduledDate || "");
+        if (aDate && bDate && aDate !== bDate) {
+          return aDate.localeCompare(bDate);
+        }
+
+        // 4. Priority Rank: High -> Med -> Low
         const aPri = PRIORITY_ORDER[a.priority] || 2;
         const bPri = PRIORITY_ORDER[b.priority] || 2;
         if (aPri !== bPri) return aPri - bPri;
 
+        // 5. Time Schedule: Earlier time slots first
         if (a.scheduledStartTime && b.scheduledStartTime) {
           return timeToMinutes(a.scheduledStartTime) - timeToMinutes(b.scheduledStartTime);
         }
+        if (a.scheduledStartTime && !b.scheduledStartTime) return -1;
+        if (!a.scheduledStartTime && b.scheduledStartTime) return 1;
+
         return 0;
       });
 
