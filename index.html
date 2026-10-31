@@ -77,10 +77,10 @@
         <button id="syncStatusBadge" onclick="requestManualSync()" class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition active:scale-95 shadow-sm">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncText" class="font-mono text-[10px] hidden sm:inline">Synced</span>
-          <i data-lucide="refresh-cw" id="syncIcon" class="w-3 h-3 text-slate-400"></i>
+          <i data-lucide="refresh-cw" id="syncIcon" class="w-3.5 h-3.5 text-slate-400"></i>
         </button>
 
-        <button onclick="openConfigModal()" title="Google Sheets API URL" class="p-1.5 sm:p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 active:scale-95">
+        <button onclick="openConfigModal()" title="App & API Configuration" class="p-1.5 sm:p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800 active:scale-95">
           <i data-lucide="settings" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         </button>
 
@@ -375,24 +375,47 @@
       <div id="masterTaskList" class="space-y-2"></div>
     </section>
 
-    <!-- Evening Reflection -->
+    <!-- Evening Reflection with Integrated 7-Day Contextual AI Engine -->
     <section id="module_review" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-lg overflow-hidden scroll-mt-14">
       <button onclick="toggleReviewSection()" class="w-full px-4 sm:px-6 py-3.5 flex items-center justify-between hover:bg-slate-900 transition group border-b border-slate-800/80">
         <div class="flex items-center gap-2">
           <i data-lucide="moon" class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400"></i>
           <div>
             <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Evening Reflection</h2>
-            <p class="text-[10px] text-slate-500 mt-0">Click to expand and evaluate your day</p>
+            <p class="text-[10px] text-slate-500 mt-0">Daily evaluation & 7-day retrospective intelligence</p>
           </div>
         </div>
         <i id="reviewToggleIcon" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-white transition flex-shrink-0"></i>
       </button>
 
       <div id="reviewContent" class="hidden px-4 sm:px-6 py-4 sm:py-5 space-y-3.5">
-        <div class="flex items-center justify-end mb-2">
-          <button onclick="saveDailyReview()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-purple-600/30">
-            <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
-          </button>
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span class="text-xs font-semibold text-purple-300 font-mono flex items-center gap-1">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Daily & Weekly Retrospective
+          </span>
+          <div class="flex items-center gap-2">
+            <button id="btnAiSummary" onclick="generateAIEveningSummary()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>AI 7-Day Retrospective</span>
+            </button>
+            <button onclick="saveDailyReview()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-purple-600/30">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Executive Briefing Card -->
+        <div id="aiSummaryContainer" class="hidden p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-indigo-500/30 space-y-2">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-300">
+              <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+              <span>Gemini 7-Day Trend & Synthesis</span>
+            </div>
+            <button onclick="closeAiSummaryCard()" class="text-slate-500 hover:text-white p-0.5">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <div id="aiSummaryOutput" class="text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-line"></div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
@@ -898,7 +921,7 @@
   <div id="routineModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+        <h3 id="routineModalTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
           <i data-lucide="repeat" class="w-5 h-5 text-amber-400"></i> Recurring Routines
         </h3>
         <button onclick="closeRoutineModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -935,33 +958,49 @@
     </div>
   </div>
 
-  <!-- MODAL: Settings -->
+  <!-- MODAL: Settings & Config (Google Sheets + Gemini API) -->
   <div id="configModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl relative my-auto">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i> Google Sheets API URL
+          <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i> Settings & Integrations
         </h3>
         <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="space-y-3.5">
-        <p class="text-xs text-slate-400 leading-relaxed">
-          Paste your Google Apps Script Web App URL (<code class="font-mono text-indigo-300">.../exec</code>). Syncs your 24H Planner, Habits, Tasks, Stopwatch Sessions, and Evening Reflections across all devices.
-        </p>
-
+      <div class="space-y-4">
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Web App URL</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Google Sheets Web App URL</label>
           <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" 
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono">
+          <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">
+            Syncs your 24H Planner, Habits, Tasks, Stopwatch Sessions, and Evening Reflections across devices.
+          </p>
+        </div>
+
+        <!-- Google Gemini Free API Key Field -->
+        <div class="pt-3 border-t border-slate-800/80">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-purple-300 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> Gemini API Key (Free)
+            </label>
+            <a href="https://aistudio.google.com/" target="_blank" rel="noopener" class="text-[10px] font-mono text-indigo-400 hover:underline">
+              Get Key ↗
+            </a>
+          </div>
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-purple-500 font-mono">
+          <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">
+            Stored locally on your device only. Powers intelligent reflection insights without third-party servers.
+          </p>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
           <button type="button" onclick="closeConfigModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Cancel</button>
           <button type="button" onclick="saveApiUrlConfig()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition active:scale-95 shadow-md min-h-[40px]">
-            Save & Sync
+            Save Settings
           </button>
         </div>
       </div>
@@ -988,12 +1027,13 @@
     let lastSavedLocalTimestamp = 0;
 
     const PRIORITY_ORDER = { 'High': 1, 'Med': 2, 'Low': 3 };
-const STATUS_ORDER = {
-  'In Progress': 1,
-  'Need to Start': 2,
-  'Pending': 3,
-  'Completed': 4
-};
+    const STATUS_ORDER = {
+      'In Progress': 1,
+      'Need to Start': 2,
+      'Pending': 3,
+      'Completed': 4
+    };
+
     function normalizeHabitType(val) {
       if (!val) return 'yesno';
       const s = String(val).toLowerCase().trim();
@@ -2551,7 +2591,7 @@ const STATUS_ORDER = {
     function getTaskPendingMetrics(task) {
       const activeDate = normalizeDateString(task.date || task.scheduledDate);
       const originalDate = normalizeDateString(task.originalDate || activeDate);
-const isRescheduled = Boolean(originalDate && activeDate && originalDate !== activeDate && Boolean(task.rescheduledDate));
+      const isRescheduled = Boolean(originalDate && activeDate && originalDate !== activeDate && Boolean(task.rescheduledDate));
       const baseReference = originalDate || activeDate;
 
       if (!baseReference) {
@@ -3041,7 +3081,6 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       syncToRemote();
     }
 
-    // ---------- Focus Stopwatch ----------
     // ---------- Focus Stopwatch (Background-Safe Timestamp Engine) ----------
     let timerInterval = null;
     let timerSeconds = 0;
@@ -3115,7 +3154,6 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       lucide.createIcons();
     }
 
-    // Instantly catch up elapsed time when returning from background/screen lock
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && isStopwatchRunning) {
         updateStopwatchDisplay();
@@ -3226,7 +3264,7 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       lucide.createIcons();
     }
 
-    // ---------- Daily Review ----------
+    // ---------- Daily Review & Gemini AI 7-Day Contextual Synthesis ----------
     function renderDailyReview() {
       const s = appData.dailySummaries[selectedPlannerDate] || {};
       const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
@@ -3250,6 +3288,155 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       };
       renderAnalytics();
       syncToRemote();
+    }
+
+    function closeAiSummaryCard() {
+      const card = document.getElementById('aiSummaryContainer');
+      if (card) card.classList.add('hidden');
+    }
+
+    async function generateAIEveningSummary() {
+      const apiKey = localStorage.getItem('daily_flow_gemini_key') || "";
+      if (!apiKey) {
+        openConfigModal();
+        alert("Please paste your Gemini API Key in Settings to generate AI reflections.");
+        return;
+      }
+
+      const btn = document.getElementById('btnAiSummary');
+      const container = document.getElementById('aiSummaryContainer');
+      const output = document.getElementById('aiSummaryOutput');
+
+      const targetDate = selectedPlannerDate;
+      const refDate = new Date(targetDate + "T00:00:00");
+
+      // 1. Construct Selected Day's Detailed Metrics
+      const todayBlocks = (appData.timeBlocks || []).filter(b => b.date === targetDate);
+      const todayTasks = (appData.tasks || []).filter(t => isTaskActiveForDate(t, targetDate));
+      const todayFocus = (appData.focusLogs || []).filter(fl => fl.date === targetDate);
+      
+      const totalHabits = (appData.habits || []).length;
+      const completedHabitsToday = (appData.habits || []).filter(h => {
+        const log = appData.habitLogs[`${h.id}_${targetDate}`];
+        return log && (log.completed || String(log.value).toLowerCase() === 'yes');
+      }).length;
+
+      const review = appData.dailySummaries[targetDate] || {};
+
+      let todayFocusMins = 0;
+      todayFocus.forEach(fl => {
+        const p = String(fl.duration).split(':').map(Number);
+        if (p.length === 3) todayFocusMins += Math.round((p[0] * 60) + p[1] + (p[2] / 60));
+      });
+
+      const todaySnapshot = {
+        date: targetDate,
+        daySchedule: todayBlocks.map(b => ({
+          title: b.title,
+          planned: `${b.startTime}-${b.endTime}`,
+          actual: b.actualStartTime ? `${b.actualStartTime}-${b.actualEndTime}` : "None",
+          status: b.status || "Planned"
+        })),
+        tasksCompleted: todayTasks.filter(t => t.completed).map(t => `${t.title} (${t.priority})`),
+        tasksPending: todayTasks.filter(t => !t.completed).map(t => `${t.title} (${t.priority})`),
+        habitsPerformance: `${completedHabitsToday}/${totalHabits}`,
+        focusMinutesLogged: todayFocusMins,
+        userReflection: {
+          wins: document.getElementById('rev_goodThing').value.trim() || review.goodThing || "None recorded",
+          blockers: document.getElementById('rev_disliked').value.trim() || review.disliked || "None recorded",
+          productiveScore: document.getElementById('rev_productive').value.trim() || review.productive || "Unrated",
+          regrets: document.getElementById('rev_regrets').value.trim() || review.regrets || "None recorded",
+          mood: document.getElementById('rev_emotion').value.trim() || review.emotion || "Steady"
+        }
+      };
+
+      // 2. Extract Prior 7 Days Historical Snapshot for Trend Comparison
+      const prior7DaysData = [];
+      for (let i = 1; i <= 7; i++) {
+        const pastDate = new Date(refDate);
+        pastDate.setDate(refDate.getDate() - i);
+        const y = pastDate.getFullYear();
+        const m = String(pastDate.getMonth() + 1).padStart(2, '0');
+        const day = String(pastDate.getDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${day}`;
+
+        const pastBlocks = (appData.timeBlocks || []).filter(b => b.date === dStr);
+        const pastTasks = (appData.tasks || []).filter(t => isTaskActiveForDate(t, dStr));
+        const pastCompletedHabits = (appData.habits || []).filter(h => {
+          const log = appData.habitLogs[`${h.id}_${dStr}`];
+          return log && (log.completed || String(log.value).toLowerCase() === 'yes');
+        }).length;
+        const pastReview = appData.dailySummaries[dStr] || {};
+
+        let pastFocusMins = 0;
+        (appData.focusLogs || []).filter(fl => fl.date === dStr).forEach(fl => {
+          const p = String(fl.duration).split(':').map(Number);
+          if (p.length === 3) pastFocusMins += Math.round((p[0] * 60) + p[1] + (p[2] / 60));
+        });
+
+        prior7DaysData.push({
+          date: dStr,
+          completedBlocks: pastBlocks.filter(b => b.status === "Completed").length,
+          totalBlocks: pastBlocks.length,
+          tasksDone: pastTasks.filter(t => t.completed).length,
+          tasksTotal: pastTasks.length,
+          habitsDone: `${pastCompletedHabits}/${totalHabits}`,
+          focusMinutes: pastFocusMins,
+          productiveRating: pastReview.productive || "N/A",
+          emotion: pastReview.emotion || "N/A"
+        });
+      }
+
+      const promptPayload = {
+        targetDay: todaySnapshot,
+        prior7DaysHistory: prior7DaysData
+      };
+
+      const systemPrompt = `You are an elite high-performance executive coach.
+Analyze the user's target day execution alongside their preceding 7-day performance baseline:
+${JSON.stringify(promptPayload, null, 2)}
+
+Produce a concise, high-impact review comparing today against the past 7 days across 4 sections:
+1. 🎯 **Day's Core Synthesis**: Summarize today's execution fidelity (schedule vs actuals, task clearance, and focus time).
+2. 📊 **7-Day Trend Comparison**: Compare today's output directly against their 7-day average (identify if today broke streaks, improved productivity, or regressed).
+3. ⚡ **Friction & Pattern Diagnosis**: Highlight recurring friction points or emotional/distraction trends emerging over the past week.
+4. 🚀 **Tomorrow's Strategic Pivot**: 1 concrete, high-leverage calibration to execute tomorrow.
+
+Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold headers. Avoid fluffy filler.`;
+
+      // UI Loading state
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Analyzing 7-Day Context...</span>`;
+      container.classList.remove('hidden');
+      output.innerHTML = `<div class="text-slate-400 font-mono text-[11px] animate-pulse flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i> Comparing today's execution with past 7 days trends, focus, and habits...</div>`;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt }] }]
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP error ${res.status}`);
+        }
+
+        const data = await res.json();
+        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+        
+        output.textContent = generatedText;
+      } catch (err) {
+        console.error("Gemini summary error:", err);
+        output.innerHTML = `<span class="text-rose-400">❌ Failed to generate summary: ${err.message}. Please verify your API key in Settings.</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i><span>AI 7-Day Retrospective</span>`;
+        lucide.createIcons();
+      }
     }
 
     // ---------- Analytics & Auto-Capture Engine ----------
@@ -3955,6 +4142,7 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
     // ---------- Settings & Backup ----------
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = appData.apiUrl || "";
+      document.getElementById('geminiApiKeyInput').value = localStorage.getItem('daily_flow_gemini_key') || "";
       document.getElementById('configModal').classList.remove('hidden');
     }
 
@@ -3964,8 +4152,17 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
 
     function saveApiUrlConfig() {
       const url = document.getElementById('apiUrlInput').value.trim();
+      const geminiKey = document.getElementById('geminiApiKeyInput').value.trim();
+
       appData.apiUrl = url;
       localStorage.setItem('daily_flow_api_url', url);
+      
+      if (geminiKey) {
+        localStorage.setItem('daily_flow_gemini_key', geminiKey);
+      } else {
+        localStorage.removeItem('daily_flow_gemini_key');
+      }
+
       saveState();
       closeConfigModal();
       setTimeout(() => {
@@ -4001,7 +4198,7 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       lucide.createIcons();
     }
 
-// ---------- Native PWA Notification Engine (All Sections) ----------
+    // ---------- Native PWA Notification Engine (All Sections) ----------
     const firedNotificationSet = new Set();
 
     async function initNotifications() {
@@ -4161,7 +4358,6 @@ const isRescheduled = Boolean(originalDate && activeDate && originalDate !== act
       initNotifications();
       setInterval(checkSystemReminders, 30000);
     };
-    
   </script>
 </body>
 </html>
