@@ -1031,7 +1031,6 @@
       'Completed': 4
     };
 
-    // Normalized strictly to yesno and number
     function normalizeHabitType(val) {
       if (!val) return 'yesno';
       const s = String(val).toLowerCase().trim();
@@ -2125,7 +2124,6 @@
             </button>
           `;
         } else {
-          // Direct decimal number input without +/- step buttons
           const currentVal = log.value !== undefined && log.value !== "" ? log.value : "";
           const targetVal = habit.target || 0;
           const currentNum = parseFloat(currentVal) || 0;
@@ -2189,7 +2187,7 @@
             <i data-lucide="file-text" class="w-3 h-3 text-slate-600 flex-shrink-0"></i>
             <input type="text" 
                    value="${log.notes || ''}" 
-                   placeholder="Add daily notes (e.g. 5x5 sets, hydration timing, brand)..." 
+                   placeholder="Add daily notes (e.g. sets, hydration timing, brand)..." 
                    onchange="saveHabitNote('${hId}', this.value)"
                    onkeydown="if(event.key==='Enter') this.blur()"
                    class="w-full bg-slate-900/60 border border-slate-900 rounded-lg px-2 py-1 text-[11px] text-slate-300 placeholder-slate-600 focus:outline-none focus:border-slate-700">
@@ -2554,6 +2552,23 @@
       return metrics;
     }
 
+    function formatDateForDisplay(dateStr) {
+      if (!dateStr) return "Never";
+      const [y, m, d] = dateStr.split('-');
+      const date = new Date(Number(y), Number(m) - 1, Number(d));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = today - date;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays}d ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
     // ---------- Focus Stopwatch (Background-Safe Timestamp Engine) ----------
     let timerInterval = null;
     let timerSeconds = 0;
@@ -2704,7 +2719,65 @@
       syncToRemote();
     }
 
+    // ---------- UI Toggle Handlers ----------
+    function toggleReviewSection() {
+      const content = document.getElementById('reviewContent');
+      const icon = document.getElementById('reviewToggleIcon');
+      if (!content) return;
+
+      const isHidden = content.classList.contains('hidden');
+      if (isHidden) {
+        content.classList.remove('hidden');
+        icon.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        content.classList.add('hidden');
+        icon.setAttribute('data-lucide', 'chevron-down');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleAnalyticsSection() {
+      const content = document.getElementById('analyticsContent');
+      const icon = document.getElementById('analyticsToggleIcon');
+      if (!content) return;
+
+      const isHidden = content.classList.contains('hidden');
+      if (isHidden) {
+        content.classList.remove('hidden');
+        icon.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        content.classList.add('hidden');
+        icon.setAttribute('data-lucide', 'chevron-down');
+      }
+      lucide.createIcons();
+    }
+
     // ---------- Daily Review & Gemini AI 7-Day Contextual Synthesis ----------
+    function renderDailyReview() {
+      const s = appData.dailySummaries[selectedPlannerDate] || {};
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      setVal('rev_goodThing', s.goodThing || "");
+      setVal('rev_disliked', s.disliked || "");
+      setVal('rev_productive', s.productive || "");
+      setVal('rev_betterThanYesterday', s.betterThanYesterday || "");
+      setVal('rev_regrets', s.regrets || "");
+      setVal('rev_emotion', s.emotion || "");
+    }
+
+    function saveDailyReview() {
+      appData.dailySummaries[selectedPlannerDate] = {
+        date: selectedPlannerDate,
+        goodThing: document.getElementById('rev_goodThing').value.trim(),
+        disliked: document.getElementById('rev_disliked').value.trim(),
+        productive: document.getElementById('rev_productive').value.trim(),
+        betterThanYesterday: document.getElementById('rev_betterThanYesterday').value.trim(),
+        regrets: document.getElementById('rev_regrets').value.trim(),
+        emotion: document.getElementById('rev_emotion').value.trim()
+      };
+      renderAnalytics();
+      syncToRemote();
+    }
+
     function closeAiSummaryCard() {
       const card = document.getElementById('aiSummaryContainer');
       if (card) card.classList.add('hidden');
@@ -2725,7 +2798,6 @@
       const targetDate = selectedPlannerDate;
       const refDate = new Date(targetDate + "T00:00:00");
 
-      // 1. Construct Selected Day's Detailed Metrics
       const todayBlocks = (appData.timeBlocks || []).filter(b => b.date === targetDate);
       const todayTasks = (appData.tasks || []).filter(t => isTaskActiveForDate(t, targetDate));
       const todayFocus = (appData.focusLogs || []).filter(fl => fl.date === targetDate);
@@ -2765,7 +2837,6 @@
         }
       };
 
-      // 2. Extract Prior 7 Days Historical Snapshot for Trend Comparison
       const prior7DaysData = [];
       for (let i = 1; i <= 7; i++) {
         const pastDate = new Date(refDate);
@@ -3051,7 +3122,6 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
         return windowSet.has(norm);
       };
 
-      // 1. Planner Execution
       const scopedPlans = appData.timeBlocks.filter(b => isDateInScope(b.date));
       let plannedMinutes = 0;
       let actualMinutes = 0;
@@ -3091,7 +3161,6 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
       if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
       if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
 
-      // 2. Habits Macro Adherence
       const totalHabits = appData.habits.length;
       let totalCompletedLogs = 0;
       const missedCounts = {};
@@ -3133,7 +3202,6 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
       if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
       if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
 
-      // 3. Tasks Throughput
       const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
       const totalTasks = scopedTasks.length;
       let completedTasksCount = 0;
@@ -3193,7 +3261,6 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
         `;
       }
 
-      // 4. Daily Reviews & Sentiment
       let totalProdScore = 0;
       let prodScoreCount = 0;
       const moodCounts = {};
@@ -3267,475 +3334,6 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
 
       updateAnalyticsPendingBadge();
       lucide.createIcons();
-    }
-
-    // ---------- Modal: Edit / Add Timeblock ----------
-    function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
-      const titleModal = document.getElementById('timeBlockModalTitle');
-      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
-      
-      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-      setVal('tbId', '');
-      setVal('tbDate', selectedPlannerDate);
-      setVal('tbRoutineId', '');
-      setVal('tbTaskId', '');
-      setVal('tbTitle', '');
-      setVal('tbColor', 'indigo');
-      setVal('tbStartTime', presetStart);
-      setVal('tbEndTime', presetEnd);
-      setVal('tbNotes', '');
-      setVal('tbStatus', 'Planned');
-      setVal('tbActualStartTime', '');
-      setVal('tbActualEndTime', '');
-      setVal('tbActualNotes', '');
-      
-      const delBtn = document.getElementById('btnDeleteTimeBlock');
-      if (delBtn) delBtn.classList.add('hidden');
-
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function openEditTimeBlockModal(block) {
-      const titleModal = document.getElementById('timeBlockModalTitle');
-      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Edit Timeblock & Evaluate`;
-      
-      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-      setVal('tbId', block.id || '');
-      setVal('tbDate', block.date || selectedPlannerDate);
-      setVal('tbRoutineId', block.routineId || '');
-      setVal('tbTaskId', block.taskId || '');
-      setVal('tbTitle', block.title || '');
-      setVal('tbColor', block.color || 'indigo');
-      setVal('tbStartTime', block.startTime || '09:00');
-      setVal('tbEndTime', block.endTime || '10:00');
-      setVal('tbNotes', block.notes || '');
-      setVal('tbStatus', block.status || 'Planned');
-      setVal('tbActualStartTime', block.actualStartTime || '');
-      setVal('tbActualEndTime', block.actualEndTime || '');
-      setVal('tbActualNotes', block.actualNotes || '');
-      
-      const delBtn = document.getElementById('btnDeleteTimeBlock');
-      if (delBtn) delBtn.classList.remove('hidden');
-
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeTimeBlockModal() {
-      const modal = document.getElementById('timeBlockModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function wentAsPlanned() {
-      const plannedStart = (document.getElementById('tbStartTime') || {}).value;
-      const plannedEnd = (document.getElementById('tbEndTime') || {}).value;
-
-      if (!plannedStart || !plannedEnd) {
-        alert("Please set planned times first");
-        return;
-      }
-
-      document.getElementById('tbActualStartTime').value = plannedStart;
-      document.getElementById('tbActualEndTime').value = plannedEnd;
-      document.getElementById('tbStatus').value = "Completed";
-    }
-
-    function handleSaveTimeBlock(e) {
-      e.preventDefault();
-      const rawId = (document.getElementById('tbId') || {}).value || "";
-      const date = (document.getElementById('tbDate') || {}).value || selectedPlannerDate;
-      const routineId = (document.getElementById('tbRoutineId') || {}).value ? Number(document.getElementById('tbRoutineId').value) : null;
-      const taskId = (document.getElementById('tbTaskId') || {}).value ? Number(document.getElementById('tbTaskId').value) : null;
-      const title = (document.getElementById('tbTitle') || {}).value ? document.getElementById('tbTitle').value.trim() : "";
-      const color = (document.getElementById('tbColor') || {}).value || "indigo";
-      let startTime = normalizeTimeString((document.getElementById('tbStartTime') || {}).value);
-      let endTime = normalizeTimeString((document.getElementById('tbEndTime') || {}).value);
-      const notes = (document.getElementById('tbNotes') || {}).value ? document.getElementById('tbNotes').value.trim() : "";
-      const status = (document.getElementById('tbStatus') || {}).value || "Planned";
-      const actualStartTime = normalizeTimeString((document.getElementById('tbActualStartTime') || {}).value);
-      const actualEndTime = normalizeTimeString((document.getElementById('tbActualEndTime') || {}).value);
-      const actualNotes = (document.getElementById('tbActualNotes') || {}).value ? document.getElementById('tbActualNotes').value.trim() : "";
-
-      if (!title || !startTime || !endTime) return;
-
-      const sMins = timeToMinutes(startTime);
-      let eMins = timeToMinutes(endTime);
-      if (eMins <= sMins) {
-        eMins = Math.min(1440, sMins + 30);
-        endTime = minutesToTime(eMins);
-      }
-
-      const conflicts = [];
-      appData.timeBlocks.forEach(b => {
-        if (b.date === date && String(b.id) !== String(rawId)) {
-          const bStart = timeToMinutes(b.startTime);
-          const bEnd = timeToMinutes(b.endTime);
-          if (sMins < bEnd && eMins > bStart && sMins !== bEnd && eMins !== bStart) {
-            conflicts.push(b);
-          }
-        }
-      });
-
-      if (conflicts.length > 0) {
-        const conflictNames = conflicts.map(c => `"${c.title}"`).join(", ");
-        const proceed = confirm(`⚠️ Time conflict detected!\n\nThis block overlaps with: ${conflictNames}\n\nProceed anyway?`);
-        if (!proceed) return;
-      }
-
-      const slotStr = `${startTime} - ${endTime}`;
-      const blockName = getTimeBlockName(startTime);
-
-      if (rawId) {
-        if (rawId.startsWith('ROUTINE_')) {
-          appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
-          appData.timeBlocks.push({
-            id: Date.now() + Math.floor(Math.random() * 1000),
-            date,
-            routineId: routineId,
-            taskId,
-            title,
-            color,
-            startTime,
-            endTime,
-            timeSlot: slotStr,
-            timeBlock: blockName,
-            notes,
-            status,
-            actualStartTime,
-            actualEndTime,
-            actualNotes
-          });
-        } else {
-          const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
-          if (idx >= 0) {
-            appData.timeBlocks[idx] = {
-              ...appData.timeBlocks[idx],
-              date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
-              notes, status, actualStartTime, actualEndTime, actualNotes,
-              routineId, taskId
-            };
-          }
-        }
-      } else {
-        appData.timeBlocks.push({
-          id: Date.now() + Math.floor(Math.random() * 1000),
-          date,
-          routineId,
-          taskId,
-          title,
-          color,
-          startTime,
-          endTime,
-          timeSlot: slotStr,
-          timeBlock: blockName,
-          notes,
-          status,
-          actualStartTime,
-          actualEndTime,
-          actualNotes
-        });
-      }
-
-      closeTimeBlockModal();
-      renderAll();
-      syncToRemote();
-    }
-
-    function handleDeleteCurrentTimeBlock() {
-      const rawId = document.getElementById('tbId').value;
-      if (rawId && !rawId.startsWith('ROUTINE_')) {
-        appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(rawId));
-      }
-      closeTimeBlockModal();
-      renderAll();
-      syncToRemote();
-    }
-
-    function handleQuickDeleteTimeBlock(id, event) {
-      event.stopPropagation();
-      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
-      renderAll();
-      syncToRemote();
-    }
-
-    // ---------- Routines Management ----------
-    function openRoutineManagerModal() {
-      renderRoutinesList();
-      document.getElementById('routineModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeRoutineModal() {
-      document.getElementById('routineModal').classList.add('hidden');
-    }
-
-    function renderRoutinesList() {
-      const container = document.getElementById('routinesListContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (!appData.routines.length) {
-        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-3">No recurring routines configured. Add one above!</div>`;
-        return;
-      }
-
-      appData.routines.forEach(r => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs";
-        row.innerHTML = `
-          <div>
-            <span class="font-bold text-slate-200">${r.title}</span>
-            <span class="text-[10px] text-slate-500 font-mono block">${r.startTime} - ${r.endTime} (${r.days})</span>
-          </div>
-          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 p-2 min-h-[38px] min-w-[38px] flex items-center justify-center">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        `;
-        container.appendChild(row);
-      });
-      lucide.createIcons();
-    }
-
-    function handleCreateRoutine(e) {
-      e.preventDefault();
-      const title = document.getElementById('rtTitle').value.trim();
-      const color = document.getElementById('rtColor').value;
-      let startTime = normalizeTimeString(document.getElementById('rtStartTime').value);
-      let endTime = normalizeTimeString(document.getElementById('rtEndTime').value);
-
-      if (!title || !startTime || !endTime) return;
-
-      const sMins = timeToMinutes(startTime);
-      let eMins = timeToMinutes(endTime);
-      if (eMins <= sMins) {
-        eMins = Math.min(1440, sMins + 30);
-        endTime = minutesToTime(eMins);
-      }
-
-      const slotStr = `${startTime} - ${endTime}`;
-      const blockName = getTimeBlockName(startTime);
-
-      const normTitle = title.toLowerCase();
-      const existing = appData.routines.find(r => r.title.toLowerCase() === normTitle);
-      if (existing) {
-        existing.title = title;
-        existing.color = color;
-        existing.startTime = startTime;
-        existing.endTime = endTime;
-        existing.timeSlot = slotStr;
-        existing.timeBlock = blockName;
-      } else {
-        appData.routines.push({
-          id: Date.now() + Math.floor(Math.random() * 1000),
-          title,
-          color,
-          startTime,
-          endTime,
-          timeSlot: slotStr,
-          timeBlock: blockName,
-          days: "Everyday"
-        });
-      }
-
-      document.getElementById('rtTitle').value = '';
-      renderRoutinesList();
-      renderAll();
-      syncToRemote();
-    }
-
-    function deleteRoutine(id) {
-      appData.routines = appData.routines.filter(r => String(r.id) !== String(id));
-      renderRoutinesList();
-      renderAll();
-      syncToRemote();
-    }
-
-    // ---------- Settings & Backup ----------
-    function openConfigModal() {
-      document.getElementById('apiUrlInput').value = appData.apiUrl || "";
-      document.getElementById('geminiApiKeyInput').value = localStorage.getItem('daily_flow_gemini_key') || "";
-      document.getElementById('configModal').classList.remove('hidden');
-    }
-
-    function closeConfigModal() {
-      document.getElementById('configModal').classList.add('hidden');
-    }
-
-    function saveApiUrlConfig() {
-      const url = document.getElementById('apiUrlInput').value.trim();
-      const geminiKey = document.getElementById('geminiApiKeyInput').value.trim();
-
-      appData.apiUrl = url;
-      localStorage.setItem('daily_flow_api_url', url);
-      
-      if (geminiKey) {
-        localStorage.setItem('daily_flow_gemini_key', geminiKey);
-      } else {
-        localStorage.removeItem('daily_flow_gemini_key');
-      }
-
-      saveState();
-      closeConfigModal();
-      setTimeout(() => {
-        isRemoteDataLoaded = false;
-        fetchRemoteData();
-      }, 100);
-    }
-
-    function exportBackupData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    }
-
-    // ---------- Master App Render Loop ----------
-    function renderAll() {
-      const d = new Date(selectedPlannerDate + "T00:00:00");
-      const dateSubtext = document.getElementById('headerDateSubtext');
-      if (dateSubtext) {
-        dateSubtext.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      }
-      
-      render24HourPlanner();
-      renderHabits();
-      renderTasks();
-      renderFocusLogs();
-      renderDailyReview();
-      renderAnalytics();
-      lucide.createIcons();
-    }
-
-    // ---------- Native PWA Notification Engine (All Sections) ----------
-    const firedNotificationSet = new Set();
-
-    async function initNotifications() {
-      if (!('Notification' in window)) return;
-      if (Notification.permission === 'default') {
-        try {
-          await Notification.requestPermission();
-        } catch (e) {
-          console.log('Notification permission request skipped:', e);
-        }
-      }
-    }
-
-    function triggerNativeNotification(title, options = {}) {
-      if (!('Notification' in window) || Notification.permission !== 'granted') return;
-
-      const notifOptions = {
-        badge: 'assets/badge-72.png',
-        icon: 'assets/icon-192.png',
-        vibrate: [150, 50, 150],
-        ...options
-      };
-
-      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification(title, notifOptions);
-        });
-      } else {
-        new Notification(title, notifOptions);
-      }
-    }
-
-    function checkSystemReminders() {
-      if (!('Notification' in window) || Notification.permission !== 'granted') return;
-
-      const now = new Date();
-      const todayStr = getTodayKey();
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const currentMinsOfDay = (currentHours * 60) + currentMinutes;
-
-      // 1. TimeBlocks Pre-alert (5-minute warning)
-      (appData.timeBlocks || []).forEach(b => {
-        if (b.date !== todayStr || !b.startTime) return;
-        const startMins = timeToMinutes(b.startTime);
-        const diff = startMins - currentMinsOfDay;
-        const key = `notif_tb_${b.id}_${todayStr}`;
-
-        if (diff >= 0 && diff <= 5 && !firedNotificationSet.has(key)) {
-          firedNotificationSet.add(key);
-          triggerNativeNotification(`⏱️ Upcoming Plan: ${b.title}`, {
-            body: `Starts at ${b.startTime} (${diff === 0 ? 'Now' : 'in ' + diff + ' mins'}).`,
-            tag: key,
-            data: { targetModule: 'module_planner' }
-          });
-        }
-      });
-
-      // 2. Scheduled Tasks Pre-alert (5-minute warning)
-      (appData.tasks || []).forEach(t => {
-        if (t.completed || t.date !== todayStr || !t.scheduledStartTime) return;
-        const startMins = timeToMinutes(t.scheduledStartTime);
-        const diff = startMins - currentMinsOfDay;
-        const key = `notif_task_${t.id}_${todayStr}`;
-
-        if (diff >= 0 && diff <= 5 && !firedNotificationSet.has(key)) {
-          firedNotificationSet.add(key);
-          triggerNativeNotification(`📋 Task Due: ${t.title}`, {
-            body: `Scheduled for ${t.scheduledStartTime} (${t.priority} Priority).`,
-            tag: key,
-            data: { targetModule: 'module_tasks' }
-          });
-        }
-      });
-
-      // 3. Daily Habits Mid-Day Check-in (Fires once at 2:00 PM if habits < 50%)
-      if (currentHours === 14 && currentMinutes === 0) {
-        const habitKey = `notif_habits_${todayStr}`;
-        if (!firedNotificationSet.has(habitKey)) {
-          const totalHabits = (appData.habits || []).length;
-          if (totalHabits > 0) {
-            const completedCount = appData.habits.filter(h => {
-              const log = appData.habitLogs[`${h.id}_${todayStr}`];
-              return log && (log.completed || (normalizeHabitType(h.type) === 'yesno' && String(log.value).toLowerCase() === 'yes'));
-            }).length;
-
-            if ((completedCount / totalHabits) < 0.5) {
-              firedNotificationSet.add(habitKey);
-              triggerNativeNotification(`🔥 Daily Habit Check-in`, {
-                body: `You've completed ${completedCount}/${totalHabits} habits today. Keep your streak alive!`,
-                tag: habitKey,
-                data: { targetModule: 'module_habits' }
-              });
-            }
-          }
-        }
-      }
-
-      // 4. Evening Reflection Reminder (Fires once at 9:00 PM if unrecorded)
-      if (currentHours === 21 && currentMinutes === 0) {
-        const reviewKey = `notif_review_${todayStr}`;
-        if (!firedNotificationSet.has(reviewKey)) {
-          const review = appData.dailySummaries[todayStr] || {};
-          const isFilled = Boolean(review.goodThing || review.productive || review.emotion);
-
-          if (!isFilled) {
-            firedNotificationSet.add(reviewKey);
-            triggerNativeNotification(`🌙 Evening Reflection Reminder`, {
-              body: `Take 2 minutes to record your wins, blockers, and mood for today.`,
-              tag: reviewKey,
-              data: { targetModule: 'module_review' }
-            });
-          }
-        }
-      }
-    }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.action === 'scrollToModule' && event.data.moduleId) {
-          scrollToModule(event.data.moduleId);
-        }
-      });
     }
 
     // ---------- Application Initialization ----------
