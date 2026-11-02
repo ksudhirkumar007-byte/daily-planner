@@ -96,6 +96,7 @@
     <!-- 24-Hour Calendar Day Planner Card -->
     <section id="module_planner" class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden scroll-mt-14">
       <div class="p-3 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        
         <div class="flex items-center gap-1.5 flex-wrap justify-between sm:justify-start">
           <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 shadow-inner">
             <button onclick="shiftPlannerDate(-1)" title="Previous Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition active:scale-90">
@@ -254,7 +255,7 @@
 
     <!-- Habits & Focus Stopwatch Row -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-      <!-- Habits Tracker with Universal Notes & Direct Decimal Input -->
+      <!-- Habits Tracker with Option C Hybrid Mode -->
       <section id="module_habits" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between scroll-mt-14">
         <div>
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -262,14 +263,14 @@
               <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i> Daily Habits
               </h2>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Check off completion or enter numeric totals with daily context notes.</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tap card body for deep analytics; use controls on right to log.</p>
             </div>
             <button onclick="openCreateHabitModal()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Habit
             </button>
           </div>
 
-          <div id="habitCardsContainer" class="space-y-3"></div>
+          <div id="habitCardsContainer" class="space-y-2.5"></div>
         </div>
 
         <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
@@ -829,7 +830,7 @@
 
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Habit Name</label>
-          <input type="text" id="hmName" required placeholder="e.g. Morning Workout, Water Intake" 
+          <input type="text" id="hmName" required placeholder="e.g. Morning Workout, Drink Water" 
                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500">
         </div>
 
@@ -837,14 +838,15 @@
           <label class="block text-xs font-medium text-slate-400 mb-1">Tracking Type</label>
           <select id="hmType" onchange="onHabitTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none">
             <option value="yesno">Yes / No (Completion Check)</option>
-            <option value="number">Numeric (e.g. 3.5 Liters, 20.5 Pages)</option>
+            <option value="number">Numeric (e.g. 8 Glasses, 20 Pages)</option>
+            <option value="descriptive">Descriptive / Notes</option>
           </select>
         </div>
 
         <div id="hmNumberFields" class="hidden grid grid-cols-2 gap-2.5 p-3 bg-slate-950 rounded-xl border border-slate-800">
           <div>
             <label class="block text-[10px] text-slate-500 mb-1">Target Number</label>
-            <input type="number" step="any" inputmode="decimal" id="hmTarget" placeholder="e.g. 3.5, 20" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
+            <input type="number" step="any" inputmode="decimal" id="hmTarget" placeholder="e.g. 3, 20" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none">
           </div>
           <div>
             <label class="block text-[10px] text-slate-500 mb-1">Unit Label</label>
@@ -862,7 +864,7 @@
     </div>
   </div>
 
-  <!-- MODAL: On-Demand Habit Detail & Deep-Dive Analytics -->
+  <!-- MODAL: On-Demand Habit Detail & Deep-Dive Analytics (Option C) -->
   <div id="habitDetailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800">
@@ -978,6 +980,7 @@
           </p>
         </div>
 
+        <!-- Google Gemini Free API Key Field -->
         <div class="pt-3 border-t border-slate-800/80">
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-semibold text-purple-300 flex items-center gap-1.5">
@@ -1034,7 +1037,9 @@
     function normalizeHabitType(val) {
       if (!val) return 'yesno';
       const s = String(val).toLowerCase().trim();
+      if (s === 'boolean' || s === 'bool' || s.includes('yes') || s.includes('check')) return 'yesno';
       if (s === 'number' || s === 'numeric' || s === 'decimal' || s === 'integer' || s === 'int' || s.includes('hour') || s.includes('count')) return 'number';
+      if (s === 'text' || s === 'string' || s.includes('desc') || s.includes('note')) return 'descriptive';
       return 'yesno';
     }
 
@@ -1328,7 +1333,7 @@
       const habitsPayload = (appData.habits || []).map(h => ({
         id: String(h.id || "").trim(),
         name: h.name || "Habit",
-        type: normalizeHabitType(h.type),
+        type: h.type || "yesno",
         target: Number(h.target) || 0,
         unit: h.unit || ""
       }));
@@ -1338,7 +1343,6 @@
         habitId: key.split('_')[0],
         date: key.split('_').slice(1).join('_'),
         value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
-        notes: appData.habitLogs[key].notes || "",
         completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
       }));
 
@@ -1536,7 +1540,6 @@
                                 l.completed === 1;
             remoteHabitLogMap[key] = {
               value: l.value !== undefined ? l.value : "",
-              notes: l.notes || "",
               completed: isCompleted
             };
           });
@@ -2074,7 +2077,7 @@
       syncToRemote();
     }
 
-    // ---------- Habit Tracker (Universal Notes & Decimal Inputs) ----------
+    // ---------- Habit Tracker (Option C: Hybrid Model) ----------
     function renderHabits() {
       const container = document.getElementById('habitCardsContainer');
       if (!container) return;
@@ -2090,7 +2093,7 @@
         const hId = String(habit.id);
         const normType = normalizeHabitType(habit.type);
         const key = `${hId}_${selectedPlannerDate}`;
-        const log = appData.habitLogs[key] || { value: "", notes: "", completed: false };
+        const log = appData.habitLogs[key] || { value: "", completed: false };
 
         const isCompleted = Boolean(log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
         if (isCompleted) completedCount++;
@@ -2113,46 +2116,49 @@
         }
 
         const card = document.createElement('div');
-        card.className = "p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 shadow-sm space-y-2";
+        card.className = "p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 shadow-sm";
 
         let controlHtml = "";
         if (normType === 'yesno') {
           controlHtml = `
-            <button onclick="toggleYesNoHabit('${hId}', event)" class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[40px] ${isCompleted ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
+            <button onclick="toggleYesNoHabit('${hId}', event)" class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 min-h-[44px] ${isCompleted ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm shadow-emerald-950' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
               <i data-lucide="${isCompleted ? 'check-circle-2' : 'circle'}" class="w-4 h-4 ${isCompleted ? 'text-emerald-400' : 'text-slate-500'}"></i>
               <span>${isCompleted ? 'Done ✓' : 'Mark Done'}</span>
             </button>
           `;
-        } else {
-          const currentVal = log.value !== undefined && log.value !== "" ? log.value : "";
-          const targetVal = habit.target || 0;
-          const currentNum = parseFloat(currentVal) || 0;
-          const pct = targetVal > 0 ? Math.min(100, Math.round((currentNum / targetVal) * 100)) : (isCompleted ? 100 : 0);
-          
+        } else if (normType === 'number') {
+          const currentVal = Number(log.value) || 0;
+          const targetVal = habit.target || 1;
+          const pct = Math.min(100, Math.round((currentVal / targetVal) * 100));
           controlHtml = `
-            <div class="space-y-1.5 w-full sm:w-auto" onclick="event.stopPropagation()">
+            <div class="space-y-2 w-full sm:w-auto" onclick="event.stopPropagation()">
               <div class="flex items-center gap-2">
-                <input type="number" step="any" inputmode="decimal" value="${currentVal}" 
-                       placeholder="0.0"
-                       onchange="setNumericHabit('${hId}', this.value)" 
-                       onblur="setNumericHabit('${hId}', this.value)"
-                       onkeydown="if(event.key==='Enter') this.blur()"
-                       class="w-20 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[38px]">
-                <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">
-                  ${targetVal > 0 ? `/ ${targetVal}` : ''} ${habit.unit || ''}
-                </span>
-                ${isCompleted ? '<span class="text-xs text-emerald-400 font-bold ml-1">✓</span>' : ''}
+                <button onclick="stepNumericHabit('${hId}', -1, event)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
+                <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : 0}" oninput="setNumericHabit('${hId}', this.value)" class="w-16 bg-slate-900 border border-slate-800 rounded-xl py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
+                <button onclick="stepNumericHabit('${hId}', 1, event)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
+                <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit || ''}</span>
               </div>
-              ${targetVal > 0 ? `
-                <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
-                  <div class="h-full bg-amber-500 rounded-full transition-all" style="width: ${pct}%"></div>
-                </div>
-              ` : ''}
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="h-full bg-amber-500 rounded-full transition-all" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        } else {
+          controlHtml = `
+            <div class="flex items-center gap-2 w-full sm:w-80" onclick="event.stopPropagation()">
+              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
+                     onchange="saveDescriptiveHabit('${hId}', this.value)" 
+                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)" 
+                     placeholder="Notes / routine details..." 
+                     class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
+              <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
+                ${isCompleted ? 'Done ✓' : 'Save'}
+              </button>
             </div>
           `;
         }
 
-        const typeLabel = normType === 'yesno' ? 'Yes / No' : 'Numeric';
+        const typeLabel = normType === 'yesno' ? 'Yes / No' : (normType === 'number' ? 'Numeric' : 'Notes');
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -2176,21 +2182,10 @@
 
             <div class="flex items-center gap-2 justify-between sm:justify-end flex-shrink-0">
               ${controlHtml}
-              <button onclick="event.stopPropagation(); deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <button onclick="event.stopPropagation(); deleteHabit('${hId}')" title="Delete Habit" class="text-slate-600 hover:text-rose-400 p-2 transition active:scale-90 min-h-[40px] min-w-[40px] flex items-center justify-center">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
-          </div>
-
-          <!-- Universal Notes Field for All Habit Types -->
-          <div class="pt-1.5 border-t border-slate-900/90 flex items-center gap-1.5" onclick="event.stopPropagation()">
-            <i data-lucide="file-text" class="w-3 h-3 text-slate-600 flex-shrink-0"></i>
-            <input type="text" 
-                   value="${log.notes || ''}" 
-                   placeholder="Add daily notes (e.g. sets, hydration timing, brand)..." 
-                   onchange="saveHabitNote('${hId}', this.value)"
-                   onkeydown="if(event.key==='Enter') this.blur()"
-                   class="w-full bg-slate-900/60 border border-slate-900 rounded-lg px-2 py-1 text-[11px] text-slate-300 placeholder-slate-600 focus:outline-none focus:border-slate-700">
           </div>
         `;
 
@@ -2202,125 +2197,6 @@
         counter.textContent = `${completedCount}/${appData.habits.length} done`;
       }
       lucide.createIcons();
-    }
-
-    function saveHabitNote(id, text) {
-      const hId = String(id);
-      const key = `${hId}_${selectedPlannerDate}`;
-      const log = appData.habitLogs[key] || { value: "", notes: "", completed: false };
-      log.notes = text ? text.trim() : "";
-      appData.habitLogs[key] = log;
-
-      const habit = appData.habits.find(h => String(h.id) === hId);
-      if (habit) captureHabitAnalytics(habit);
-      saveState();
-      syncToRemote();
-    }
-
-    function toggleYesNoHabit(id, event) {
-      if (event) event.stopPropagation();
-      const hId = String(id);
-      const key = `${hId}_${selectedPlannerDate}`;
-      const log = appData.habitLogs[key] || { value: "", notes: "", completed: false };
-      const currentlyDone = Boolean(log.completed || String(log.value).toLowerCase() === 'yes');
-      log.completed = !currentlyDone;
-      log.value = log.completed ? "Yes" : "No";
-      appData.habitLogs[key] = log;
-
-      const habit = appData.habits.find(h => String(h.id) === hId);
-      if (habit) captureHabitAnalytics(habit);
-
-      requestAnimationFrame(() => {
-        renderHabits();
-        renderAnalytics();
-      });
-      syncToRemote();
-    }
-
-    function setNumericHabit(id, val) {
-      const hId = String(id);
-      const habit = appData.habits.find(h => String(h.id) === hId);
-      if (!habit) return;
-      
-      const num = val !== "" ? parseFloat(val) : 0;
-      const key = `${hId}_${selectedPlannerDate}`;
-      const existingLog = appData.habitLogs[key] || { notes: "" };
-      
-      const targetVal = habit.target || 0;
-      const isCompleted = targetVal > 0 ? (num >= targetVal) : (num > 0);
-
-      appData.habitLogs[key] = {
-        value: val !== "" ? num : "",
-        notes: existingLog.notes || "",
-        completed: isCompleted
-      };
-
-      captureHabitAnalytics(habit);
-      requestAnimationFrame(() => {
-        renderHabits();
-        renderAnalytics();
-      });
-      syncToRemote();
-    }
-
-    function openCreateHabitModal() {
-      document.getElementById('hmHabitId').value = "";
-      document.getElementById('hmName').value = "";
-      document.getElementById('hmType').value = "yesno";
-      document.getElementById('hmTarget').value = "";
-      document.getElementById('hmUnit').value = "";
-      onHabitTypeChange("yesno");
-      document.getElementById('habitModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeHabitModal() {
-      document.getElementById('habitModal').classList.add('hidden');
-    }
-
-    function onHabitTypeChange(val) {
-      const numFields = document.getElementById('hmNumberFields');
-      if (numFields) {
-        if (val === 'number') numFields.classList.remove('hidden');
-        else numFields.classList.add('hidden');
-      }
-    }
-
-    function handleSaveHabit(e) {
-      e.preventDefault();
-      const name = document.getElementById('hmName').value.trim();
-      const type = normalizeHabitType(document.getElementById('hmType').value);
-      const target = parseFloat(document.getElementById('hmTarget').value) || 0;
-      const unit = document.getElementById('hmUnit').value.trim();
-
-      if (!name) return;
-
-      const normName = name.toLowerCase();
-      const existing = appData.habits.find(h => h.name.toLowerCase() === normName);
-      if (existing) {
-        existing.name = name;
-        existing.type = type;
-        existing.target = target;
-        existing.unit = unit;
-      } else {
-        appData.habits.push({ id: Date.now(), name, type, target, unit });
-      }
-
-      closeHabitModal();
-      requestAnimationFrame(() => {
-        renderHabits();
-        renderAnalytics();
-      });
-      syncToRemote();
-    }
-
-    function deleteHabit(id) {
-      appData.habits = appData.habits.filter(h => String(h.id) !== String(id));
-      requestAnimationFrame(() => {
-        renderHabits();
-        renderAnalytics();
-      });
-      syncToRemote();
     }
 
     // ---------- Modal: On-Demand Habit Analytics Inspection ----------
@@ -2415,7 +2291,7 @@
 
         const dayBox = document.createElement('div');
         dayBox.className = `p-1.5 rounded-lg text-center font-mono text-[9px] border ${isDone ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold' : 'bg-slate-900 text-slate-600 border-slate-800'}`;
-        dayBox.title = `${dStr}: ${isDone ? (log.value || 'Done') : 'Missed'}${log && log.notes ? ' - ' + log.notes : ''}`;
+        dayBox.title = `${dStr}: ${isDone ? (log.value || 'Done') : 'Missed'}`;
         dayBox.textContent = d.getDate();
         matrixContainer.appendChild(dayBox);
       }
@@ -2437,12 +2313,9 @@
           const row = document.createElement('div');
           row.className = "flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800/80 text-[11px] font-mono";
           row.innerHTML = `
-            <div>
-              <span class="text-slate-400">${logDate}</span>
-              ${entry && entry.notes ? `<p class="text-[9px] text-slate-500 italic font-sans">${entry.notes}</p>` : ''}
-            </div>
+            <span class="text-slate-400">${logDate}</span>
             <span class="${isDone ? 'text-emerald-400 font-bold' : 'text-slate-600'}">
-              ${isDone ? (entry.value !== undefined && entry.value !== "" ? entry.value : 'Done ✓') : 'Missed'}
+              ${isDone ? (entry.value ? entry.value : 'Done ✓') : 'Missed'}
             </span>
           `;
           historyList.appendChild(row);
@@ -2567,6 +2440,645 @@
       if (diffDays < 7) return `${diffDays}d ago`;
       if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function toggleYesNoHabit(id, event) {
+      if (event) event.stopPropagation();
+      const hId = String(id);
+      const key = `${hId}_${selectedPlannerDate}`;
+      const log = appData.habitLogs[key] || { value: "", completed: false };
+      const currentlyDone = Boolean(log.completed || String(log.value).toLowerCase() === 'yes');
+      log.completed = !currentlyDone;
+      log.value = log.completed ? "Yes" : "No";
+      appData.habitLogs[key] = log;
+
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (habit) captureHabitAnalytics(habit);
+
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function setNumericHabit(id, val) {
+      const hId = String(id);
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (!habit) return;
+      const num = parseFloat(val) || 0;
+      const key = `${hId}_${selectedPlannerDate}`;
+      appData.habitLogs[key] = {
+        value: num,
+        completed: (num >= (habit.target || 1))
+      };
+
+      captureHabitAnalytics(habit);
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function stepNumericHabit(id, step, event) {
+      if (event) event.stopPropagation();
+      const hId = String(id);
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (!habit) return;
+      const key = `${hId}_${selectedPlannerDate}`;
+      const log = appData.habitLogs[key] || { value: 0, completed: false };
+      const currentVal = Number(log.value) || 0;
+      const newNum = Math.max(0, currentVal + step);
+      appData.habitLogs[key] = {
+        value: newNum,
+        completed: (newNum >= (habit.target || 1))
+      };
+
+      captureHabitAnalytics(habit);
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function saveDescriptiveFromInput(id) {
+      const hId = String(id);
+      const input = document.getElementById(`desc_input_${hId}`);
+      if (input) saveDescriptiveHabit(hId, input.value);
+    }
+
+    function saveDescriptiveHabit(id, text) {
+      const hId = String(id);
+      const key = `${hId}_${selectedPlannerDate}`;
+      const log = appData.habitLogs[key] || { value: "", completed: false };
+      log.value = text ? text.trim() : "";
+      log.completed = Boolean(log.value);
+      appData.habitLogs[key] = log;
+
+      const habit = appData.habits.find(h => String(h.id) === hId);
+      if (habit) captureHabitAnalytics(habit);
+
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function openCreateHabitModal() {
+      document.getElementById('hmHabitId').value = "";
+      document.getElementById('hmName').value = "";
+      document.getElementById('hmType').value = "yesno";
+      document.getElementById('hmTarget').value = "";
+      document.getElementById('hmUnit').value = "";
+      onHabitTypeChange("yesno");
+      document.getElementById('habitModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeHabitModal() {
+      document.getElementById('habitModal').classList.add('hidden');
+    }
+
+    function onHabitTypeChange(val) {
+      const numFields = document.getElementById('hmNumberFields');
+      if (numFields) {
+        if (val === 'number') numFields.classList.remove('hidden');
+        else numFields.classList.add('hidden');
+      }
+    }
+
+    function handleSaveHabit(e) {
+      e.preventDefault();
+      const name = document.getElementById('hmName').value.trim();
+      const type = document.getElementById('hmType').value;
+      const target = parseFloat(document.getElementById('hmTarget').value) || 0;
+      const unit = document.getElementById('hmUnit').value.trim();
+
+      if (!name) return;
+
+      const normName = name.toLowerCase();
+      const existing = appData.habits.find(h => h.name.toLowerCase() === normName);
+      if (existing) {
+        existing.name = name;
+        existing.type = type;
+        existing.target = target;
+        existing.unit = unit;
+      } else {
+        appData.habits.push({ id: Date.now(), name, type, target, unit });
+      }
+
+      closeHabitModal();
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    function deleteHabit(id) {
+      appData.habits = appData.habits.filter(h => String(h.id) !== String(id));
+      requestAnimationFrame(() => {
+        renderHabits();
+        renderAnalytics();
+      });
+      syncToRemote();
+    }
+
+    // ---------- Task Pending & Reschedule Metrics ----------
+    function getTaskPendingMetrics(task) {
+      const activeDate = normalizeDateString(task.date || task.scheduledDate);
+      const originalDate = normalizeDateString(task.originalDate || activeDate);
+      const isRescheduled = Boolean(originalDate && activeDate && originalDate !== activeDate && Boolean(task.rescheduledDate));
+      const baseReference = originalDate || activeDate;
+
+      if (!baseReference) {
+        const createdDate = new Date(Number(task.id));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const pendingMs = today - createdDate;
+        const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
+
+        return {
+          pendingDays: Math.max(0, pendingDays),
+          pendingFrom: createdDate.toISOString().split('T')[0],
+          isOverdue: pendingDays > 0 && !task.completed,
+          isRescheduled: false,
+          slipDays: 0,
+          status: task.completed ? 'completed' : (pendingDays > 7 ? 'overdue' : (pendingDays > 3 ? 'pending' : 'new')),
+          daysLabel: formatPendingDays(pendingDays),
+          type: 'unscheduled'
+        };
+      }
+
+      const [y, m, d] = baseReference.split('-');
+      const origDateObj = new Date(Number(y), Number(m) - 1, Number(d));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const pendingMs = today - origDateObj;
+      const pendingDays = Math.floor(pendingMs / (1000 * 60 * 60 * 24));
+
+      let slipDays = 0;
+      if (isRescheduled) {
+        const [ay, am, ad] = activeDate.split('-');
+        const activeDateObj = new Date(Number(ay), Number(am) - 1, Number(ad));
+        slipDays = Math.max(0, Math.floor((activeDateObj - origDateObj) / (1000 * 60 * 60 * 24)));
+      }
+
+      return {
+        pendingDays: Math.max(0, pendingDays),
+        pendingFrom: baseReference,
+        activeDate: activeDate,
+        originalDate: originalDate,
+        isRescheduled: isRescheduled,
+        slipDays: slipDays,
+        isOverdue: pendingDays > 0 && !task.completed && activeDate < getTodayKey(),
+        status: task.completed ? 'completed' : (pendingDays > 14 ? 'critical' : (pendingDays > 7 ? 'overdue' : (pendingDays > 0 ? 'pending' : 'today'))),
+        daysLabel: formatPendingDays(pendingDays),
+        type: 'scheduled'
+      };
+    }
+
+    function formatPendingDays(days) {
+      if (days === 0) return "Today";
+      if (days === 1) return "1d ago";
+      if (days < 7) return `${days}d ago`;
+      if (days < 30) return `${Math.floor(days / 7)}w ago`;
+      return `${Math.floor(days / 30)}mo ago`;
+    }
+
+    // ---------- Tasks Manager (Reschedule & Spawn-Next) ----------
+    function setTaskFilter(filter) {
+      currentTaskFilter = filter;
+      ['PENDING', 'BACKLOG', 'SCHEDULED', 'ALL'].forEach(f => {
+        const btn = document.getElementById(`taskFilterBtn_${f}`);
+        if (!btn) return;
+        if (f === filter) {
+          btn.className = "px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white transition active:scale-95";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition active:scale-95";
+        }
+      });
+      renderTasks();
+    }
+
+    function handleQuickAddTask(e) {
+      e.preventDefault();
+      const titleInput = document.getElementById('quickTaskTitleInput');
+      const prioritySelect = document.getElementById('quickTaskPrioritySelect');
+      const frequencySelect = document.getElementById('quickTaskFrequencySelect');
+      const title = titleInput.value.trim();
+
+      if (!title) return;
+
+      const dateKey = selectedPlannerDate;
+      const newTask = {
+        id: Date.now(),
+        title,
+        priority: prioritySelect.value,
+        frequency: frequencySelect ? frequencySelect.value : 'once',
+        status: "Need to Start",
+        completed: false,
+        date: dateKey,
+        scheduledDate: dateKey,
+        originalDate: dateKey,
+        rescheduledDate: "",
+        scheduledStartTime: "",
+        scheduledEndTime: "",
+        plannedMins: 30,
+        actualMins: 0
+      };
+
+      appData.tasks.unshift(newTask);
+      captureTaskAnalytics(newTask);
+      titleInput.value = '';
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
+    }
+
+    function toggleTaskCompletion(id) {
+      const task = appData.tasks.find(t => String(t.id) === String(id));
+      if (!task) return;
+
+      task.completed = !task.completed;
+      task.status = task.completed ? "Completed" : "Need to Start";
+
+      const freq = (task.frequency || "once").toLowerCase();
+
+      // SPAWN NEXT INSTANCE ON COMPLETION
+      if (task.completed && freq !== "once") {
+        const taskDate = normalizeDateString(task.date || task.scheduledDate) || selectedPlannerDate;
+        const nextDate = computeNextRecurrenceDate(taskDate, freq);
+
+        if (nextDate) {
+          const existingNextTask = appData.tasks.find(t => 
+            t.title.trim().toLowerCase() === task.title.trim().toLowerCase() &&
+            (normalizeDateString(t.date || t.scheduledDate) === nextDate) &&
+            (t.frequency || "once").toLowerCase() === freq
+          );
+
+          if (!existingNextTask) {
+            const nextTask = {
+              id: Date.now() + Math.floor(Math.random() * 1000),
+              title: task.title,
+              priority: task.priority || "Med",
+              frequency: task.frequency,
+              status: "Need to Start",
+              completed: false,
+              date: nextDate,
+              scheduledDate: nextDate,
+              originalDate: nextDate,
+              rescheduledDate: "",
+              scheduledStartTime: task.scheduledStartTime || "",
+              scheduledEndTime: task.scheduledEndTime || "",
+              plannedMins: Number(task.plannedMins) || 30,
+              actualMins: 0
+            };
+
+            appData.tasks.unshift(nextTask);
+            captureTaskAnalytics(nextTask);
+          }
+        }
+      }
+
+      captureTaskAnalytics(task);
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('masterTaskList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const todayStr = getTodayKey();
+      const currentSelectedDate = normalizeDateString(selectedPlannerDate);
+
+      const backlogTasks = appData.tasks.filter(t => {
+        if (t.completed || t.status === 'Completed') return false;
+        const tDate = normalizeDateString(t.date || t.scheduledDate);
+        return tDate && tDate < todayStr;
+      });
+
+      const badge = document.getElementById('backlogCountBadge');
+      if (badge) {
+        if (backlogTasks.length > 0) {
+          badge.textContent = backlogTasks.length;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      let list = [];
+
+      if (currentTaskFilter === 'PENDING') {
+        list = appData.tasks.filter(t => {
+          if (t.completed || t.status === "Completed") return false;
+          const tDate = normalizeDateString(t.date || t.scheduledDate);
+          return tDate === currentSelectedDate || !tDate;
+        });
+      } else if (currentTaskFilter === 'BACKLOG') {
+        list = backlogTasks;
+      } else if (currentTaskFilter === 'SCHEDULED') {
+        list = appData.tasks.filter(t => Boolean(t.scheduledStartTime && t.scheduledEndTime));
+      } else {
+        list = [...appData.tasks];
+      }
+
+      list.sort((a, b) => {
+        // 1. Completion State: Incomplete tasks always precede completed tasks
+        const aDone = Boolean(a.completed || a.status === "Completed");
+        const bDone = Boolean(b.completed || b.status === "Completed");
+        if (aDone !== bDone) return aDone ? 1 : -1;
+
+        // 2. Status Rank: 'In Progress' -> 'Need to Start' -> 'Pending'
+        const aStatusRank = STATUS_ORDER[a.status] || 2;
+        const bStatusRank = STATUS_ORDER[b.status] || 2;
+        if (aStatusRank !== bStatusRank) return aStatusRank - bStatusRank;
+
+        // 3. Date Proximity (for Backlog & All tabs): Older active dates float up
+        const aDate = normalizeDateString(a.date || a.scheduledDate || "");
+        const bDate = normalizeDateString(b.date || b.scheduledDate || "");
+        if (aDate && bDate && aDate !== bDate) {
+          return aDate.localeCompare(bDate);
+        }
+
+        // 4. Priority Rank: High -> Med -> Low
+        const aPri = PRIORITY_ORDER[a.priority] || 2;
+        const bPri = PRIORITY_ORDER[b.priority] || 2;
+        if (aPri !== bPri) return aPri - bPri;
+
+        // 5. Time Schedule: Earlier time slots first
+        if (a.scheduledStartTime && b.scheduledStartTime) {
+          return timeToMinutes(a.scheduledStartTime) - timeToMinutes(b.scheduledStartTime);
+        }
+        if (a.scheduledStartTime && !b.scheduledStartTime) return -1;
+        if (!a.scheduledStartTime && b.scheduledStartTime) return 1;
+
+        return 0;
+      });
+
+      if (!list.length) {
+        const labels = {
+          'PENDING': 'pending tasks for this date',
+          'BACKLOG': 'overdue backlog items. You are caught up!',
+          'SCHEDULED': 'timebound scheduled tasks',
+          'ALL': 'tasks'
+        };
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-5">No ${labels[currentTaskFilter] || 'tasks'}.</div>`;
+        return;
+      }
+
+      const priorityClasses = {
+        High: 'text-rose-400 bg-rose-950/40 border-rose-800/40',
+        Med: 'text-amber-400 bg-amber-950/40 border-amber-800/40',
+        Low: 'text-slate-400 bg-slate-800 border-slate-700'
+      };
+
+      list.forEach(task => {
+        const isDone = Boolean(task.completed || task.status === "Completed");
+        const isScheduled = Boolean(task.scheduledStartTime && task.scheduledEndTime);
+        const tDate = normalizeDateString(task.date || task.scheduledDate);
+        const isOverdue = tDate && tDate < todayStr && !isDone;
+        const freq = (task.frequency || 'once').toLowerCase();
+        const freqLabel = freq === 'daily' ? 'Daily' : freq === 'weekdays' ? 'Weekdays' : freq === 'weekends' ? 'Weekends' : freq === 'weekly' ? 'Weekly' : '';
+
+        const pendingMetrics = getTaskPendingMetrics(task);
+
+        let pendingBgClass = 'bg-slate-950/60 text-slate-300 border-slate-800/50';
+        let pendingIcon = '📌';
+
+        if (!isDone) {
+          if (isOverdue || pendingMetrics.status === 'critical') {
+            pendingBgClass = 'bg-rose-950/80 text-rose-300 border-rose-800/60';
+            pendingIcon = '🔴';
+          } else if (pendingMetrics.status === 'overdue') {
+            pendingBgClass = 'bg-amber-950/80 text-amber-300 border-amber-800/60';
+            pendingIcon = '⚠️';
+          } else if (pendingMetrics.status === 'pending') {
+            pendingBgClass = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
+            pendingIcon = '⏳';
+          } else if (pendingMetrics.status === 'new') {
+            pendingBgClass = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
+            pendingIcon = '✨';
+          }
+        }
+
+        const card = document.createElement('div');
+        card.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-950 border border-slate-800/90 transition hover:border-slate-700 ${isDone ? 'opacity-60' : (isOverdue ? 'ring-1 ring-rose-500/30' : '')}`;
+
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <button onclick="toggleTaskCompletion('${task.id}')" class="p-1 rounded text-emerald-400 active:scale-90 transition flex-shrink-0">
+              <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+            </button>
+            <div class="min-w-0 flex-1 cursor-pointer" onclick="openEditTaskModal('${task.id}')">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs sm:text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${priorityClasses[task.priority] || priorityClasses.Med}">${task.priority}</span>
+                ${!isDone ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border ${pendingBgClass}">${pendingIcon} ${isOverdue ? 'Backlog: ' + tDate : pendingMetrics.daysLabel}</span>` : ''}
+                ${pendingMetrics.isRescheduled ? `
+                  <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-purple-950/70 text-purple-300 border-purple-800/60 flex items-center gap-0.5">
+                    🔁 Rescheduled (+${pendingMetrics.slipDays}d)
+                  </span>
+                ` : ''}
+                ${freqLabel ? `<span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-sky-950/60 text-sky-300 border-sky-800/50">${freqLabel}</span>` : ''}
+                ${isScheduled ? `
+                  <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
+                    ⏱ ${task.scheduledStartTime}-${task.scheduledEndTime}
+                  </span>
+                ` : ''}
+              </div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">
+                ${pendingMetrics.isRescheduled ? `Orig: ${pendingMetrics.originalDate} ➔ Active: ${pendingMetrics.activeDate}` : (tDate ? `Scheduled: ${tDate}` : 'Unscheduled')} • ${task.actualMins > 0 ? `${task.actualMins}m act` : `${task.plannedMins || 30}m plan`}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="linkTaskToStopwatch('${task.id}')" title="Focus on Task" class="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <i data-lucide="timer" class="w-4 h-4"></i>
+            </button>
+            <button onclick="openEditTaskModal('${task.id}')" title="Plan & Reschedule" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+            </button>
+            <button onclick="deleteTask('${task.id}')" title="Delete" class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-900 active:scale-90 transition min-h-[38px] min-w-[38px] flex items-center justify-center">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function openEditTaskModal(id) {
+      const task = appData.tasks.find(t => String(t.id) === String(id));
+      if (!task) return;
+
+      const sTime = normalizeTimeString(task.scheduledStartTime || "");
+      let eTime = normalizeTimeString(task.scheduledEndTime || "");
+      const pMins = Number(task.plannedMins) || 30;
+
+      if (sTime && !eTime) {
+        eTime = minutesToTime((timeToMinutes(sTime) + pMins) % 1440);
+      }
+
+      const activeDate = normalizeDateString(task.date || task.scheduledDate || selectedPlannerDate);
+      const origDate = normalizeDateString(task.originalDate || activeDate);
+
+      document.getElementById('tmTaskId').value = task.id;
+      document.getElementById('tmOriginalDate').value = origDate;
+      document.getElementById('tmTitle').value = task.title || "";
+      document.getElementById('tmPriority').value = task.priority || "Med";
+      document.getElementById('tmFrequency').value = (task.frequency || "once").toLowerCase();
+      document.getElementById('tmStatus').value = task.status || "Need to Start";
+      document.getElementById('tmDate').value = activeDate;
+      document.getElementById('tmRescheduledFromDate').value = origDate !== activeDate ? origDate : "";
+      
+      const origDisplay = document.getElementById('tmOriginalDateDisplay');
+      if (origDisplay) {
+        origDisplay.textContent = origDate ? `Original Plan: ${origDate}` : '';
+      }
+
+      document.getElementById('tmStartTime').value = sTime;
+      document.getElementById('tmEndTime').value = eTime;
+      document.getElementById('tmPlannedMins').value = pMins;
+      document.getElementById('tmActualMins').value = task.actualMins || 0;
+
+      document.getElementById('taskModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function openCreateScheduledTaskModal(startTime, endTime) {
+      document.getElementById('tmTaskId').value = "";
+      document.getElementById('tmOriginalDate').value = selectedPlannerDate;
+      document.getElementById('tmTitle').value = "";
+      document.getElementById('tmPriority').value = "Med";
+      document.getElementById('tmFrequency').value = "once";
+      document.getElementById('tmStatus').value = "Need to Start";
+      document.getElementById('tmDate').value = selectedPlannerDate;
+      document.getElementById('tmRescheduledFromDate').value = "";
+      document.getElementById('tmOriginalDateDisplay').textContent = "";
+      document.getElementById('tmStartTime').value = startTime;
+      document.getElementById('tmEndTime').value = endTime;
+      const sM = timeToMinutes(startTime);
+      const eM = timeToMinutes(endTime);
+      document.getElementById('tmPlannedMins').value = Math.max(15, eM - sM);
+      document.getElementById('tmActualMins').value = 0;
+
+      document.getElementById('taskModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeTaskModal() {
+      document.getElementById('taskModal').classList.add('hidden');
+    }
+
+    function handleSaveTaskDetail(e) {
+      e.preventDefault();
+      const rawId = document.getElementById('tmTaskId').value;
+      const title = document.getElementById('tmTitle').value.trim();
+      const priority = document.getElementById('tmPriority').value;
+      const frequency = document.getElementById('tmFrequency').value;
+      const status = document.getElementById('tmStatus').value;
+      const targetDate = normalizeDateString(document.getElementById('tmDate').value);
+      let originalDate = normalizeDateString(document.getElementById('tmOriginalDate').value);
+      
+      let scheduledStartTime = normalizeTimeString(document.getElementById('tmStartTime').value);
+      let scheduledEndTime = normalizeTimeString(document.getElementById('tmEndTime').value);
+      let plannedMins = Number(document.getElementById('tmPlannedMins').value) || 30;
+      const actualMins = Number(document.getElementById('tmActualMins').value) || 0;
+
+      if (!title) return;
+
+      if (scheduledStartTime) {
+        if (!scheduledEndTime) {
+          scheduledEndTime = minutesToTime((timeToMinutes(scheduledStartTime) + plannedMins) % 1440);
+        } else {
+          const sM = timeToMinutes(scheduledStartTime);
+          let eM = timeToMinutes(scheduledEndTime);
+          if (eM <= sM) eM += 1440;
+          plannedMins = eM - sM;
+        }
+      }
+
+      if (rawId) {
+        const t = appData.tasks.find(x => String(x.id) === String(rawId));
+        if (t) {
+          if (!originalDate) {
+            originalDate = normalizeDateString(t.date || t.scheduledDate || targetDate);
+          }
+
+          let rescheduledDate = t.rescheduledDate || "";
+          if (originalDate && targetDate && targetDate !== originalDate) {
+            rescheduledDate = targetDate;
+          }
+
+          t.title = title;
+          t.priority = priority;
+          t.frequency = frequency;
+          t.status = status;
+          t.completed = (status === "Completed");
+          t.date = targetDate;
+          t.scheduledDate = targetDate;
+          t.originalDate = originalDate;
+          t.rescheduledDate = rescheduledDate;
+          t.scheduledStartTime = scheduledStartTime;
+          t.scheduledEndTime = scheduledEndTime;
+          t.plannedMins = plannedMins;
+          t.actualMins = actualMins;
+        }
+      } else {
+        const newOriginalDate = targetDate || selectedPlannerDate;
+        appData.tasks.unshift({
+          id: Date.now(),
+          title,
+          priority,
+          frequency,
+          status,
+          completed: (status === "Completed"),
+          date: targetDate,
+          scheduledDate: targetDate,
+          originalDate: newOriginalDate,
+          rescheduledDate: "",
+          scheduledStartTime,
+          scheduledEndTime,
+          plannedMins,
+          actualMins
+        });
+      }
+
+      closeTaskModal();
+
+      const savedTask = rawId ?
+        appData.tasks.find(x => String(x.id) === String(rawId)) :
+        appData.tasks[0];
+
+      if (savedTask) captureTaskAnalytics(savedTask);
+
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
+    }
+
+    function deleteTask(id) {
+      appData.tasks = appData.tasks.filter(t => String(t.id) !== String(id));
+      renderTasks();
+      render24HourPlanner();
+      renderAnalytics();
+      syncToRemote();
     }
 
     // ---------- Focus Stopwatch (Background-Safe Timestamp Engine) ----------
@@ -2798,6 +3310,7 @@
       const targetDate = selectedPlannerDate;
       const refDate = new Date(targetDate + "T00:00:00");
 
+      // 1. Construct Selected Day's Detailed Metrics
       const todayBlocks = (appData.timeBlocks || []).filter(b => b.date === targetDate);
       const todayTasks = (appData.tasks || []).filter(t => isTaskActiveForDate(t, targetDate));
       const todayFocus = (appData.focusLogs || []).filter(fl => fl.date === targetDate);
@@ -2805,7 +3318,7 @@
       const totalHabits = (appData.habits || []).length;
       const completedHabitsToday = (appData.habits || []).filter(h => {
         const log = appData.habitLogs[`${h.id}_${targetDate}`];
-        return log && (log.completed || (normalizeHabitType(h.type) === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+        return log && (log.completed || String(log.value).toLowerCase() === 'yes');
       }).length;
 
       const review = appData.dailySummaries[targetDate] || {};
@@ -2837,6 +3350,7 @@
         }
       };
 
+      // 2. Extract Prior 7 Days Historical Snapshot for Trend Comparison
       const prior7DaysData = [];
       for (let i = 1; i <= 7; i++) {
         const pastDate = new Date(refDate);
@@ -2850,7 +3364,7 @@
         const pastTasks = (appData.tasks || []).filter(t => isTaskActiveForDate(t, dStr));
         const pastCompletedHabits = (appData.habits || []).filter(h => {
           const log = appData.habitLogs[`${h.id}_${dStr}`];
-          return log && (log.completed || (normalizeHabitType(h.type) === 'yesno' && String(log.value).toLowerCase() === 'yes'));
+          return log && (log.completed || String(log.value).toLowerCase() === 'yes');
         }).length;
         const pastReview = appData.dailySummaries[dStr] || {};
 
@@ -2890,6 +3404,7 @@ Produce a concise, high-impact review comparing today against the past 7 days ac
 
 Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold headers. Avoid fluffy filler.`;
 
+      // UI Loading state
       btn.disabled = true;
       btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Analyzing 7-Day Context...</span>`;
       container.classList.remove('hidden');
@@ -3122,6 +3637,7 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
         return windowSet.has(norm);
       };
 
+      // 1. Planner Execution
       const scopedPlans = appData.timeBlocks.filter(b => isDateInScope(b.date));
       let plannedMinutes = 0;
       let actualMinutes = 0;
@@ -3161,6 +3677,7 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
       if (elPlanComp) elPlanComp.textContent = Math.round(completedBlocks);
       if (elPlanMiss) elPlanMiss.textContent = missedBlocks;
 
+      // 2. Habits Macro Adherence
       const totalHabits = appData.habits.length;
       let totalCompletedLogs = 0;
       const missedCounts = {};
@@ -3179,7 +3696,7 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
         const dateStr = parts.slice(1).join('_');
         if (isDateInScope(dateStr)) {
           const l = appData.habitLogs[key];
-          const isDone = l && (l.completed || (normalizeHabitType(appData.habits.find(h => String(h.id) === hId)?.type) === 'yesno' && String(l.value).toLowerCase() === 'yes'));
+          const isDone = l && (l.completed || String(l.value).toLowerCase() === 'yes');
           if (isDone) totalCompletedLogs++;
           else if (missedCounts.hasOwnProperty(hId)) {
             missedCounts[hId]++;
@@ -3202,6 +3719,7 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
       if (elHabitMiss) elHabitMiss.textContent = totalMissedCount;
       if (elHabitStreak) elHabitStreak.textContent = `${topStreak}d 🔥`;
 
+      // 3. Tasks Throughput
       const scopedTasks = appData.tasks.filter(t => isDateInScope(t.scheduledDate || t.date));
       const totalTasks = scopedTasks.length;
       let completedTasksCount = 0;
@@ -3261,6 +3779,7 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
         `;
       }
 
+      // 4. Daily Reviews & Sentiment
       let totalProdScore = 0;
       let prodScoreCount = 0;
       const moodCounts = {};
@@ -3334,6 +3853,476 @@ Rules: Keep tone candid, grounded, and concise (under 180 words total). Use bold
 
       updateAnalyticsPendingBadge();
       lucide.createIcons();
+    }
+
+    // ---------- Modal: Edit / Add Timeblock ----------
+    function openAddTimeBlockModal(presetStart = "09:00", presetEnd = "10:00") {
+      const titleModal = document.getElementById('timeBlockModalTitle');
+      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Plan Timeblock`;
+      
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('tbId', '');
+      setVal('tbDate', selectedPlannerDate);
+      setVal('tbRoutineId', '');
+      setVal('tbTaskId', '');
+      setVal('tbTitle', '');
+      setVal('tbColor', 'indigo');
+      setVal('tbStartTime', presetStart);
+      setVal('tbEndTime', presetEnd);
+      setVal('tbNotes', '');
+      setVal('tbStatus', 'Planned');
+      setVal('tbActualStartTime', '');
+      setVal('tbActualEndTime', '');
+      setVal('tbActualNotes', '');
+      
+      const delBtn = document.getElementById('btnDeleteTimeBlock');
+      if (delBtn) delBtn.classList.add('hidden');
+
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function openEditTimeBlockModal(block) {
+      const titleModal = document.getElementById('timeBlockModalTitle');
+      if (titleModal) titleModal.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-indigo-400"></i> Edit Timeblock & Evaluate`;
+      
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('tbId', block.id || '');
+      setVal('tbDate', block.date || selectedPlannerDate);
+      setVal('tbRoutineId', block.routineId || '');
+      setVal('tbTaskId', block.taskId || '');
+      setVal('tbTitle', block.title || '');
+      setVal('tbColor', block.color || 'indigo');
+      setVal('tbStartTime', block.startTime || '09:00');
+      setVal('tbEndTime', block.endTime || '10:00');
+      setVal('tbNotes', block.notes || '');
+      setVal('tbStatus', block.status || 'Planned');
+      setVal('tbActualStartTime', block.actualStartTime || '');
+      setVal('tbActualEndTime', block.actualEndTime || '');
+      setVal('tbActualNotes', block.actualNotes || '');
+      
+      const delBtn = document.getElementById('btnDeleteTimeBlock');
+      if (delBtn) delBtn.classList.remove('hidden');
+
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeTimeBlockModal() {
+      const modal = document.getElementById('timeBlockModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function wentAsPlanned() {
+      const plannedStart = (document.getElementById('tbStartTime') || {}).value;
+      const plannedEnd = (document.getElementById('tbEndTime') || {}).value;
+
+      if (!plannedStart || !plannedEnd) {
+        alert("Please set planned times first");
+        return;
+      }
+
+      document.getElementById('tbActualStartTime').value = plannedStart;
+      document.getElementById('tbActualEndTime').value = plannedEnd;
+      document.getElementById('tbStatus').value = "Completed";
+    }
+
+    function handleSaveTimeBlock(e) {
+      e.preventDefault();
+      const rawId = (document.getElementById('tbId') || {}).value || "";
+      const date = (document.getElementById('tbDate') || {}).value || selectedPlannerDate;
+      const routineId = (document.getElementById('tbRoutineId') || {}).value ? Number(document.getElementById('tbRoutineId').value) : null;
+      const taskId = (document.getElementById('tbTaskId') || {}).value ? Number(document.getElementById('tbTaskId').value) : null;
+      const title = (document.getElementById('tbTitle') || {}).value ? document.getElementById('tbTitle').value.trim() : "";
+      const color = (document.getElementById('tbColor') || {}).value || "indigo";
+      let startTime = normalizeTimeString((document.getElementById('tbStartTime') || {}).value);
+      let endTime = normalizeTimeString((document.getElementById('tbEndTime') || {}).value);
+      const notes = (document.getElementById('tbNotes') || {}).value ? document.getElementById('tbNotes').value.trim() : "";
+      const status = (document.getElementById('tbStatus') || {}).value || "Planned";
+      const actualStartTime = normalizeTimeString((document.getElementById('tbActualStartTime') || {}).value);
+      const actualEndTime = normalizeTimeString((document.getElementById('tbActualEndTime') || {}).value);
+      const actualNotes = (document.getElementById('tbActualNotes') || {}).value ? document.getElementById('tbActualNotes').value.trim() : "";
+
+      if (!title || !startTime || !endTime) return;
+
+      const sMins = timeToMinutes(startTime);
+      let eMins = timeToMinutes(endTime);
+      if (eMins <= sMins) {
+        eMins = Math.min(1440, sMins + 30);
+        endTime = minutesToTime(eMins);
+      }
+
+      const conflicts = [];
+      appData.timeBlocks.forEach(b => {
+        if (b.date === date && String(b.id) !== String(rawId)) {
+          const bStart = timeToMinutes(b.startTime);
+          const bEnd = timeToMinutes(b.endTime);
+          if (sMins < bEnd && eMins > bStart && sMins !== bEnd && eMins !== bStart) {
+            conflicts.push(b);
+          }
+        }
+      });
+
+      if (conflicts.length > 0) {
+        const conflictNames = conflicts.map(c => `"${c.title}"`).join(", ");
+        const proceed = confirm(`⚠️ Time conflict detected!\n\nThis block overlaps with: ${conflictNames}\n\nProceed anyway?`);
+        if (!proceed) return;
+      }
+
+      const slotStr = `${startTime} - ${endTime}`;
+      const blockName = getTimeBlockName(startTime);
+
+      if (rawId) {
+        if (rawId.startsWith('ROUTINE_')) {
+          appData.timeBlocks = appData.timeBlocks.filter(b => !(b.routineId === routineId && b.date === date));
+          appData.timeBlocks.push({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            date,
+            routineId: routineId,
+            taskId,
+            title,
+            color,
+            startTime,
+            endTime,
+            timeSlot: slotStr,
+            timeBlock: blockName,
+            notes,
+            status,
+            actualStartTime,
+            actualEndTime,
+            actualNotes
+          });
+        } else {
+          const idx = appData.timeBlocks.findIndex(b => String(b.id) === String(rawId));
+          if (idx >= 0) {
+            appData.timeBlocks[idx] = {
+              ...appData.timeBlocks[idx],
+              date, title, color, startTime, endTime, timeSlot: slotStr, timeBlock: blockName,
+              notes, status, actualStartTime, actualEndTime, actualNotes,
+              routineId, taskId
+            };
+          }
+        }
+      } else {
+        appData.timeBlocks.push({
+          id: Date.now() + Math.floor(Math.random() * 1000),
+          date,
+          routineId,
+          taskId,
+          title,
+          color,
+          startTime,
+          endTime,
+          timeSlot: slotStr,
+          timeBlock: blockName,
+          notes,
+          status,
+          actualStartTime,
+          actualEndTime,
+          actualNotes
+        });
+      }
+
+      closeTimeBlockModal();
+      renderAll();
+      syncToRemote();
+    }
+
+    function handleDeleteCurrentTimeBlock() {
+      const rawId = document.getElementById('tbId').value;
+      if (rawId && !rawId.startsWith('ROUTINE_')) {
+        appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(rawId));
+      }
+      closeTimeBlockModal();
+      renderAll();
+      syncToRemote();
+    }
+
+    function handleQuickDeleteTimeBlock(id, event) {
+      event.stopPropagation();
+      appData.timeBlocks = appData.timeBlocks.filter(b => String(b.id) !== String(id));
+      renderAll();
+      syncToRemote();
+    }
+
+    // ---------- Routines Management ----------
+    function openRoutineManagerModal() {
+      renderRoutinesList();
+      document.getElementById('routineModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeRoutineModal() {
+      document.getElementById('routineModal').classList.add('hidden');
+    }
+
+    function renderRoutinesList() {
+      const container = document.getElementById('routinesListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!appData.routines.length) {
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-3">No recurring routines configured. Add one above!</div>`;
+        return;
+      }
+
+      appData.routines.forEach(r => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs";
+        row.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-200">${r.title}</span>
+            <span class="text-[10px] text-slate-500 font-mono block">${r.startTime} - ${r.endTime} (${r.days})</span>
+          </div>
+          <button onclick="deleteRoutine('${r.id}')" class="text-slate-500 hover:text-rose-400 p-2 min-h-[38px] min-w-[38px] flex items-center justify-center">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    function handleCreateRoutine(e) {
+      e.preventDefault();
+      const title = document.getElementById('rtTitle').value.trim();
+      const color = document.getElementById('rtColor').value;
+      let startTime = normalizeTimeString(document.getElementById('rtStartTime').value);
+      let endTime = normalizeTimeString(document.getElementById('rtEndTime').value);
+
+      if (!title || !startTime || !endTime) return;
+
+      const sMins = timeToMinutes(startTime);
+      let eMins = timeToMinutes(endTime);
+      if (eMins <= sMins) {
+        eMins = Math.min(1440, sMins + 30);
+        endTime = minutesToTime(eMins);
+      }
+
+      const slotStr = `${startTime} - ${endTime}`;
+      const blockName = getTimeBlockName(startTime);
+
+      const normTitle = title.toLowerCase();
+      const existing = appData.routines.find(r => r.title.toLowerCase() === normTitle);
+      if (existing) {
+        existing.title = title;
+        existing.color = color;
+        existing.startTime = startTime;
+        existing.endTime = endTime;
+        existing.timeSlot = slotStr;
+        existing.timeBlock = blockName;
+      } else {
+        appData.routines.push({
+          id: Date.now() + Math.floor(Math.random() * 1000),
+          title,
+          color,
+          startTime,
+          endTime,
+          timeSlot: slotStr,
+          timeBlock: blockName,
+          days: "Everyday"
+        });
+      }
+
+      document.getElementById('rtTitle').value = '';
+      renderRoutinesList();
+      renderAll();
+      syncToRemote();
+    }
+
+    function deleteRoutine(id) {
+      appData.routines = appData.routines.filter(r => String(r.id) !== String(id));
+      renderRoutinesList();
+      renderAll();
+      syncToRemote();
+    }
+
+    // ---------- Settings & Backup ----------
+    function openConfigModal() {
+      document.getElementById('apiUrlInput').value = appData.apiUrl || "";
+      document.getElementById('geminiApiKeyInput').value = localStorage.getItem('daily_flow_gemini_key') || "";
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    function saveApiUrlConfig() {
+      const url = document.getElementById('apiUrlInput').value.trim();
+      const geminiKey = document.getElementById('geminiApiKeyInput').value.trim();
+
+      appData.apiUrl = url;
+      localStorage.setItem('daily_flow_api_url', url);
+      
+      if (geminiKey) {
+        localStorage.setItem('daily_flow_gemini_key', geminiKey);
+      } else {
+        localStorage.removeItem('daily_flow_gemini_key');
+      }
+
+      saveState();
+      closeConfigModal();
+      setTimeout(() => {
+        isRemoteDataLoaded = false;
+        fetchRemoteData();
+      }, 100);
+    }
+
+    function exportBackupData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", `daily_flow_backup_${getTodayKey()}.json`);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    // ---------- Master App Render Loop ----------
+    function renderAll() {
+      const d = new Date(selectedPlannerDate + "T00:00:00");
+      const dateSubtext = document.getElementById('headerDateSubtext');
+      if (dateSubtext) {
+        dateSubtext.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      
+      render24HourPlanner();
+      renderHabits();
+      renderTasks();
+      renderFocusLogs();
+      renderDailyReview();
+      renderAnalytics();
+      lucide.createIcons();
+    }
+
+    // ---------- Native PWA Notification Engine (All Sections) ----------
+    const firedNotificationSet = new Set();
+
+    async function initNotifications() {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'default') {
+        try {
+          await Notification.requestPermission();
+        } catch (e) {
+          console.log('Notification permission request skipped:', e);
+        }
+      }
+    }
+
+    function triggerNativeNotification(title, options = {}) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      const notifOptions = {
+        badge: 'assets/badge-72.png',
+        icon: 'assets/icon-192.png',
+        vibrate: [150, 50, 150],
+        ...options
+      };
+
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(title, notifOptions);
+        });
+      } else {
+        new Notification(title, notifOptions);
+      }
+    }
+
+    function checkSystemReminders() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      const now = new Date();
+      const todayStr = getTodayKey();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentMinsOfDay = (currentHours * 60) + currentMinutes;
+
+      // 1. TimeBlocks Pre-alert (5-minute warning)
+      (appData.timeBlocks || []).forEach(b => {
+        if (b.date !== todayStr || !b.startTime) return;
+        const startMins = timeToMinutes(b.startTime);
+        const diff = startMins - currentMinsOfDay;
+        const key = `notif_tb_${b.id}_${todayStr}`;
+
+        if (diff >= 0 && diff <= 5 && !firedNotificationSet.has(key)) {
+          firedNotificationSet.add(key);
+          triggerNativeNotification(`⏱️ Upcoming Plan: ${b.title}`, {
+            body: `Starts at ${b.startTime} (${diff === 0 ? 'Now' : 'in ' + diff + ' mins'}).`,
+            tag: key,
+            data: { targetModule: 'module_planner' }
+          });
+        }
+      });
+
+      // 2. Scheduled Tasks Pre-alert (5-minute warning)
+      (appData.tasks || []).forEach(t => {
+        if (t.completed || t.date !== todayStr || !t.scheduledStartTime) return;
+        const startMins = timeToMinutes(t.scheduledStartTime);
+        const diff = startMins - currentMinsOfDay;
+        const key = `notif_task_${t.id}_${todayStr}`;
+
+        if (diff >= 0 && diff <= 5 && !firedNotificationSet.has(key)) {
+          firedNotificationSet.add(key);
+          triggerNativeNotification(`📋 Task Due: ${t.title}`, {
+            body: `Scheduled for ${t.scheduledStartTime} (${t.priority} Priority).`,
+            tag: key,
+            data: { targetModule: 'module_tasks' }
+          });
+        }
+      });
+
+      // 3. Daily Habits Mid-Day Check-in (Fires once at 2:00 PM if habits < 50%)
+      if (currentHours === 14 && currentMinutes === 0) {
+        const habitKey = `notif_habits_${todayStr}`;
+        if (!firedNotificationSet.has(habitKey)) {
+          const totalHabits = (appData.habits || []).length;
+          if (totalHabits > 0) {
+            const completedCount = appData.habits.filter(h => {
+              const log = appData.habitLogs[`${h.id}_${todayStr}`];
+              return log && (log.completed || String(log.value).toLowerCase() === 'yes');
+            }).length;
+
+            if ((completedCount / totalHabits) < 0.5) {
+              firedNotificationSet.add(habitKey);
+              triggerNativeNotification(`🔥 Daily Habit Check-in`, {
+                body: `You've completed ${completedCount}/${totalHabits} habits today. Keep your streak alive!`,
+                tag: habitKey,
+                data: { targetModule: 'module_habits' }
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Evening Reflection Reminder (Fires once at 9:00 PM if unrecorded)
+      if (currentHours === 21 && currentMinutes === 0) {
+        const reviewKey = `notif_review_${todayStr}`;
+        if (!firedNotificationSet.has(reviewKey)) {
+          const review = appData.dailySummaries[todayStr] || {};
+          const isFilled = Boolean(review.goodThing || review.productive || review.emotion);
+
+          if (!isFilled) {
+            firedNotificationSet.add(reviewKey);
+            triggerNativeNotification(`🌙 Evening Reflection Reminder`, {
+              body: `Take 2 minutes to record your wins, blockers, and mood for today.`,
+              tag: reviewKey,
+              data: { targetModule: 'module_review' }
+            });
+          }
+        }
+      }
+    }
+
+    // Listen for notification clicks to auto-scroll to the module
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.action === 'scrollToModule' && event.data.moduleId) {
+          scrollToModule(event.data.moduleId);
+        }
+      });
     }
 
     // ---------- Application Initialization ----------
