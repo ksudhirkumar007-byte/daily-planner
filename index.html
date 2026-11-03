@@ -839,7 +839,6 @@
           <select id="hmType" onchange="onHabitTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none">
             <option value="yesno">Yes / No (Completion Check)</option>
             <option value="number">Numeric (e.g. 8 Glasses, 20 Pages)</option>
-            <option value="descriptive">Descriptive / Notes</option>
           </select>
         </div>
 
@@ -1039,8 +1038,31 @@
       const s = String(val).toLowerCase().trim();
       if (s === 'boolean' || s === 'bool' || s.includes('yes') || s.includes('check')) return 'yesno';
       if (s === 'number' || s === 'numeric' || s === 'decimal' || s === 'integer' || s === 'int' || s.includes('hour') || s.includes('count')) return 'number';
-      if (s === 'text' || s === 'string' || s.includes('desc') || s.includes('note')) return 'descriptive';
+      if (s === 'text' || s === 'string' || s.includes('desc') || s.includes('note')) return 'yesno';
       return 'yesno';
+    }
+
+    function normalizeHabitLog(log, normType = 'yesno') {
+      const safeLog = (log && typeof log === 'object') ? log : {};
+      let notes = typeof safeLog.notes === 'string' ? safeLog.notes : "";
+      if (!notes && normType === 'yesno' && typeof safeLog.value === 'string') {
+        const legacyText = safeLog.value.trim();
+        const low = legacyText.toLowerCase();
+        if (legacyText && low !== 'yes' && low !== 'no') notes = legacyText;
+      }
+      return {
+        value: safeLog.value !== undefined ? safeLog.value : "",
+        completed: Boolean(safeLog.completed),
+        notes
+      };
+    }
+
+    function escapeHtmlAttr(value) {
+      return String(value || "")
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
 
     const defaultState = {
@@ -1343,7 +1365,8 @@
         habitId: key.split('_')[0],
         date: key.split('_').slice(1).join('_'),
         value: appData.habitLogs[key].value !== undefined ? String(appData.habitLogs[key].value) : "",
-        completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE"
+        completed: appData.habitLogs[key].completed ? "TRUE" : "FALSE",
+        notes: appData.habitLogs[key].notes !== undefined ? String(appData.habitLogs[key].notes) : ""
       }));
 
       const tasksPayload = (appData.tasks || []).map(t => ({
@@ -1540,7 +1563,8 @@
                                 l.completed === 1;
             remoteHabitLogMap[key] = {
               value: l.value !== undefined ? l.value : "",
-              completed: isCompleted
+              completed: isCompleted,
+              notes: l.notes !== undefined ? String(l.notes) : ""
             };
           });
           appData.habitLogs = { ...remoteHabitLogMap, ...appData.habitLogs };
@@ -2093,7 +2117,7 @@
         const hId = String(habit.id);
         const normType = normalizeHabitType(habit.type);
         const key = `${hId}_${selectedPlannerDate}`;
-        const log = appData.habitLogs[key] || { value: "", completed: false };
+        const log = normalizeHabitLog(appData.habitLogs[key], normType);
 
         const isCompleted = Boolean(log.completed || (normType === 'yesno' && String(log.value).toLowerCase() === 'yes'));
         if (isCompleted) completedCount++;
@@ -2126,16 +2150,14 @@
               <span>${isCompleted ? 'Done ✓' : 'Mark Done'}</span>
             </button>
           `;
-        } else if (normType === 'number') {
+        } else {
           const currentVal = Number(log.value) || 0;
           const targetVal = habit.target || 1;
           const pct = Math.min(100, Math.round((currentVal / targetVal) * 100));
           controlHtml = `
             <div class="space-y-2 w-full sm:w-auto" onclick="event.stopPropagation()">
               <div class="flex items-center gap-2">
-                <button onclick="stepNumericHabit('${hId}', -1, event)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">-</button>
-                <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : 0}" oninput="setNumericHabit('${hId}', this.value)" class="w-16 bg-slate-900 border border-slate-800 rounded-xl py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
-                <button onclick="stepNumericHabit('${hId}', 1, event)" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-90 text-slate-200 font-bold text-base flex items-center justify-center min-h-[42px] min-w-[42px] shadow-sm">+</button>
+                <input type="number" step="any" inputmode="decimal" value="${log.value !== undefined ? log.value : ''}" oninput="setNumericHabit('${hId}', this.value)" class="w-28 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-center text-xs font-mono font-bold text-white focus:outline-none focus:border-amber-500 min-h-[42px]">
                 <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap">/ ${targetVal} ${habit.unit || ''}</span>
               </div>
               <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
@@ -2143,22 +2165,10 @@
               </div>
             </div>
           `;
-        } else {
-          controlHtml = `
-            <div class="flex items-center gap-2 w-full sm:w-80" onclick="event.stopPropagation()">
-              <input type="text" id="desc_input_${hId}" value="${log.value || ''}" 
-                     onchange="saveDescriptiveHabit('${hId}', this.value)" 
-                     onkeydown="if(event.key==='Enter') saveDescriptiveHabit('${hId}', this.value)" 
-                     placeholder="Notes / routine details..." 
-                     class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[42px]">
-              <button onclick="saveDescriptiveFromInput('${hId}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono border transition active:scale-95 min-h-[42px] flex items-center justify-center ${isCompleted ? 'bg-emerald-950 text-emerald-300 border-emerald-700' : 'bg-slate-900 text-slate-300 border-slate-800'}">
-                ${isCompleted ? 'Done ✓' : 'Save'}
-              </button>
-            </div>
-          `;
         }
 
-        const typeLabel = normType === 'yesno' ? 'Yes / No' : (normType === 'number' ? 'Numeric' : 'Notes');
+        const typeLabel = normType === 'yesno' ? 'Yes / No' : 'Numeric';
+        const notesValue = escapeHtmlAttr(log.notes);
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -2186,6 +2196,10 @@
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
+          </div>
+          <div class="mt-2.5" onclick="event.stopPropagation()">
+            <input type="text" value="${notesValue}" oninput="setHabitNote('${hId}', this.value)" placeholder="Add a note for today's log..."
+                   class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 min-h-[40px]">
           </div>
         `;
 
@@ -2446,7 +2460,7 @@
       if (event) event.stopPropagation();
       const hId = String(id);
       const key = `${hId}_${selectedPlannerDate}`;
-      const log = appData.habitLogs[key] || { value: "", completed: false };
+      const log = normalizeHabitLog(appData.habitLogs[key], 'yesno');
       const currentlyDone = Boolean(log.completed || String(log.value).toLowerCase() === 'yes');
       log.completed = !currentlyDone;
       log.value = log.completed ? "Yes" : "No";
@@ -2466,12 +2480,20 @@
       const hId = String(id);
       const habit = appData.habits.find(h => String(h.id) === hId);
       if (!habit) return;
-      const num = parseFloat(val) || 0;
       const key = `${hId}_${selectedPlannerDate}`;
-      appData.habitLogs[key] = {
-        value: num,
-        completed: (num >= (habit.target || 1))
-      };
+      const log = normalizeHabitLog(appData.habitLogs[key], 'number');
+      const rawVal = String(val || '').trim();
+      if (!rawVal) {
+        appData.habitLogs[key] = { ...log, value: "", completed: false };
+      } else {
+        const parsed = Number.parseFloat(rawVal);
+        if (!Number.isFinite(parsed)) return;
+        appData.habitLogs[key] = {
+          ...log,
+          value: rawVal,
+          completed: (parsed >= (habit.target || 1))
+        };
+      }
 
       captureHabitAnalytics(habit);
       requestAnimationFrame(() => {
@@ -2481,49 +2503,14 @@
       syncToRemote();
     }
 
-    function stepNumericHabit(id, step, event) {
+    function setHabitNote(id, text, event) {
       if (event) event.stopPropagation();
       const hId = String(id);
-      const habit = appData.habits.find(h => String(h.id) === hId);
-      if (!habit) return;
       const key = `${hId}_${selectedPlannerDate}`;
-      const log = appData.habitLogs[key] || { value: 0, completed: false };
-      const currentVal = Number(log.value) || 0;
-      const newNum = Math.max(0, currentVal + step);
-      appData.habitLogs[key] = {
-        value: newNum,
-        completed: (newNum >= (habit.target || 1))
-      };
-
-      captureHabitAnalytics(habit);
-      requestAnimationFrame(() => {
-        renderHabits();
-        renderAnalytics();
-      });
-      syncToRemote();
-    }
-
-    function saveDescriptiveFromInput(id) {
-      const hId = String(id);
-      const input = document.getElementById(`desc_input_${hId}`);
-      if (input) saveDescriptiveHabit(hId, input.value);
-    }
-
-    function saveDescriptiveHabit(id, text) {
-      const hId = String(id);
-      const key = `${hId}_${selectedPlannerDate}`;
-      const log = appData.habitLogs[key] || { value: "", completed: false };
-      log.value = text ? text.trim() : "";
-      log.completed = Boolean(log.value);
-      appData.habitLogs[key] = log;
-
       const habit = appData.habits.find(h => String(h.id) === hId);
-      if (habit) captureHabitAnalytics(habit);
-
-      requestAnimationFrame(() => {
-        renderHabits();
-        renderAnalytics();
-      });
+      const normType = habit ? normalizeHabitType(habit.type) : 'yesno';
+      const log = normalizeHabitLog(appData.habitLogs[key], normType);
+      appData.habitLogs[key] = { ...log, notes: String(text || '').trim() };
       syncToRemote();
     }
 
@@ -2553,7 +2540,7 @@
     function handleSaveHabit(e) {
       e.preventDefault();
       const name = document.getElementById('hmName').value.trim();
-      const type = document.getElementById('hmType').value;
+      const type = normalizeHabitType(document.getElementById('hmType').value);
       const target = parseFloat(document.getElementById('hmTarget').value) || 0;
       const unit = document.getElementById('hmUnit').value.trim();
 
